@@ -1,0 +1,13 @@
+# Deshabilitar la navegación de directorios
+Options -Indexes
+
+# Evitar el acceso directo a los directorios específicos
+RewriteEngine On
+
+# Para el directorio /public/sabana/
+RewriteCond %{REQUEST_URI} ^/public/sabana/
+RewriteRule .* - [F]
+
+# Para el directorio /public/pdf/
+RewriteCond %{REQUEST_URI} ^/public/pdf/
+RewriteRule .* - [F]

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  recibos_api:
+    container_name: recibos_api
+    build:
+      context: .
+      dockerfile: Dockerfile-api    
+    ports:
+      - "8085:8000"
+    volumes:
+      - ./src/api:/var/apps
+      - ./storage:/var/apps/pdf/sabana  # Mismo volumen que Nginx
+    environment:
+      - DATABASE_USER
+      - DATABASE_PASS
+      - DATABASE_HOST
+      - DATABASE_PORT
+      - DATABASE
+
+  recibos_front:
+    build:
+      dockerfile: Dockerfile_front
+      context: .
+    container_name: recibos_front
+    volumes:
+      - ./src/front:/app

@@ -1,0 +1,74 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 400px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+    margin: 0 0 20px 0;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn.guardar {
+    background-color: #28a745;
+    /* Verde para guardar */
+    color: white;
+}
+
+.btn.cancelar {
+    background-color: #dc3545;
+    /* Rojo para cancelar */
+    color: white;
+}
+
+.btn.editar-usuario {
+    background-color: #007bff;
+    /* Azul para editar */
+    color: white;
+}
+
+.btn.agregar-usuario {
+    background-color: #007bff;
+    /* Azul para agregar */
+    color: white;
+    margin-bottom: 20px;
+}

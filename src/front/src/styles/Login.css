@@ -1,0 +1,128 @@
+/* Estilos para el modal */
+
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /*  background-color: rgba(0, 0, 0, 0.6); */
+    /* Fondo oscuro translúcido */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.login-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    position: relative;
+}
+
+.login-header {
+    margin-bottom: 2rem;
+}
+
+.login-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.login-header h4 {
+    margin: 0;
+    color: #333;
+}
+
+.info-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #666;
+    text-decoration: none;
+}
+
+.info-icon:hover .tooltip {
+    display: block;
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 0;
+    background-color: #f50a0a;
+    color: #fff;
+    padding: 0.5rem;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+input[type="submit"]:disabled {
+    background-color: #cccccc;
+}
+
+input[type="submit"]:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.error-text {
+    color: red;
+    font-size: 0.9rem;
+}
+
+.footer-text {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 1.5rem;
+}
+
+
+/* Para pantallas más pequeñas */
+
+@media (max-width: 768px) {
+    .login-content {
+        padding: 1.5rem;
+        max-width: 90%;
+    }
+}
+
+
+/* Estilos para el botón de selección del método de login */
+
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

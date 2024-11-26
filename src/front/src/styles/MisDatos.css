@@ -1,0 +1,55 @@
+.credencial-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    /* Eliminamos el color de fondo para dejar transparente */
+}
+
+.credencial {
+    background-color: rgba(255, 255, 255, 0.85);
+    /* Fondo blanco semitransparente */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    /* Agrandamos la credencial */
+    padding: 30px;
+    /* Aumentamos el padding */
+    text-align: center;
+}
+
+.credencial-header {
+    background-color: #04117e;
+    padding: 15px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.credencial-header h2 {
+    color: white;
+    font-size: 20px;
+    /* Hacemos el texto un poco más grande */
+    margin: 0;
+}
+
+.credencial-body p {
+    margin: 12px 0;
+    /* Aumentamos el margen */
+    font-size: 18px;
+    /* Hacemos el texto un poco más grande */
+    color: #333;
+}
+
+.credencial-body strong {
+    color: #555;
+}
+
+.credencial {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.credencial:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}

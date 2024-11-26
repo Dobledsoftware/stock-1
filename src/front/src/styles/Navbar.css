@@ -1,0 +1,73 @@
+/* Navbar.css */
+
+nav.navbar {
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    /* Mantener alineado a la derecha */
+    align-items: center;
+    margin-bottom: 5rem;
+}
+
+.nav-list {
+    list-style-type: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    gap: 1rem;
+    /* Añadir espacio entre los elementos */
+}
+
+.nav-item {
+    margin: 0;
+}
+
+.nav-link {
+    color: white;
+    background-color: #04117e;
+    /* Color de fondo para parecer un botón/cuadro */
+    padding: 0.75rem 1.5rem;
+    /* Ajustar el relleno para hacer que se vea más como botón/cuadro */
+    border-radius: 5px;
+    /* Bordes redondeados */
+    text-decoration: none;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+    /* Transición del color de fondo */
+    display: inline-block;
+    text-align: center;
+}
+
+.nav-link:hover {
+    background-color: #04117e;
+    /* Cambiar color de fondo al pasar el ratón */
+    color: white;
+}
+
+.logout-button {
+    background-color: #082cfc;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    /* Igualar el tamaño con los enlaces */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #e8e518;
+}
+
+
+/* Estilo para el enlace activo */
+
+.nav-link.active {
+    color: white;
+    font-weight: bold;
+    background-color: #140181;
+    /* Resaltar el enlace activo */
+    border-bottom: 2px solid #5fbae9;
+}

@@ -1,0 +1,42 @@
+# Usa una imagen base de PHP con FPM
+FROM php:8.0-fpm
+
+# Instala las extensiones de PHP necesarias y otras dependencias
+RUN apt-get update
+RUN apt-get install -y gpg software-properties-common
+RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
+RUN curl -LsS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup |  bash
+RUN apt-get update && apt-get install -y \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libzip-dev \
+    libxml2-dev \
+    libonig-dev \
+    libgmp-dev \
+    iputils-ping \
+    libmariadb3 \
+    libmariadb-dev \
+    python3.9 \
+    python3-pip \
+    python3-setuptools \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    gd \
+    pdo \
+    mysqli \
+    pdo_mysql \
+    xml \
+    zip \
+    intl \
+    mbstring \
+    gmp
+
+# Instala la librería de Python PyMuPDF
+RUN pip3 install PyMuPDF
+RUN pip3 install mariadb
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
+# Redirige los logs de php-fpm a stdout
+RUN sed -i 's/;error_log = log\/php-fpm.log/error_log = \/proc\/self\/fd\/2/' /usr/local/etc/php-fpm.conf
+RUN sed -i 's/;daemonize = yes/daemonize = no/' /usr/local/etc/php-fpm.conf
