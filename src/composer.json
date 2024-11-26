@@ -1,0 +1,10 @@
+{
+    "repositories": [{
+        "type": "composer",
+        "url": "https://packagist.jp"
+    }],
+    "require": {
+        "setasign/fpdi": "^2.3",
+        "tecnickcom/tcpdf": "^6.4"
+    }
+}

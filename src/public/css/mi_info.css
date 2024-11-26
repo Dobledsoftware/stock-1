@@ -1,0 +1,24 @@
+   /* Estilos para el contenedor */
+   
+   .container2 {
+       max-width: 500px;
+       margin: 50px auto;
+       padding: 20px;
+       background-color: white;
+       border: 1px solid #ccc;
+       border-radius: 5px;
+       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   }
+   /* Estilos para los detalles del usuario */
+   
+   .user-details {
+       margin-bottom: 15px;
+   }
+   
+   .user-details label {
+       font-weight: bold;
+   }
+   
+   .user-details span {
+       margin-left: 10px;
+   }

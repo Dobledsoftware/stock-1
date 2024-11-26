@@ -1,0 +1,163 @@
+/* Estilo del formulario */
+
+#consultaRecibosForm {
+    margin: 20px;
+}
+
+#cuil {
+    padding: 8px;
+    margin-right: 10px;
+    border-radius: 4px;
+    border: none;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+
+/* Estilo de botones de estado */
+
+button.activado {
+    background-color: #28a745;
+    /* Verde */
+    color: white;
+}
+
+button.desactivado {
+    background-color: #dc3545;
+    /* Rojo */
+    color: white;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+
+/* Estilo de la tabla */
+
+#tablaRecibos {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+#tablaRecibos th,
+#tablaRecibos td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#tablaRecibos th {
+    background-color: #f2f2f2;
+}
+
+
+/* Estilo del modal */
+
+.modal {
+    display: none;
+    /* Oculto por defecto */
+    position: fixed;
+    /* Fijo al viewport */
+    z-index: 1;
+    /* Sobre el contenido */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    /* Permitir desplazamiento si es necesario */
+    background-color: rgb(0, 0, 0);
+    /* Fondo negro con opacidad */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Fondo negro con opacidad */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* Centrar el modal */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    /* Ancho del modal */
+    max-width: 600px;
+    /* Ancho máximo del modal */
+    border-radius: 8px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.close:hover {
+    background-color: #0056b3;
+}
+
+
+/* Estilo para el tilde animado */
+
+.tilde {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #28a745;
+    /* Verde */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;
+    background-color: white;
+    position: relative;
+}
+
+.tilde:before {
+    content: '';
+    width: 10px;
+    height: 20px;
+    border: 3px solid #28a745;
+    /* Verde */
+    border-radius: 3px;
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    transform: rotate(45deg);
+}
+
+
+/* Animación del tilde */
+
+.tilde {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}

@@ -1,0 +1,49 @@
+.navbar-brand img {
+    max-width: 100%;
+    height: auto;
+}
+
+.navbar-nav .nav-item .nav-link {
+    color: black;
+    /* Color de texto para los enlaces */
+    font-weight: bold;
+    /* Estilo de texto */
+    transition: transform 0.3s ease;
+    /* Transición suave para el cambio de escala */
+}
+
+.navbar-nav .nav-item {
+    width: 15vh;
+}
+
+.navbar-nav .nav-item .nav-link:hover {
+    color: rgb(10, 12, 12);
+    /*Cambiarcoloralpasarelmouse*/
+    transform: scale(1.1);
+    /*Escalaeltextoalpasarelmouse*/
+    -webkit-transform: scale(1.1);
+    -moz-transform: scale(1.1);
+    -ms-transform: scale(1.1);
+    -o-transform: scale(1.1);
+    -webkit-transform: scale(1.1);
+}
+
+.navbar-toggler {
+    border-color: #fff;
+    /* Color del botón del menú en estado normal */
+    transition: border-color 0.3s ease;
+    /* Transición suave para el cambio de borde */
+}
+
+.navbar-toggler-icon {
+    background-color: #fff;
+    /* Color del icono del botón del menú */
+}
+
+.navbar-toggler:hover,
+.navbar-toggler-icon:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    /* Borde semi-transparente al pasar el mouse */
+    background-color: rgba(255, 255, 255, 0.5);
+    /* Fondo semi-transparente al pasar el mouse */
+}

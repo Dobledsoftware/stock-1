@@ -1,0 +1,109 @@
+body {
+    /*     background-color: blue; */
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #077ff7;
+    /* Fondo por defecto */
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    /* Ocupa la altura completa de la pantalla */
+    overflow: hidden;
+    /* Evita el scroll si no se necesita */
+    /* Fondo blanco */
+}
+
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(rgba(9, 44, 247, 0.5), rgba(131, 236, 250, 0.5));
+    /*    Gradiente de fondo */
+    z-index: -1;
+    /* Asegúrate de que el pseudo-elemento esté detrás del contenido */
+}
+
+.container {
+    width: 100%;
+    /* height: 100vh; */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.navbar {
+    width: 85%;
+    margin: auto;
+    padding: 30px 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.logo {
+    width: 100px;
+    cursor: pointer;
+}
+
+.navbar ul li {
+    list-style: none;
+    display: inline-block;
+    margin: 0 20px;
+    position: relative;
+}
+
+.navbar ul li a {
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+    font-family: Roboto, "sans-serif";
+    font-size: 1.2rem;
+}
+
+.navbar ul li::before {
+    content: "";
+    height: 3px;
+    width: 0%;
+    background: yellowgreen;
+    position: absolute;
+    left: 0;
+    bottom: -12px;
+    transition: 0.4s ease-out;
+}
+
+.navbar ul li:hover::before {
+    width: 100%;
+}
+
+footer {
+    background-color: BLACK;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 6vh;
+}
+
+
+/* Estilos para los enlaces del footer */
+
+footer a {
+    color: white;
+    text-decoration: none;
+    margin: 0 0.8vh;
+}
+
+
+/* Estilos para los enlaces del footer al pasar el mouse */
+
+footer a:hover {
+    text-decoration: underline;
+}
