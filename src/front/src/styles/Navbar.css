@@ -1,0 +1,131 @@
+/* Navbar.css */
+
+
+/* Asegúrate de usar box-sizing */
+
+* {
+    box-sizing: border-box;
+}
+
+
+/* Ajuste del logo */
+
+.logo {
+    width: 40px;
+    /* Disminuir el tamaño del logo 
+    height: auto;*/
+    /* Mantiene la proporción */
+    padding-left: 0.5%;
+}
+
+
+/* Contenedor de la barra de navegación */
+
+nav.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    /* Reducir padding en la barra de navegación */
+    height: auto;
+}
+
+
+/* Lista de navegación centrada */
+
+.nav-list {
+    list-style-type: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    gap: 0.5rem;
+    /* Reducir espacio entre los elementos */
+    flex-grow: 1;
+    justify-content: center;
+    /* Centra la lista de navegación */
+}
+
+.nav-item {
+    margin: 0;
+}
+
+.nav-link {
+    color: white;
+    background-color: #31a9c0;
+    /* Color de fondo */
+    padding: 0.3rem 0.8rem;
+    /* Reducir el padding aún más */
+    border-radius: 4px;
+    /* Bordes redondeados */
+    text-decoration: none;
+    font-size: 0.9rem;
+    /* Ajustar el tamaño de la fuente */
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.nav-link:hover {
+    background-color: #0f93b4;
+    /* Color de fondo al pasar el ratón */
+}
+
+
+/* Botón de Logout */
+
+.logout-button {
+    background-color: #082cfc;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    /* Reducir el padding */
+    border-radius: 4px;
+    /* Bordes redondeados */
+    cursor: pointer;
+    font-size: 0.9rem;
+    /* Ajustar el tamaño de la fuente */
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #e8e518;
+    /* Color de fondo al pasar el ratón */
+}
+
+
+/* Estilo para el enlace activo */
+
+.nav-link.active {
+    font-weight: bold;
+    background-color: #0f93b4;
+    /* Resaltar el enlace activo */
+    border-bottom: 2px solid #5fbae9;
+}
+
+
+/* Media Queries para hacer la barra más responsiva */
+
+@media screen and (max-width: 768px) {
+    .nav-link {
+        font-size: 0.8rem;
+        /* Reducir aún más el tamaño de la fuente en pantallas pequeñas */
+        padding: 0.2rem 0.6rem;
+        /* Ajustar el padding */
+    }
+    .logout-button {
+        padding: 0.2rem 0.6rem;
+        /* Igualar el tamaño con los enlaces */
+        font-size: 0.8rem;
+        /* Ajustar el tamaño de la fuente */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .nav-list {
+        flex-direction: column;
+        /* Cambiar a una columna en pantallas muy pequeñas */
+        align-items: center;
+        /* Centrar los elementos */
+    }
+}

@@ -1,0 +1,121 @@
+.carga-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.upload-button {
+    display: inline-block;
+    padding: 10px 20px;
+    /* Espaciado interno */
+    margin-top: 10px;
+    /* Espacio superior */
+    background-color: #007bff;
+    /* Color de fondo azul */
+    color: white;
+    /* Color del texto */
+    border: none;
+    /* Sin borde */
+    border-radius: 5px;
+    /* Bordes redondeados */
+    font-size: 16px;
+    /* Tamaño de fuente */
+    cursor: pointer;
+    /* Cambia el cursor al pasar el mouse */
+    transition: background-color 0.3s ease;
+    /* Transición suave para el color de fondo */
+}
+
+.upload-button:hover {
+    background-color: #0056b3;
+    /* Color de fondo más oscuro al pasar el mouse */
+}
+
+.upload-button:disabled {
+    background-color: #cccccc;
+    /* Color gris para el botón deshabilitado */
+    cursor: not-allowed;
+    /* Cursor de no permitido */
+}
+
+.validation-data {
+    margin-top: 20px;
+}
+
+.validation-data table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.validation-data th,
+.validation-data td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.process-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    /* Espaciado interno */
+    background-color: #28a745;
+    /* Color verde */
+    color: white;
+    /* Color del texto */
+    border: none;
+    /* Sin borde */
+    border-radius: 5px;
+    /* Bordes redondeados */
+    font-size: 16px;
+    /* Tamaño de fuente */
+    cursor: pointer;
+    /* Cambia el cursor al pasar el mouse */
+    transition: background-color 0.3s ease;
+    /* Transición suave para el color de fondo */
+}
+
+.process-button:hover {
+    background-color: #218838;
+    /* Color verde más oscuro al pasar el mouse */
+}
+
+.success-message {
+    margin-top: 20px;
+    color: #28a745;
+    /* Color verde */
+    font-size: 18px;
+    /* Tamaño de fuente */
+    text-align: center;
+}
+
+.form-container {
+    display: flex;
+    align-items: center;
+    /* Centra verticalmente los elementos */
+    justify-content: space-between;
+    /* Espacia los elementos */
+    margin-top: 10px;
+    /* Espacio superior */
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    /* Centra verticalmente el nombre del archivo y el botón */
+}
+
+.file-name {
+    margin-right: 20px;
+    /* Espacio entre el nombre del archivo y el botón */
+    font-weight: bold;
+    /* Resalta el nombre del archivo */
+}

@@ -1,0 +1,237 @@
+.recibos-container {
+    background-size: 60%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #f9f9f9;
+    height: auto;
+    margin: 10px auto; /* Ajuste para centrar el contenedor */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    color: #04117e;
+}
+
+.display {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-size: 18px;
+    text-align: left;
+    background-color: white;
+    table-layout: fixed; /* Asegura que las columnas mantengan un tamaño fijo */
+}
+
+.display th,
+.display td {
+    padding: 12px 15px;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Para truncar el texto que no cabe */
+    white-space: nowrap; /* Evita que el texto se divida en múltiples líneas */
+}
+
+.display th {
+    background-color: #0983e7;
+    color: white;
+    font-weight: bold;
+}
+
+.display tr:nth-child(even) {
+    background-color: #f9f9f9; /* Color para filas alternas */
+}
+
+.display tr:hover {
+    background-color: #f1f1f1; /* Color al pasar el mouse sobre la fila */
+}
+
+/* Estilo del botón dentro de la tabla */
+.btn-detalles {
+    background-color: #04117e;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.btn-detalles:hover {
+    background-color: #0983e7; /* Color al pasar el mouse */
+}
+
+/* Espaciado para el botón de agregar recibo */
+.agregar-recibo {
+    margin-bottom: 15px;
+}
+
+/* Anchos de las columnas */
+.display th:nth-child(1) {
+    width: 10%;
+}
+.display th:nth-child(2) {
+    width: 20%;
+}
+.display th:nth-child(3) {
+    width: 20%;
+}
+.display th:nth-child(4),
+.display th:nth-child(5),
+.display th:nth-child(6) {
+    width: 15%;
+}
+
+/* Estilos para el modal */
+.modal {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    animation: modalFadeIn 0.3s forwards;
+}
+
+.modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal.closing {
+    animation: modalFadeOut 0.3s forwards;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+}
+
+/* Animaciones para el modal */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+}
+
+/* Media Queries para hacer la página responsive */
+@media screen and (max-width: 1024px) {
+    .display {
+        font-size: 16px;
+    }
+    .btn-detalles {
+        padding: 8px 12px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .recibos-container {
+        padding: 15px;
+        background-size: 40%;
+    }
+    .display {
+        font-size: 14px;
+        display: block; /* Permite que la tabla se despliegue en lugar de ajustarse */
+        overflow-x: auto; /* Habilita el desplazamiento horizontal */
+        white-space: nowrap; /* Evita que se rompa el texto en múltiples líneas */
+    }
+    .btn-detalles {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+    .modal-content {
+        width: 90%;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .recibos-container {
+        padding: 10px;
+        background-size: 30%;
+    }
+    .display th,
+    .display td {
+        padding: 8px 10px; /* Ajuste de padding para dispositivos pequeños */
+    }
+    .btn-detalles {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    .agregar-recibo {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    .modal-content {
+        width: 95%;
+    }
+    /* Estilo tipo tarjetas (stacked) para pantallas muy pequeñas */
+    .display th,
+    .display td {
+        display: block; /* Cambia a block para el apilamiento */
+        width: 100%; /* Ocupa todo el ancho */
+        text-align: right; /* Alineación a la derecha */
+        padding: 8px;
+    }
+    .display th::after {
+        content: ':'; /* Añade dos puntos después del encabezado */
+        margin-left: 5px;
+    }
+    .display tr {
+        display: block; /* Apila las filas */
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ddd; /* Añade un borde entre las filas */
+    }
+    .display td {
+        text-align: left; /* Alineación a la izquierda para los datos */
+        padding-left: 50%; /* Espaciado a la izquierda */
+        position: relative;
+    }
+    .display td:before {
+        content: attr(data-label); /* Usa el atributo data-label para el encabezado */
+        position: absolute;
+        left: 0;
+        top: 0;
+        padding: 8px;
+        font-weight: bold;
+        background-color: #f1f1f1; /* Fondo para la etiqueta */
+        width: 45%; /* Ancho para el texto de la etiqueta */
+        text-align: left; /* Alineación a la izquierda para la etiqueta */
+    }
+}

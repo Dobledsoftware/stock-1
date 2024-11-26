@@ -1,0 +1,203 @@
+.usuarios-container {
+    background-color: #ffffff;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin: 10px auto;
+    max-width: 1200px;
+    padding: 40px;
+    color: #04117e;
+    font-family: 'Roboto', sans-serif;
+    overflow: auto;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    /* Alinea verticalmente el botón y el logo */
+    justify-content: space-between;
+    /* Distribuye el espacio entre el botón y el logo */
+    margin-bottom: 20px;
+    /* Espacio entre la cabecera y la tabla */
+}
+
+.logo-container {
+    flex: 1;
+    /* Permite que el logo ocupe el espacio disponible */
+    text-align: center;
+    /* Centra el logo dentro del contenedor */
+    margin-bottom: 20px;
+    /* Espacio inferior para separación */
+}
+
+.agregar-usuario {
+    margin-bottom: 15px;
+}
+
+#usuariosTable {
+    width: 100%;
+    /* Asegura que la tabla ocupe el 100% del contenedor */
+}
+
+#usuariosTable td {
+    padding: 4px 8px;
+    /* Ajusta el padding para reducir la altura */
+    font-size: 14px;
+    /* Opcional: ajustar el tamaño de la fuente para más compacidad */
+}
+
+#usuariosTable_wrapper {
+    max-height: 500px;
+    /* Limita la altura del contenedor */
+    overflow-y: auto;
+    /* Permite el desplazamiento vertical */
+}
+
+.display {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    background-color: #fff;
+    text-align: left;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+}
+
+.display th,
+.display td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.display th {
+    background-color: #04117e;
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.display tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.display tr:hover {
+    background-color: #f1f1f1;
+}
+
+.btn {
+    background-color: #04117e;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 20px;
+    /* Espacio entre los botones */
+}
+
+.btn:hover {
+    background-color: #04117e;
+}
+
+
+/* Column widths */
+
+.display th:nth-child(1) {
+    width: 10%;
+}
+
+.display th:nth-child(2) {
+    width: 20%;
+}
+
+.display th:nth-child(3) {
+    width: 20%;
+}
+
+.display th:nth-child(4) {
+    width: 15%;
+}
+
+.display th:nth-child(5) {
+    width: 25%;
+}
+
+
+/* Media Queries para pantallas más pequeñas */
+
+@media screen and (max-width: 1024px) {
+    .display {
+        font-size: 16px;
+    }
+    .btn {
+        padding: 8px 12px;
+    }
+    /* Ajustar el ancho de las columnas */
+    .display th:nth-child(1) {
+        width: 15%;
+    }
+    .display th:nth-child(2) {
+        width: 20%;
+    }
+    .display th:nth-child(3) {
+        width: 20%;
+    }
+    .display th:nth-child(4) {
+        width: 15%;
+    }
+    .display th:nth-child(5) {
+        width: 25%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .usuarios-container {
+        padding: 10px;
+    }
+    .display {
+        font-size: 14px;
+    }
+    .btn {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+    /* Hacer la tabla scrollable en dispositivos móviles */
+    .display {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .usuarios-container {
+        padding: 5px;
+    }
+    .display th,
+    .display td {
+        padding: 8px 10px;
+    }
+    .btn {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    .agregar-usuario {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+}
+
+.logo2 {
+    width: 100%;
+    /* Ajusta el tamaño a lo necesario */
+    max-width: 200px;
+    /* Puedes ajustar el tamaño máximo */
+    height: auto;
+    /* Mantiene la proporción del logo */
+}

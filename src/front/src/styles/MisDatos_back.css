@@ -1,0 +1,93 @@
+.credencial-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    /* Eliminamos el valor fijo para hacer el diseño más flexible */
+    padding: 10px;
+    /* Agregamos padding para que no esté tan pegado */
+    background-color: #f9f9f9;
+    /* Fondo neutro para mejor visualización en la tabla */
+}
+
+.credencial {
+    background-color: rgba(255, 255, 255, 0.95);
+    /* Fondo más claro */
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    /* Hacemos que ocupe todo el ancho de la celda */
+    max-width: 300px;
+    /* Limitamos el tamaño máximo para que no sea demasiado grande */
+    padding: 20px;
+    /* Reducimos el padding para hacerla más compacta */
+    margin: 0 auto;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Suavizamos la transición */
+}
+
+.credencial-header {
+    background-color: #04117e;
+    padding: 10px;
+    /* Reducimos el padding */
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    margin-bottom: 15px;
+    /* Reducimos el espacio inferior */
+}
+
+.credencial-header h2 {
+    color: white;
+    font-size: 16px;
+    /* Hacemos el texto más pequeño */
+    margin: 0;
+    line-height: 1.2;
+    /* Ajustamos la altura de la línea */
+}
+
+.credencial-body p {
+    margin: 8px 0;
+    /* Reducimos los márgenes */
+    font-size: 14px;
+    /* Reducimos el tamaño de la fuente */
+    color: #333;
+}
+
+.credencial-body strong {
+    color: #555;
+    font-weight: 600;
+    /* Aumentamos el peso para darle más relevancia */
+}
+
+.credencial:hover {
+    transform: translateY(-3px);
+    /* Reducimos el efecto hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media screen and (max-width: 768px) {
+    .credencial {
+        max-width: 90%;
+        /* Aumentamos el ancho máximo en pantallas más pequeñas */
+        padding: 15px;
+        /* Ajustamos el padding */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .credencial {
+        max-width: 100%;
+        /* En pantallas muy pequeñas, que ocupe todo el ancho */
+        padding: 10px;
+        /* Ajustamos el padding */
+    }
+    .credencial-header h2 {
+        font-size: 14px;
+        /* Ajustamos el tamaño del texto en pantallas pequeñas */
+    }
+    .credencial-body p {
+        font-size: 12px;
+        /* Ajustamos el texto para pantallas pequeñas */
+    }
+}
