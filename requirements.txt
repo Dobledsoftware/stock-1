@@ -1,16 +1,16 @@
-aiomysql==0.2.0
-mariadb==1.1.10
+asyncpg==0.27.0  # Reemplazo para aiomysql
+psycopg2-binary==2.9.7  # Cliente para PostgreSQL
 fastapi==0.111.0
 fastapi-cli==0.0.4
 pydantic==2.7.4
 uvicorn==0.30.1
 ldap3==2.9.1
-redis==5.0.7    
+redis==5.0.7
 bcrypt==4.1.3
 passlib==1.7.4
-aiohttp==3.8.5  # Esta es la versión más reciente hasta ahora (puedes ajustarla si es necesario)
-pikepdf==8.0.0 
+aiohttp==3.8.5  # Para solicitudes HTTP asíncronas
+pikepdf==8.0.0
 cryptography==41.0.2
 pymupdf==1.22.5
-PyJWT==2.7.0  # Asegúrate de usar la versión más reciente disponible
-requests==2.31.0  # Añade requests a tu archivo requirements.txt
+PyJWT==2.7.0
+requests==2.31.0

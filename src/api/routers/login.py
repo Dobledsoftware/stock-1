@@ -1,143 +1,87 @@
 from routers import conexion
-import requests
-import sqlite3
 import jwt
-from .recibo import Recibo # Importa Clase Recibo
-
 import datetime
+
 class Login(conexion.Conexion):
-
-    # @staticmethod
-    # def login_fallido(cuil, password, tipo_error):
-    #     print("entro a login fallido")
-    #     conexion = Login().conectar()
-    #     try:
-    #         cursor = conexion.cursor()
-    #         # Obtener la IP de forma segura, manejando posibles errores
-    #         try:
-    #             ip_address = requests.get('https://api64.ipify.org?format=json').json().get('ip', 'IP no disponible')
-    #         except requests.RequestException:
-    #             ip_address = 'IP no disponible'
-    #         # User agent y navegador
-    #         user_agent = "Mozilla/5.0"
-    #         host_name = "localhost"
-    #         navegador = Login.determine_browser(user_agent)
-
-    #         # Obtener datos geográficos (manejo de errores)
-    #         token = '5b5c1330a20d77'
-    #         city, country, google_maps_link = Login.get_geo_data(ip_address, token)
-            
-    #         # Insertar el intento de login fallido en la base de datos
-    #         sql = """
-    #             INSERT INTO t_logins_fallidos (usuario, pass, navegador, ip_adress, tipo_error, host_name, google_maps)
-    #             VALUES (%s, %s, %s, %s, %s, %s, %s)
-    #         """
-    #         cursor.execute(sql, (cuil, password, navegador, ip_address, tipo_error, host_name, google_maps_link))
-    #         conexion.commit()
-    #     finally:
-    #         cursor.close()
-    #         conexion.close()
-
     @staticmethod
     async def login_usuario(cuil, password):
         conexion = Login().conectar()
+        cursor = None
+        print("ENTRO esta son las variables: " + cuil + password)
         try:
-            if conexion:
-                print("Conexión a la base de datos establecida.")
-            else:
-                print("No se pudo establecer la conexión a la base de datos.")
-            
             cursor = conexion.cursor()
+            # Se seleccionan todas las columnas de la tabla usuarios
             sql = "SELECT * FROM usuarios WHERE cuil = %s"
             
             cursor.execute(sql, (cuil,))
-            user_db = cursor.fetchone()             
-            if user_db:
-                # Accede a los elementos usando índices
-                id_usuario = user_db[0]
-                cuil = user_db[1]
-                nombre = user_db[2]
-                apellido = user_db[3]
-                rol = user_db[4] 
-                legajo = user_db[5]
-                email = user_db[6]
-                validacionCorreo = user_db[7]   # Supongamos que el CUIL está en la posición 0
-                user_pass = user_db[8]
-                proceso_cambio_pass = user_db[9]  # Supongamos que la contraseña está en la posición 6
-                habilitado = user_db[10]
-                codigo_validacion_correo = user_db[11]          
-                if password == user_pass and habilitado == 1:
-                    #Login.registrar_login(cuil, user_db[1])  # Supongamos que el id_usuario está en la posición 1
-                    if email and validacionCorreo == 1:
-                        if proceso_cambio_pass == 1:
-                            return {"message": "Proceso de cambio de contraseña activo", "code": 4}                                                 
+            user_db = cursor.fetchone()            
+            columns = [desc[0] for desc in cursor.description]  # cursor.description contiene los nombres de las columnas                
+                # Convertimos la fila de datos en un diccionario, con los nombres de las columnas como claves
+            user_data = dict(zip(columns, user_db))
+
+                # Ahora podemos acceder a los datos por nombre de columna, de forma segura
+            print("Datos obtenidos de la base de datos:", user_data)
+
+                # Si los datos esperados existen, podemos trabajar con ellos
+            if 'id_usuario' in user_data and 'nombre' in user_data:
+                    id_usuario = user_data['id_usuario']
+                    nombre = user_data['nombre']
+                    apellido = user_data.get('apellido', 'No disponible')  # Valor por defecto si no existe
+                    email = user_data.get('email', 'No disponible')
+                    pass_db = user_data.get('user_pass', 'No disponible')
+                    rol = user_data.get('rol', 'No disponible')
+                    fecha_creacion = user_data.get('fecha_creacion', 'No disponible')
+                    habilitado = user_data.get('habilitado', False)
+                    validacion_correo = user_data.get('validacion_correo', False)
+                    cuil_db = user_data.get('cuil_db', 'No disponible')
+            else:
+                    print("Faltan algunos datos esperados.")
+                    return {"message": "Error en los datos de la base de datos", "code": 6}
+         
+
+                # Validación de la contraseña y habilitación del usuario
+            print("************"+password+"***"+pass_db)
+
+            if password == pass_db:
+                    # Validamos el correo si está habilitado
+                    
                         auth_token = create_jwt_token(id_usuario, rol, cuil)
-                        recibos = Recibo()  # Crea una instancia de la clase TodosLosRecibos.
-                        response_recibo = await recibos.todosLosRecibos(cuil)
                         return {
                             "id_usuario": id_usuario,
                             "rol": rol,
                             "cuil": cuil,
-                            "nombre":nombre,
-                            "apellido":apellido,
-                            "legajo":legajo,
+                            "nombre": nombre,
+                            "apellido": apellido,
                             "email": email,
-                            "auth_token": auth_token,
-                            "recibos": response_recibo 
-                        }
-                    elif validacionCorreo == 0:
-                        print("Validación de correo requerida.")
-                        return {"message": "Validación de correo requerida", "code": 2}
-                    elif not email:
-                        print("El correo electrónico no está declarado.")
-                        return {"message": "Debe declarar su correo electrónico", "code": 3}
-                else:
-                    #Login.login_fallido(cuil, password, "Usuario o contraseña incorrectos")
-                    return {"message": "Usuario o contraseña incorrectos", "code": 0}
+                            "auth_token": auth_token
+                        }              
+                        
+            else:
+                print("No se encontró el usuario.")
+                return {"message": "Usuario no encontrado", "code": 1}
+
+        except Exception as e:
+            print(f"Error en el proceso de login: {e}")
+            return {"message": "Error interno", "code": 5}
+
         finally:
-            cursor.close()
-            conexion.close()
-
-    #@staticmethod
-    # def registrar_login(cuil, id_usuario):
-    #     print("Registrar registrar")
-    #     conexion = Login().conectar()
-    #     try:
-    #         cursor = conexion.cursor()
-    #         sql = """
-    #             INSERT INTO logins (usuario, id_usuario)
-    #             VALUES (%s, %s)
-    #         """
-    #         cursor.execute(sql, (cuil, id_usuario))
-    #         conexion.commit()
-    #     finally:
-    #         cursor.close()
-    #         conexion.close()s
-    
-    # @staticmethod
-    # def determine_browser(user_agent):
-    #     if 'Opera' in user_agent or 'OPR' in user_agent:
-    #         return 'Opera'
-    #     elif 'Chrome' in user_agent:
-    #         return 'Google Chrome'
-    #     elif 'Firefox' in user_agent:
-    #         return 'Mozilla Firefox'
-    #     elif 'Edge' in user_agent:
-    #         return 'Microsoft Edge'
-    #     elif 'Safari' in user_agent:
-    #         return 'Safari'
-    #     else:
-    #         return 'Otro navegador'
+            if cursor:
+                cursor.close()
+            if conexion:
+                conexion.close()
 
 
 
-SECRET_KEY = "Recibos"  # Cambia esto por una clave secreta segura
+
+SECRET_KEY = "Recibos"
+
+
 def create_jwt_token(user_id, rol, cuil):
     payload = {
         "user_id": user_id,
         "rol": rol,
         "cuil": cuil,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=10)  # El token expira en 10 minutos
-    }    
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+    }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     return token

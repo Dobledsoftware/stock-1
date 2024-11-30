@@ -3,27 +3,17 @@ from typing import Optional
 
 
 #valido datos de entrada*****************************************************************
-class Tabla_recibos_request(BaseModel):
-    cuil: str
-    periodo: str
 
-class TodosLosRecibos_request(BaseModel):
-    cuil: str
-    
-class DesactivaRecibos_request(BaseModel):
-    id_recibo: str
-
-class ActivaRecibos_request(BaseModel):
-    id_recibo: str
-
-
-class GetRol_request(BaseModel):
-    token: str
-
-class Recibo_request(BaseModel):
+class Producto_request(BaseModel):
     accion: str
-    id_recibo: str
-
+    id_producto: Optional[int] = None
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    precio: Optional[float] = None
+    stock_actual: Optional[int] = None
+    proveedor_id: Optional[int] = None
+    estado: Optional[str] = None
+    
 class UsuarioLogin_request(BaseModel):
     cuil: str
     password: str
@@ -74,43 +64,11 @@ class Usuario_request(BaseModel):
                     raise ValueError("El email es obligatorio para esta acción.")
         return values  
     
-class Download_Request(BaseModel):
-    id_recibo: str
-
 #valido datos de salida*********************************************************************
 
-    
-class TablaRecibos_response(BaseModel):
-    descripcion_archivo: str
-    periodo:str
-
-         
-class TodosLosRecibos_response(BaseModel):
-    id_recibo:str
-    periodo:str  
-    fecha_subida:str
-    descripcion_archivo:str
-    estado:str
-    
-class ActivaRecibos_response(BaseModel):
+class Producto_response(BaseModel):
     estado: str
-
-class DesactivaRecibos_response(BaseModel):
-    estado: str
-
-# class GetRol_response(BaseModel):
-#     cuil: str
-#     rol: str
-#     auth_token: str
-#     nombre: str
-#     apellido: str
-#     legajo: str
-#     email: str
-#     token: str  # Campo 'token' requerido
-
-class Recibo_response(BaseModel):
-    estado: str
-    id_recibo: str
+    id_productto: str
 
 
 class Usuario_response(BaseModel):
@@ -130,10 +88,3 @@ class TodosLosUsuarios_response(BaseModel):
     legajo:str
     email:str
     cuil:str 
-
-
-class Download_response(BaseModel):
-    id_recibo:str
-    path: str
-    filename: str
-    media_type: str

@@ -1,13 +1,12 @@
 from fastapi import FastAPI
-from routers import recibos
+from routers import stockEndPoint
 from fastapi.middleware.cors import CORSMiddleware #libreria para mejorar seguridad CORS
 app = FastAPI()
-app.include_router(recibos.router)
+app.include_router(stockEndPoint.router)
 #app.include_router(recibos.router)
 #app.include_router(recibos.router)
 # Solo importa la aplicación desde el paquete api
 # Prueba para estas cosas!
-
 # Lista de orígenes permitidos
 origins = [
     "*"
