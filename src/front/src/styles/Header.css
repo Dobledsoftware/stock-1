@@ -1,0 +1,65 @@
+/* Estilos para el Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    width: 70px;  /* Tamaño fijo del logo */
+    height: auto; /* Mantener la proporción */
+}
+
+.usuario {
+    display: flex;
+    align-items: center;
+}
+
+.usuario-boton {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.usuario-icono {
+    margin-left: 5px;
+}
+
+.dropdown {
+    position: absolute;
+    right: 20px;
+    top: 40px;
+    background-color: #f4f4f4;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 150px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.dropdown ul li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown ul li:hover {
+    background-color: #ddd;
+}

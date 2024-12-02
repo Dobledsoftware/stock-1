@@ -1,0 +1,108 @@
+/* General styles for the form container */
+.agregar-producto-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f9f9f9;
+    padding: 20px;
+}
+
+.agregar-producto-content {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+/* Input and Textarea styling */
+form input[type="text"],
+form input[type="number"],
+form textarea,
+form select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: #555;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+form textarea {
+    resize: none;
+    height: 100px;
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
+    border-color: #007BFF;
+    outline: none;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+}
+
+/* Button styling */
+form input[type="submit"] {
+    width: 100%;
+    background-color: #007BFF;
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+form input[type="submit"]:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Error message styling */
+.error-text {
+    display: block;
+    margin-bottom: 15px;
+    color: #d9534f;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .agregar-producto-content {
+        padding: 15px;
+    }
+
+    h4 {
+        font-size: 1.25rem;
+    }
+
+    form input[type="text"],
+    form input[type="number"],
+    form textarea,
+    form select,
+    form input[type="submit"] {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+}
