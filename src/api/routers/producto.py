@@ -17,7 +17,7 @@ class Producto(conexion.Conexion):
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
-            sql = "SELECT estado FROM productos WHERE id_recibo = %s"
+            sql = "SELECT estado FROM productos WHERE id_producto = %s"
             cursor.execute(sql, (self._id_recibo,))
             result = cursor.fetchone()
             print ("muestro el objeti cargado",self._id_recibo)
@@ -96,7 +96,7 @@ class Producto(conexion.Conexion):
             cursor = conexion.cursor(cursor_factory=DictCursor)
             sql = """
             SELECT 
-                p.id AS producto_id, 
+                p.id_producto AS producto_id, 
                 p.nombre AS producto_nombre, 
                 p.descripcion AS producto_descripcion, 
                 p.precio AS producto_precio, 
@@ -170,7 +170,7 @@ class Producto(conexion.Conexion):
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
-            sql = "DELETE FROM productos WHERE id = %s;"
+            sql = "DELETE FROM productos WHERE id_producto = %s;"
             cursor.execute(sql, (producto_id,))
             conexion.commit()
 
