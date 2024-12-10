@@ -1,17 +1,38 @@
 from pydantic import BaseModel,EmailStr, validator,Field,root_validator
 from typing import Optional
+from enum import Enum
 
 
 #valido datos de entrada*****************************************************************
-
+class AccionStock(str, Enum):
+    incrementar = "incrementar"
+    disminuir = "disminuir"
 class Producto_request(BaseModel):
     accion: str
     id_producto: Optional[int] = None
+    marca: Optional[str] = None
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
     precio: Optional[float] = None
     stock_actual: Optional[int] = None
+    stock_minimo: Optional[int] = None
+    stock_maximo: Optional[int] = None
     proveedor_id: Optional[int] = None
+    estado: Optional[str] = None
+    codigo_barras: Optional[str] = None
+    forceAdd: Optional[bool] = False  # Si el usuario desea agregar el producto aunque ya exista
+    accion_stock: Optional[AccionStock] = None  # Opción de incremento/disminución de stock
+    # Definir un Enum para limitar las opciones válidas
+
+
+
+
+class Proveedor_request(BaseModel):
+    accion: str
+    id_proveedor: Optional[int] = None
+    nombre: Optional[str] = None
+    descropcion: Optional[str] = None
+    descripcion: Optional[str] = None 
     estado: Optional[str] = None
     
 class UsuarioLogin_request(BaseModel):
@@ -69,6 +90,11 @@ class Usuario_request(BaseModel):
 class Producto_response(BaseModel):
     estado: str
     id_productto: str
+
+class Proveedor_response(BaseModel):
+    estado: str
+    id_proveedor: str
+
 
 
 class Usuario_response(BaseModel):

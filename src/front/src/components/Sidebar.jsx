@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaBox, FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa'; // Importa los iconos de react-icons
+import { FaHome, FaBox, FaShoppingCart } from 'react-icons/fa';
 import '../styles/Sidebar.css';
 
 const Sidebar = ({ sidebarVisible, toggleSidebar }) => {
@@ -8,9 +8,9 @@ const Sidebar = ({ sidebarVisible, toggleSidebar }) => {
         <div className={`sidebar ${sidebarVisible ? 'sidebar-visible' : 'sidebar-hidden'}`}>
             <button className="sidebar-toggle" onClick={toggleSidebar}>
                 {sidebarVisible ? (
-                    <FaTimes /> // Icono para ocultar el sidebar
+                    <span>&lt;</span> // Icono para ocultar
                 ) : (
-                    <FaBars /> // Icono para mostrar el sidebar
+                    <span>&gt;</span> // Icono para mostrar
                 )}
             </button>
             <div className="sidebar-nav">
@@ -18,19 +18,19 @@ const Sidebar = ({ sidebarVisible, toggleSidebar }) => {
                     <li>
                         <Link to="/ventas">
                             <FaShoppingCart />
-                            {sidebarVisible && <span>Ventas</span>} {/* Mostrar solo el texto cuando el sidebar está visible */}
+                            {sidebarVisible && <span>Ventas</span>}
                         </Link>
                     </li>
                     <li>
                         <Link to="/stock">
                             <FaBox />
-                            {sidebarVisible && <span>Stock</span>} {/* Mostrar solo el texto cuando el sidebar está visible */}
+                            {sidebarVisible && <span>Stock</span>}
                         </Link>
                     </li>
                     <li>
                         <Link to="/home">
                             <FaHome />
-                            {sidebarVisible && <span>Home</span>} {/* Mostrar solo el texto cuando el sidebar está visible */}
+                            {sidebarVisible && <span>Home</span>}
                         </Link>
                     </li>
                 </ul>

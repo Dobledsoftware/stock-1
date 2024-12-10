@@ -1,6 +1,7 @@
 /* styles.css */
 body {
     font-family: Arial, sans-serif;
+   
 }
 
 .header {
@@ -8,6 +9,7 @@ body {
     color: white;
     padding: 10px;
     text-align: center;
+    
 }
 
 .sidebar {
@@ -44,6 +46,7 @@ body {
     display: flex;
     width: 100%;
     padding: 20px;
+    
 }
 
 .half {
@@ -51,86 +54,11 @@ body {
     padding: 20px;
 }
 
-.agregar-producto form {
-    display: flex;
-    flex-direction: column;
-}
 
-.agregar-producto input {
-    margin-bottom: 10px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
 
-.agregar-producto button {
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
 
-.agregar-producto button:hover {
-    background-color: #45a049;
-}
 
-.tabla-productos table {
-    width: 100%;
-    border-collapse: collapse;
-}
 
-.tabla-productos table th, .tabla-productos table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-.tabla-productos table th {
-    background-color: #f4f4f4;
-}
-/* Main layout styles */
-.main-layout {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .content-container {
-    display: flex;
-    height: calc(100vh - 60px); /* Ajusta la altura para que no sobrepase la pantalla */
-  }
-  
-  .sidebar {
-    width: 250px;
-    background-color: #2c3e50;
-    color: white;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-  
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .sidebar ul li {
-    margin: 15px 0;
-  }
-  
-  .sidebar ul li a {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-  }
-  
-  .content {
-    flex-grow: 1;
-    padding: 20px;
-    background-color: #ecf0f1;
-    overflow-y: auto;
-  }
-  
   header {
     background-color: #34495e;
     color: white;
@@ -185,16 +113,7 @@ body {
     box-sizing: border-box;
   }
   
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-  }
   
-  .table th, .table td {
-    padding: 10px;
-    text-align: left;
-    border: 1px solid #ddd;
-  }
   
   .btn {
     padding: 5px 10px;
@@ -204,3 +123,33 @@ body {
     border: none;
   }
   
+  .content {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+}
+
+.half {
+    width: 48%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+/* Tabla de productos */
+/* .icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  margin: 0 5px;
+  color: #555;
+  font-size: 1.2rem;
+}
+
+.icon-button:hover {
+  color: #007bff;
+}
+ */

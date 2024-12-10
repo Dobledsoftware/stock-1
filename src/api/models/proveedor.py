@@ -3,9 +3,9 @@ from routers import conexion
 from psycopg2.extras import DictCursor
 
 
-class Producto(conexion.Conexion):
-    def __init__(self, id_recibo=None):
-        self._id_recibo = id_recibo
+class Proveedor(conexion.Conexion):
+    def __init__(self, id_proveedor=None):
+        self._id_proveedor = id_proveedor
         self._estado = None  # Inicialmente no conocemos el estado
 
     @property
@@ -13,82 +13,60 @@ class Producto(conexion.Conexion):
         return self._estado
 ################################# CARGA DATOS DEL OBJETO ############################################################
     async def cargar_estado(self):
-        """Método para cargar el estado actual del recibo desde la base de datos."""
+        """Método para cargar el estado actual del proveedor desde la base de datos."""
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
-            sql = "SELECT estado FROM productos WHERE id_producto = %s"
-            cursor.execute(sql, (self._id_recibo,))
+            sql = "SELECT estado FROM proveedores WHERE id_proveedor = %s"
+            cursor.execute(sql, (self._id_proveedor,))
             result = cursor.fetchone()
-            print ("muestro el objeti cargado",self._id_recibo)
+            print ("muestro el objeto cargado",self._id_proveedor)
             if result:
                 self._estado = result[0]
             else:
-                raise ValueError(f"Recibo con id {self._id_recibo} no encontrado.")
+                raise ValueError(f"Recibo con id {self._id_proveedor} no encontrado.")
         finally:
             conexion.close()
 ##################################### CAMBIA ESTADO AL OBJETO #################################################
     async def cambiar_estado(self, nuevo_estado):
-        """Método para cambiar el estado del recibo."""
+        """Método para cambiar el estado del proveedor."""
         if nuevo_estado not in ['Activado', 'Desactivado']:
             raise ValueError("El estado debe ser 'Activado' o 'Desactivado'.")
 
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
-            # Actualiza el estado del recibo
+            # Actualiza el estado del proveedor
             sql_update = """
-            UPDATE recibos
+            UPDATE proveedores
             SET estado = %s
-            WHERE id_recibo = %s
+            WHERE id_proveedor = %s
             """
-            cursor.execute(sql_update, (nuevo_estado, self._id_recibo))
+            cursor.execute(sql_update, (nuevo_estado, self._id_proveedor))
             conexion.commit()
 
             # Verifica si realmente se cambió el estado
-            sql_select = "SELECT estado FROM recibos WHERE id_recibo = %s"
-            cursor.execute(sql_select, (self._id_recibo,))
+            sql_select = "SELECT estado FROM proveedores WHERE id_proveedor = %s"
+            cursor.execute(sql_select, (self._id_proveedor,))
             result = cursor.fetchone()
 
             if result and result[0] == nuevo_estado:
                 self._estado = nuevo_estado
-                return {"status": "success", "estado": nuevo_estado, "id_recibo": self._id_recibo}
+                return {"status": "success", "estado": nuevo_estado, "id_proveedor": self._id_proveedor}
             else:
                 # Si no coincide el nuevo estado, se devuelve un error
                 return {"status": "error", "message": f"Error al actualizar el estado a {nuevo_estado}."}
         finally:
             conexion.close()
 
-################################################################################################
-    async def download(self):
-        """Método para obtener la URL (ruta relativa) del archivo del recibo a partir de su ID."""
-        conexion = self.conectar()
-        try:
-            cursor = conexion.cursor()
-
-            # Verifica que el ID del recibo sea correcto (tipo y contenido)
-            print(f"Valor de id_recibo en la consulta: {self._id_recibo} (tipo: {type(self._id_recibo)})")
-
-            # Corregir la consulta SQL para que seleccione el archivo donde id_recibo coincida
-            sql = "SELECT archivo FROM recibos WHERE id_recibo = %s and estado='Activado'"
-            cursor.execute(sql, (self._id_recibo,))
-
-            # Depurar el resultado de la consulta
-            result = cursor.fetchone()
-            if result:
-                return result[0]  # Retornar la ruta relativa del archivo
-            else:
-                # Lanzar excepción si no se encuentra el registro
-                raise ValueError(f"Recibo con id_reciboxxxxx='{self._id_recibo}' no encontrado.")
-        finally:
-            conexion.close()
+   
    
 
 ################################################################################################
 
 
     async def verTodosLosProductos(self, estado):
-        """Obtiene todos los productos según su estado."""
+        """Obtiene todos los proveedors según su estado."""
         conexion = self.conectar()
 
         try:
@@ -96,25 +74,21 @@ class Producto(conexion.Conexion):
             cursor = conexion.cursor(cursor_factory=DictCursor)
             sql = """
             SELECT 
-                p.id_producto AS producto_id, 
-                p.nombre AS producto_nombre, 
-                p.descripcion AS producto_descripcion, 
-                p.precio AS producto_precio, 
-                p.stock_actual AS producto_stock, 
-                p.fecha_creacion AS producto_fecha_creacion,
-                p.fecha_ultima_modificacion AS producto_fecha_modificacion,
-                p.estado AS producto_estado,
+                p.id_proveedor AS proveedor_id, 
+                p.nombre AS proveedor_nombre, 
+                p.descripcion AS proveedor_descripcion, 
+                p.precio AS proveedor_precio, 
+                p.stock_actual AS proveedor_stock, 
+                p.fecha_creacion AS proveedor_fecha_creacion,
+                p.fecha_ultima_modificacion AS proveedor_fecha_modificacion,
+                p.estado AS proveedor_estado,
                 pr.id AS proveedor_id, 
                 pr.nombre AS proveedor_nombre, 
                 pr.direccion AS proveedor_direccion,
                 pr.telefono AS proveedor_telefono,
                 pr.correo_contacto AS proveedor_correo
             FROM 
-                productos p
-            JOIN 
-                proveedores pr 
-            ON 
-                p.proveedor_id = pr.id
+                proveedors p            
             WHERE 
                 p.estado = %s
             ORDER BY 
@@ -135,27 +109,27 @@ class Producto(conexion.Conexion):
 #################################################################################
             
 
-    async def agregar_producto(self, nombre, descripcion, precio, stock_actual, proveedor_id, estado="Activo"):
-        """Método para agregar un nuevo producto a la base de datos."""
+    async def agregar_proveedor(self, nombre, descripcion, precio, stock_actual, proveedor_id, estado="Activo"):
+        """Método para agregar un nuevo proveedor a la base de datos."""
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
             sql = """
-            INSERT INTO productos (nombre, descripcion, precio, stock_actual, proveedor_id, estado, fecha_creacion)
+            INSERT INTO proveedors (nombre, descripcion, precio, stock_actual, proveedor_id, estado, fecha_creacion)
             VALUES (%s, %s, %s, %s, %s, %s, NOW())
-            RETURNING id;
+            RETURNING id_proveedor;
             """
             cursor.execute(sql, (nombre, descripcion, precio, stock_actual, proveedor_id, estado))
-            producto_id = cursor.fetchone()[0]
+            proveedor_id = cursor.fetchone()[0]
             conexion.commit()
 
             return {
                 "status": "success",
-                "producto_id": producto_id,
+                "proveedor_id": proveedor_id,
                 "message": f"Producto '{nombre}' agregado exitosamente."
             }
         except Exception as e:
-            print(f"Error al agregar el producto: {e}")
+            print(f"Error al agregar el proveedor: {e}")
             conexion.rollback()
             return {"status": "error", "message": str(e)}
         finally:
@@ -165,27 +139,27 @@ class Producto(conexion.Conexion):
 ######################################################################################################
             
 
-    async def eliminar_producto(self, producto_id):
-        """Método para eliminar un producto de la base de datos."""
+    async def eliminar_proveedor(self, proveedor_id):
+        """Método para eliminar un proveedor de la base de datos."""
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
-            sql = "DELETE FROM productos WHERE id_producto = %s;"
-            cursor.execute(sql, (producto_id,))
+            sql = "DELETE FROM proveedores WHERE id_proveedor = %s;"
+            cursor.execute(sql, (proveedor_id,))
             conexion.commit()
 
             if cursor.rowcount > 0:
                 return {
                     "status": "success",
-                    "message": f"Producto con ID {producto_id} eliminado exitosamente."
+                    "message": f"Producto con ID {proveedor_id} eliminado exitosamente."
                 }
             else:
                 return {
                     "status": "error",
-                    "message": f"No se encontró ningún producto con ID {producto_id}."
+                    "message": f"No se encontró ningún proveedor con ID {proveedor_id}."
                 }
         except Exception as e:
-            print(f"Error al eliminar el producto: {e}")
+            print(f"Error al eliminar el proveedor: {e}")
             conexion.rollback()
             return {"status": "error", "message": str(e)}
         finally:

@@ -1,108 +1,79 @@
-/* General styles for the form container */
-.agregar-producto-wrapper {
+DarioDavidServer-UBU-1/* Estilos del modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-color: #f9f9f9;
-    padding: 20px;
+    z-index: 1000;
 }
 
-.agregar-producto-content {
-    background: #fff;
+/* Estilos del contenido del modal */
+.modal-content {
+    background-color: white;
+    padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 500px;
-    padding: 20px;
-    box-sizing: border-box;
+    width: 400px;
+    max-width: 100%;
+    position: relative;
 }
 
-h4 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #333;
-    text-align: center;
-}
-
-/* Input and Textarea styling */
-form input[type="text"],
-form input[type="number"],
-form textarea,
-form select {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-    color: #555;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease;
-}
-
-form textarea {
-    resize: none;
-    height: 100px;
-}
-
-form input:focus,
-form textarea:focus,
-form select:focus {
-    border-color: #007BFF;
-    outline: none;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
-}
-
-/* Button styling */
-form input[type="submit"] {
-    width: 100%;
-    background-color: #007BFF;
-    color: #fff;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
+/* Estilo del botón de cierre */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    color: #aaa;
 }
 
-form input[type="submit"]:hover {
-    background-color: #0056b3;
+.close:hover {
+    color: black;
 }
 
-form input[type="submit"]:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+/* Estilos del formulario */
+input[type="text"],
+input[type="number"],
+input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border: 1px solid #ddd;
 }
 
-/* Error message styling */
-.error-text {
-    display: block;
-    margin-bottom: 15px;
-    color: #d9534f;
-    font-size: 0.9rem;
-    text-align: center;
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .agregar-producto-content {
-        padding: 15px;
-    }
+button:hover {
+    background-color: #218838;
+}
 
-    h4 {
-        font-size: 1.25rem;
-    }
+.file-input-container {
+    margin-top: 10px;
+}
 
-    form input[type="text"],
-    form input[type="number"],
-    form textarea,
-    form select,
-    form input[type="submit"] {
-        font-size: 0.9rem;
-        padding: 10px;
-    }
+.mensaje-exito {
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.mensaje-error {
+    color: red;
+    font-weight: bold;
+    margin-top: 10px;
 }
