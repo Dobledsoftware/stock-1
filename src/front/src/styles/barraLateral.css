@@ -1,109 +1,141 @@
-/* Contenedor principal de la barra lateral */
+/* barraLateral.css */
 .barra-lateral {
-  width: 240px;
+  background-color: #ffffff;
+  width: 250px;
   height: 100vh;
-  background-color: #2c3e50;
-  color: #ecf0f1;
-  display: flex;
-  flex-direction: column;
   position: fixed;
   top: 0;
   left: 0;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Logo o encabezado */
-.logo {
   padding: 20px;
-  text-align: center;
-  font-size: 1.5em;
-  font-weight: bold;
-  background-color: #1abc9c;
-  color: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease-in-out;
 }
 
-/* Navegación */
-nav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-nav ul li {
+.barra-lateral nav ul {
+  list-style-type: none;
+  padding-left: 0;
   margin: 0;
 }
 
-/* Estilo general de los botones */
-.menu-desplegable {
+.barra-lateral nav li {
+  margin: 10px 0;
+}
+
+/* Estilo para el menú desplegable */
+.barra-lateral .menu-desplegable {
   display: flex;
   align-items: center;
-  padding: 15px 20px;
-  color: #ecf0f1;
+  color: #333333;
   text-decoration: none;
-  font-size: 1em;
-  border: none;
-  background: none;
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  margin: 8px 0;
+  border-radius: 8px;
   cursor: pointer;
-  width: 100%;
-  text-align: left;
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.3s ease, padding-left 0.3s ease;
 }
 
-/* Hover */
-.menu-desplegable:hover {
-  background-color: #34495e;
-  color: #1abc9c;
+/* Alineación del ícono junto al texto */
+.barra-lateral .menu-desplegable i {
+  margin-right: 10px; /* Espacio entre el icono y el texto */
+  font-size: 1.3rem; /* Ajusta el tamaño del icono */
 }
 
-/* Botón activo (desplegado) */
-.menu-desplegable.activo {
-  background-color: #34495e;
-  color: blue;
-}
-
-/* Iconos */
-.icono {
-  margin-right: 10px;
-}
-
-/* Dropdown */
-.dropdown {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-}
-
-.dropdown li {
-  padding: 10px;
-}
-
-.dropdown li a {
-  text-decoration: none;
-  color: #333;
-}
-
-.dropdown li:hover {
-  background-color: #eee;
-}
-
-/* Botón de salir */
-.boton-salir {
-  display: flex;
-  align-items: center;
-  padding: 15px 20px;
-  color: #ecf0f1;
-  text-decoration: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.boton-salir:hover {
-  background-color: #e74c3c;
+/* Hover del menú desplegable */
+.barra-lateral .menu-desplegable:hover,
+.barra-lateral .menu-desplegable:focus {
+  background-color: #041cf7;
   color: white;
+  padding-left: 20px;
+}
+
+/* Submenú (dropdown) oculto por defecto */
+.barra-lateral .dropdown {
+  list-style-type: none;
+  padding-left: 20px;
+  margin: 5px 0 0 0;
+  display: none;  /* Submenú oculto */
+}
+
+.barra-lateral .dropdown li {
+  margin: 5px 0;
+}
+
+.barra-lateral .dropdown li a {
+  color: #555;
+  font-size: 0.95rem;
+  padding: 8px 0;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover de los elementos dentro del submenú */
+.barra-lateral .dropdown li a:hover {
+  background-color: #041cf7;
+  color: white;
+}
+
+/* Estilo para el ítem activo */
+.barra-lateral nav li.active .menu-desplegable {
+  background-color: #041cf7;  /* Color de fondo para el ítem seleccionado */
+  color: white;
+  padding-left: 20px; /* Mantiene el desplazamiento del padding */
+}
+
+/* Evita que el fondo cambie al pasar el mouse sobre el ítem seleccionado */
+.barra-lateral nav li.active .menu-desplegable:hover {
+  background-color: #041cf7; /* Se mantiene el mismo color al hacer hover */
+  padding-left: 20px; /* Mantiene el padding de hover */
+}
+
+/* Muestra el submenú solo si el ítem es activo */
+.barra-lateral nav li.active .dropdown {
+  display: block;  /* Muestra el submenú cuando el ítem está activo */
+}
+
+/* Estilo para los enlaces NavLink activos (enlace seleccionado) */
+.barra-lateral nav .dropdown a.active {
+  color: #041cf7;  /* Color del enlace activo */
+  font-weight: bold;  /* Resalta el texto */
+  background-color: white;  /* Fondo blanco para el enlace activo */
+  padding-left: 25px;  /* Ajuste de padding para destacar el enlace */
+  text-decoration: none;  /* Elimina el subrayado */
+}
+
+/* Estilo para los enlaces en el menú normal (no activo) */
+.barra-lateral nav .dropdown a {
+  color: #555;  /* Color de texto predeterminado */
+  text-decoration: none;  /* Elimina el subrayado */
+  padding: 8px 0;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover de los enlaces en el submenú */
+.barra-lateral nav .dropdown a:hover {
+  background-color: #041cf7;  /* Fondo al pasar el ratón */
+  color: white;  /* Cambia el color del texto al pasar el ratón */
+  padding-left: 30px; /* Desplazamiento adicional al pasar el ratón */
+}
+
+/* Nueva regla para cambiar el color de fondo del menú desplegable activo */
+.barra-lateral nav li.active > .menu-desplegable {
+  background-color: #0056b3;  /* Color de fondo del ítem activo */
+  color: white;
+}
+
+/* Icono de salir */
+.boton-salir {
+  background-color: transparent;
+  border: none;
+  color: #333;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.boton-salir i {
+  margin-right: 10px;  /* Espacio entre el icono y el texto */
+  font-size: 1.3rem;  /* Ajusta el tamaño del icono */
 }

@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import '../styles/barraLateral.css';
 
 const BarraLateral = () => {
-  // Estados para controlar los menús desplegables
-  const [perfilVisible, setPerfilVisible] = useState(false);
-  const [stockVisible, setStockVisible] = useState(false);
-  const [ventasVisible, setVentasVisible] = useState(false);
+  const [activeItem, setActiveItem] = useState(null);
+  const location = useLocation();
 
   // Simulando datos del usuario
   const usuario = {
@@ -13,17 +12,9 @@ const BarraLateral = () => {
     correo: "juan.perez@example.com",
   };
 
-  // Maneja la visibilidad de los menús desplegables
-  const togglePerfil = () => {
-    setPerfilVisible(!perfilVisible);
-  };
-
-  const toggleStock = () => {
-    setStockVisible(!stockVisible);
-  };
-
-  const toggleVentas = () => {
-    setVentasVisible(!ventasVisible);
+  // Función para manejar la selección de un ítem
+  const handleActiveItem = (item) => {
+    setActiveItem(activeItem === item ? null : item);  // Alterna entre activo y no activo
   };
 
   return (
@@ -33,51 +24,59 @@ const BarraLateral = () => {
       </div>
       <nav>
         <ul>
-          <li>
-            <div className="menu-desplegable" onClick={toggleStock}>
-              <span>Stock</span>
-              {stockVisible && (
-                <ul className="dropdown">
-                  <li><Link to="/inventario">Inventario</Link></li>
-                  <li><Link to="/movimientos">Movimientos</Link></li>
-                  <li><Link to="/ajustes">Ajustes</Link></li>
-                </ul>
-              )}
+          <li className={activeItem === "stock" || location.pathname.includes("/inventario") || location.pathname.includes("/almacen") || location.pathname.includes("/panel") ? "active" : ""}>
+            <div className="menu-desplegable" onClick={() => handleActiveItem("stock")}>
+            <i className="icono fa fa-archive"></i> Stock
+
+
             </div>
+            {activeItem === "stock" && (
+              <ul className="dropdown">
+                <li><NavLink to="/stock">Inventario</NavLink></li>
+                <li><NavLink to="/almacen">Almacén</NavLink></li>
+                <li><NavLink to="/panel">Panel</NavLink></li>
+              </ul>
+            )}
           </li>
-          <li>
-            <div className="menu-desplegable" onClick={toggleVentas}>
-              <span>Ventas</span>
-              {ventasVisible && (
-                <ul className="dropdown">
-                  <li><Link to="/ventas">Ventas</Link></li>
-                  <li><Link to="/devoluciones">Devoluciones</Link></li>
-                  <li><Link to="/consultas">Consultas</Link></li>
-                </ul>
-              )}
+          <li className={activeItem === "ventas" || location.pathname.includes("/nueva-venta") || location.pathname.includes("/historico-ventas") ? "active" : ""}>
+            <div className="menu-desplegable" onClick={() => handleActiveItem("ventas")}>
+              <i className="icono fa fa-shopping-cart"></i> Ventas
             </div>
+            {activeItem === "ventas" && (
+              <ul className="dropdown">
+                <li><NavLink to="/ventas">Nueva Venta</NavLink></li>
+                <li><NavLink to="/historico-ventas">Histórico de Ventas</NavLink></li>
+              </ul>
+            )}
           </li>
-          <li>
-            <Link to="/administracion">
-              <span>Administración</span>
-            </Link>
-          </li>
-          <li>
-            <div className="perfil" onClick={togglePerfil}>
-              <span>Perfil</span>
-              {perfilVisible && (
-                <ul className="dropdown">
-                  <li><strong>{usuario.nombre}</strong></li>
-                  <li>{usuario.correo}</li>
-                  <li><Link to="/editar-perfil">Editar Perfil</Link></li>
-                  <li><Link to="/cambiar-contrasena">Cambiar Contraseña</Link></li>
-                </ul>
-              )}
+          <li className={activeItem === "administracion" || location.pathname.includes("/usuarios") || location.pathname.includes("/configuracion") ? "active" : ""}>
+            <div className="menu-desplegable" onClick={() => handleActiveItem("administracion")}>
+            <i className="icono fa fa-cogs"></i> Administración
+
             </div>
+            {activeItem === "administracion" && (
+              <ul className="dropdown">
+                <li><NavLink to="/administracion">Usuarios</NavLink></li>
+                <li><NavLink to="/configuracion">Configuración</NavLink></li>
+              </ul>
+            )}
+          </li>
+          <li className={activeItem === "perfil" || location.pathname.includes("/editar-perfil") || location.pathname.includes("/cambiar-contrasena") ? "active" : ""}>
+            <div className="perfil" onClick={() => handleActiveItem("perfil")}>
+              <i className="icono fa fa-user"></i> Perfil
+            </div>
+                {activeItem === "perfil" && (
+                <ul className="dropdown">
+                {/* <li><strong>{usuario.nombre}</strong></li>
+                <li>{usuario.correo}</li> */}
+                <li><NavLink to="/editar-perfil">Editar Perfil</NavLink></li>
+                <li><NavLink to="/cambiar-contrasena">Cambiar Contraseña</NavLink></li>
+              </ul>
+            )}
           </li>
           <li>
             <button className="boton-salir">
-              <span>Salir</span>
+              <i className="icono fa fa-sign-out-alt"></i> Salir
             </button>
           </li>
         </ul>

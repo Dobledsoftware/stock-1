@@ -26,7 +26,7 @@ const TablaProductos = () => {
           },
           body: JSON.stringify({
             accion: "verTodosLosProductos",
-            estado: "true",
+            estado: "Activo",
           }),
         }
       );
@@ -60,6 +60,7 @@ const TablaProductos = () => {
             <th>Precio</th>
             <th>Stock</th>
             <th>Proveedor</th>
+            <th>Marca</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -72,6 +73,7 @@ const TablaProductos = () => {
               <td>{producto.producto_precio}</td>
               <td>{producto.producto_stock}</td>
               <td>{producto.proveedor_nombre}</td>
+              <td>{producto.producto_marca}</td>
               <td>
                 {/* Ícono para editar */}
                 <button

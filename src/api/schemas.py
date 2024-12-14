@@ -17,7 +17,7 @@ class Producto_request(BaseModel):
     stock_actual: Optional[int] = None
     stock_minimo: Optional[int] = None
     stock_maximo: Optional[int] = None
-    proveedor_id: Optional[int] = None
+    id_proveedor: Optional[int] = None
     estado: Optional[str] = None
     codigo_barras: Optional[str] = None
     forceAdd: Optional[bool] = False  # Si el usuario desea agregar el producto aunque ya exista
@@ -31,9 +31,20 @@ class Proveedor_request(BaseModel):
     accion: str
     id_proveedor: Optional[int] = None
     nombre: Optional[str] = None
-    descropcion: Optional[str] = None
-    descripcion: Optional[str] = None 
+    direccion: Optional[str] = None
+    telefono: Optional[str] = None 
+    correo_contacto: Optional[str] = None 
     estado: Optional[str] = None
+
+
+class Categoria_request(BaseModel):
+    accion: str
+    id_categoria: Optional[int] = None
+    descripcion: Optional[str] = None
+    estado:Optional[bool] = True 
+    observaciones: Optional[str] = None
+
+
     
 class UsuarioLogin_request(BaseModel):
     cuil: str

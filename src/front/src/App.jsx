@@ -4,6 +4,9 @@ import BarraLateral from './components/BarraLateral';
 import Stock from './pantallas/Stock';
 import Ventas from './pantallas/Ventas';
 import Administracion from './pantallas/Administracion';
+import Panel from './pantallas/Panel';
+import 'font-awesome/css/font-awesome.min.css';
+
 
 
 import styled from 'styled-components';
@@ -38,6 +41,7 @@ function App() {
           </Leyenda>*/}
           <Routes>
             <Route path="/stock" element={<Stock />} />
+            <Route path="/panel" element={<Panel />} />
             <Route path="/ventas" element={<Ventas />} />
             <Route path="/administracion" element={<Administracion />} />
           </Routes>

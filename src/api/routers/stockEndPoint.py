@@ -3,13 +3,13 @@ from fastapi.responses import JSONResponse, Response  # Importa JSONResponse par
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
 from typing import Optional
 #importa las clases
-from models.todosLosUsuarios import TodosLosUsuarios
 from models.producto import Producto # Importa Clase Producto
 from models.proveedor import Proveedor # Importa Clase Proveedor
+from models.producto_categoria import ProductoCategoria # Importa Clase productocategoria
 
 from models.login import Login,create_jwt_token # Importa Clase Recibo
 #importa los schemas
-from schemas import TodosLosUsuarios_response,TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Producto_response,Proveedor_request
+from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request
 import logging
 import json
 import os
@@ -17,6 +17,12 @@ import subprocess
 import calendar
 from datetime import datetime
 #from fastapi.responses import FileResponse
+
+  
+import psycopg2
+from psycopg2.extras import DictCursor
+import random
+import string
 
 
 
@@ -89,7 +95,7 @@ async def todosLosUsuarios(request: TodosLosUsuarios_request):
 ################################################################################################
 
 @router.post("/producto")
-async def manejar_producto(request: Producto_request):
+async def producto(request: Producto_request):
     """
     Endpoint para manejar productos.
     Soporta las acciones: 
@@ -106,16 +112,19 @@ async def manejar_producto(request: Producto_request):
         ```json
             
         {
-        "accion": "agregarProducto",
-        "marca": "Acme",
-        "nombre": "Cigarros",
-        "descripcion": "Cigarros electronicos",
-        "precio": 50,
-        "stock_actual": 0,
-        "stock_minimo": 0,
-        "stock_maximo": 0,
-        "proveedor_id": 2,
-        "codigo_barras": "xxxxxxxxx"
+            "accion": "agregarProducto",
+            "marca": "aaaaaaaaaaaaaaaa",
+            "nombre": "aaaaaaaaaaaaaaaaa",
+            "descripcion": "aaaaaaaaaaaaaaaaaa",
+            "precio": 11111,
+            "stock_actual": 1,
+            "stock_minimo": 11,
+            "stock_maximo": 111,
+            "id_proveedor": 1,
+            "codigo_barras": "string",
+            "forceAdd": false,
+            "accion_stock": "incrementar",
+            "id_productoo" : "2"
         }
         ```
 
@@ -132,14 +141,10 @@ async def manejar_producto(request: Producto_request):
 
     - **buscarPorCodigoDeBarras**: Búsqueda rápida por código de barras.
 
-
-
-
-
     """
     try:
         
-        # Ver todos los productos
+# Ver todos los productos
         if request.accion == "verTodosLosProductos":
             if request.estado is None:
                 raise HTTPException(
@@ -148,8 +153,8 @@ async def manejar_producto(request: Producto_request):
             producto = Producto()
             response = await producto.verTodosLosProductos(request.estado)
             return {"data": response}
-
-        # Buscar producto por código de barras
+        
+# Buscar producto por código de barras
         elif request.accion == "buscarPorCodigoDeBarras":
             if not request.codigo_barras:
                 raise HTTPException(
@@ -165,7 +170,8 @@ async def manejar_producto(request: Producto_request):
                 )
             return {"data": response}
 
-        # Agregar nuevo producto 
+# Agregar nuevo producto 
+        
         elif request.accion == "agregarProducto":
                 
             """
@@ -173,12 +179,11 @@ async def manejar_producto(request: Producto_request):
             Verifica si ya existe un producto con el mismo código de barras y maneja el caso de forceAdd.
             """
             # Verificamos si todos los parámetros necesarios están presentes
-            if not all([request.marca, request.nombre, request.descripcion, request.precio, request.stock_actual, request.stock_minimo, request.stock_maximo, request.proveedor_id, request.codigo_barras]):
+            if not all([request.marca, request.nombre, request.descripcion, request.precio, request.stock_actual, request.stock_minimo, request.stock_maximo, request.id_proveedor, request.codigo_barras]):
                 raise HTTPException(
                     status_code=400,
-                    detail="Todos los parámetros 'marca', 'nombre', 'descripcion', 'precio', 'stock_actual', 'stock_minimo', 'stock_maximo', 'proveedor_id' y 'codigo_barras' son requeridos."
+                    detail="Todos los parámetros 'marca', 'nombre', 'descripcion', 'precio', 'stock_actual', 'stock_minimo', 'stock_maximo', 'id_proveedor' y 'codigo_barras' son requeridos."
                 )
-
             # Crear una instancia de Producto
             producto = Producto()
 
@@ -191,15 +196,16 @@ async def manejar_producto(request: Producto_request):
                 request.stock_actual,
                 request.stock_minimo,
                 request.stock_maximo,
-                request.proveedor_id,
+                request.id_proveedor,
                 request.codigo_barras,
                 request.forceAdd,
-                request.accion_stock
+                request.accion_stock,
+                request.id_producto
             )
 
             return response
 
-        # Eliminar producto
+# Eliminar producto
         elif request.accion == "eliminarProducto":
             if request.id_producto is None:
                 raise HTTPException(
@@ -207,7 +213,7 @@ async def manejar_producto(request: Producto_request):
                     detail="El parámetro 'id_producto' es requerido para esta acción."
                 )
             producto = Producto()
-            response = await producto.eliminar_producto(request.id_producto)
+            response = await producto.eliminarProducto(request.id_producto)
             return response
 
         else:
@@ -221,16 +227,21 @@ async def manejar_producto(request: Producto_request):
         # Manejo de errores inesperados
         raise HTTPException(status_code=500, detail=str(e))
     
-################################################################################
+    
+    
+######################/login##########################################################
 
 @router.post("/login")        
 async def login(usuario: UsuarioLogin_request, response: Response):
     """
     Endpoint login
+    ```json
         {
         "cuil": "string",
         "password": "string"
         }
+    ```
+
     """
     resultado = await Login.login_usuario(usuario.cuil, usuario.password)    
     # Verificamos si el resultado es un diccionario
@@ -324,7 +335,7 @@ async def login(usuario: UsuarioLogin_request, response: Response):
 #             raise HTTPException(status_code=400, detail="Acción no válida. Las acciones permitidas son: 'insert', 'update', 'activar', 'desactivar'.")
 #     except Exception as e:
 #         raise HTTPException(status_code=400, detail=str(e))
-###########################################################################################################################
+###############################manejar_proveedor############################################################################################
 
 
 
@@ -333,56 +344,116 @@ async def manejar_proveedor(request: Proveedor_request):
     """
     Endpoint para manejar provedores.
     Soporta las acciones: 
-    - 'verTodosLosProveedores': Ver todos los Proveedores según su estado.
+    - 'verTodosLosProveedores': 
+
+    ```Jsoon
+        {
+        "accion": "verTodosLosProveedores",
+        "estado": "Activo"
+        }
+    ```
+
     - 'agregarProveedor': Agregar un nuevo Proveedor.
-    - 'eliminarProveedor': Eliminar un Proveedor por ID.
+         ```Jsoon
+        {        
+        "accion": "agregarProveedor",
+        "nombre": "Nuevo prove",
+        "direccion": "el picaflor sn",
+        "telefono": "1168462777",
+        "correo_contacto": "nuevoProveeeeee@provee"
+        }
+        
+        ```    
+    
     - 'editarProveedor' : Editar un Proveedor por ID.
+
+        ```Jsoon
+            {
+            "accion": "editarProveedor",
+            "id_proveedor": 8,
+            "nombre": "aaaaaa",
+            "direccion":"aaaaaaaaaa",
+            "telefono":" 5555555555555",
+            "correo_contacto": "aaaaaaaa@AAAAAA.com"
+            }
+        
+        ```
+    
+    - 'en caso de error al editar devuelve':
+
+        ```Jsoon
+            {
+            "status": "warning",
+            "message": "No se realizaron cambios, ya que los valores proporcionados son los mismos."
+            }
+
+        ```
+
     """
     try:
-        # Ver todos los proveedores
+# Ver todos los proveedores
         if request.accion == "verTodosLosProveedores":
             if request.estado is None:
                 raise HTTPException(
                     status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
-                )
-            proveedor = Proveedor()
-            response = await proveedor .verTodosLosProductos(request.estado)
+                )            
+            proveedor = Proveedor()            
+            response = await proveedor.verTodosLosProveedores(request.estado)
             return {"data": response}
 
-        # Agregar nuevo proveedor
+# Agregar nuevo proveedor
         elif request.accion == "agregarProveedor":
-            if not all([request.nombre, request.descripcion, request.precio, request.stock_actual, request.proveedor_id]):
+            if not all([request.nombre, request.direccion,  request.telefono, request.correo_contacto]):
                 raise HTTPException(
                     status_code=400,
-                    detail="Todos los parámetros 'nombre', 'descripcion', 'precio', 'stock_actual' y 'proveedor_id' son requeridos."
+                    detail="Todos los parámetros 'nombre', 'direccion', 'telefono', 'correo_contacto'."
                 )
             proveedor = Proveedor()
-            response = await proveedor.agregar_proveedor(
-                request.nombre, request.descripcion, request.precio, request.stock_actual, request.proveedor_id
+            response = await proveedor.agregarProveedor(               
+            request.nombre,       
+            request.direccion,    
+            request.telefono,     
+            request.correo_contacto 
             )
             return response
 
         # Eliminar proveedor
         elif request.accion == "eliminarProveedor":
-            if request.id_producto is None:
+            if request.id_proveedor is None:
                 raise HTTPException(
                     status_code=400,
                     detail="El parámetro 'id_proveedor' es requerido para esta acción."
                 )
             proveedor = Proveedor()
-            response = await proveedor.eliminar_producto(request.id_producto)
+            response = await proveedor.eliminarProveedor(request.id_proveedor)
             return response
 
-        # Editar proveedor
+# Editar proveedor
         elif request.accion == "editarProveedor":
-            if request.id_producto is None:
+            print("entro a editar")
+            if request.id_proveedor is None:
                 raise HTTPException(
                     status_code=400,
                     detail="El parámetro 'id_proveedor' es requerido para esta acción."
                 )
+            
+            # Asegurarse de que los parámetros a editar estén definidos, si se requieren.
+            if not any([request.nombre, request.direccion, request.telefono, request.correo_contacto]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Al menos uno de los parámetros 'nombre', 'direccion', 'telefono', 'correo_contacto' debe ser proporcionado para editar."
+                )
+
             proveedor = Proveedor()
-            response = await proveedor.eliminar_producto(request.id_producto)
+            response = await proveedor.editarProveedor(
+                request.id_proveedor,  # El ID del proveedor que se va a editar
+                request.nombre,        # El nuevo nombre, si se proporciona
+                request.direccion,     # La nueva dirección, si se proporciona
+                request.telefono,      # El nuevo teléfono, si se proporciona
+                request.correo_contacto  # El nuevo correo, si se proporciona
+            )
             return response
+        
 
         else:
             # Acción no válida
@@ -392,4 +463,135 @@ async def manejar_proveedor(request: Proveedor_request):
             )
     except Exception as e:
         # Manejo de errores inesperados
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+# ########################script automatico###############################################
+# @router.post("/insertar-registros")
+# async def insertar_registros():
+#         """Endpoint para insertar 50,000 registros en la base de datos."""
+#         resultado = insertar_registros()
+#         return resultado    
+#         # Configuración de conexión a la base de datos
+# DB_CONFIG = {
+#             "user": "postgres",
+#             "password": "DarioDavid-bd-UBU-1",
+#             "host": "92.112.176.191",
+#             "port": 5432,
+#             "database": "stock_TEST"
+#         }
+
+# def generar_codigo_barras():
+#             """Genera un código de barras aleatorio de 9 dígitos."""
+#             return ''.join(random.choices(string.digits, k=9))
+
+# def insertar_registros():
+#     """Inserta 50,000 registros en la tabla de productos."""
+#     conexion = None  # Inicializar la variable fuera del bloque try
+#     try:
+#         # Conexión a la base de datos
+#         conexion = psycopg2.connect(**DB_CONFIG)
+#         cursor = conexion.cursor(cursor_factory=DictCursor)
+
+#         # Consulta SQL para insertar productos
+#         sql_producto = """
+#         INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado, fecha_creacion)
+#         VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+#         RETURNING id_producto;
+#         """
+
+#         # Consulta SQL para insertar stock
+#         sql_stock = """
+#         INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo)
+#         VALUES (%s, %s, %s, %s);
+#         """
+
+#         # Generar e insertar 50,000 registros
+#         for _ in range(50000):
+#             marca = "Marca_" + random.choice(string.ascii_uppercase)
+#             nombre = "Producto_" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+#             descripcion = "Descripcion del producto " + nombre
+#             precio = round(random.uniform(10, 500), 2)
+#             stock_actual = random.randint(0, 100)
+#             stock_minimo = random.randint(0, 10)
+#             stock_maximo = stock_actual + random.randint(10, 50)
+#             id_proveedor = random.choice([1, 2, 3])
+#             codigo_barras = generar_codigo_barras()
+#             estado = 'activo'
+
+#             # Insertar producto y obtener id_producto
+#             cursor.execute(sql_producto, (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado))
+#             id_producto = cursor.fetchone()[0]
+
+#             # Insertar stock para el producto
+#             cursor.execute(sql_stock, (id_producto, stock_actual, stock_minimo, stock_maximo))
+
+#         # Confirmar los cambios en la base de datos
+#         conexion.commit()
+#         print("Se han insertado 50,000 registros exitosamente.")
+
+#     except Exception as e:
+#         print(f"Error al insertar registros: {e}")
+#         if conexion:  # Verificar si la conexión existe antes de usarla
+#             conexion.rollback()
+
+#     finally:
+#         # Cerrar la conexión
+#         if conexion:  # Verificar si la conexión existe antes de usarla
+#             cursor.close()
+#             conexion.close()
+
+###############################producto_categoria############################################################################################
+
+
+@router.post("/producto_categoria")
+async def producto_categoria(request: Categoria_request):
+    """
+    Endpoint para manejar categorías de productos.
+    Soporta las acciones:
+    - 'verTodasLasCategorias': Listar todas las categorías.
+    - 'agregarCategoria': Agregar una nueva categoría.
+    - 'modificarCategoria': Modificar una categoría existente.
+    - 'eliminarCategoria': Eliminar (soft delete) una categoría.
+    """
+    try:
+        categoria = ProductoCategoria()
+
+        # Listar todas las categorías
+        if request.accion == "verTodasLasCategorias":
+            resultado = await categoria.ver_todas_categorias(request.incluir_inactivas)
+            return {"status": "success", "data": resultado}
+
+        # Agregar una nueva categoría
+        elif request.accion == "agregarCategoria":
+            if not request.descripcion:
+                raise HTTPException(status_code=400, detail="El campo 'descripcion' es requerido.")
+            resultado = await categoria.agregar_categoria(request.descripcion, request.estado)
+            return resultado
+
+        # Modificar una categoría existente
+        elif request.accion == "modificarCategoria":
+            if not request.id_categoria:
+                raise HTTPException(status_code=400, detail="El campo 'id_categoria' es requerido.")
+            if not (request.descripcion or request.estado is not None):
+                raise HTTPException(status_code=400, detail="Debe proporcionar 'descripcion' o 'estado' para modificar.")
+            resultado = await categoria.modificar_categoria(request.id_categoria, request.descripcion, request.estado)
+            return resultado
+
+        # Eliminar una categoría (soft delete)
+        elif request.accion == "eliminarCategoria":
+            if not request.id_categoria:
+                raise HTTPException(status_code=400, detail="El campo 'id_categoria' es requerido.")
+            resultado = await categoria.eliminar_categoria(request.id_categoria)
+            return resultado
+
+        else:
+            # Acción no válida
+            raise HTTPException(status_code=400, detail="Acción no válida. Verifique la documentación.")
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

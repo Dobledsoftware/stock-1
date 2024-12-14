@@ -21,7 +21,7 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
             descripcion,
             precio: parseFloat(precio),
             stock_actual: parseInt(stock),
-            proveedor_id: parseInt(proveedorId),
+            id_proveedor: parseInt(proveedorId),
             imagen, // Incluir la imagen en los datos
         };
 

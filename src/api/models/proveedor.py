@@ -1,16 +1,47 @@
 #from fastapi.responses import JSONResponse
 from routers import conexion
 from psycopg2.extras import DictCursor
+from fastapi import HTTPException
+
 
 
 class Proveedor(conexion.Conexion):
     def __init__(self, id_proveedor=None):
         self._id_proveedor = id_proveedor
-        self._estado = None  # Inicialmente no conocemos el estado
+        self._nombre = None
+        self._direccion = None
+        self._telefono = None
+        self._correo_contacto = None  # Inicialmente no conocemos el estado
 
+      
+    # Propiedades
     @property
     def estado(self):
         return self._estado
+
+    @estado.setter
+    def estado(self, value):
+        if value not in ['Activo', 'Inactivo']:
+            raise ValueError("El estado debe ser 'Activo' o 'Inactivo'.")
+        self._estado = value
+
+    @property
+    def nombre(self):
+        return self._nombre
+
+    @property
+    def direccion(self):
+        return self._direccion
+    
+    @property
+    def telefono(self):
+        return self._telefono
+    
+    @property
+    def correo_contacto(self):
+        return self._correo_contacto
+
+   
 ################################# CARGA DATOS DEL OBJETO ############################################################
     async def cargar_estado(self):
         """Método para cargar el estado actual del proveedor desde la base de datos."""
@@ -62,11 +93,12 @@ class Proveedor(conexion.Conexion):
    
    
 
-################################################################################################
+############################verTodosLosProveedores####################################################################
 
 
-    async def verTodosLosProductos(self, estado):
+    async def verTodosLosProveedores(self, estado):##FUNCIONA OK
         """Obtiene todos los proveedors según su estado."""
+        print("ENTRA A PROVEEDORES")
         conexion = self.conectar()
 
         try:
@@ -74,21 +106,9 @@ class Proveedor(conexion.Conexion):
             cursor = conexion.cursor(cursor_factory=DictCursor)
             sql = """
             SELECT 
-                p.id_proveedor AS proveedor_id, 
-                p.nombre AS proveedor_nombre, 
-                p.descripcion AS proveedor_descripcion, 
-                p.precio AS proveedor_precio, 
-                p.stock_actual AS proveedor_stock, 
-                p.fecha_creacion AS proveedor_fecha_creacion,
-                p.fecha_ultima_modificacion AS proveedor_fecha_modificacion,
-                p.estado AS proveedor_estado,
-                pr.id AS proveedor_id, 
-                pr.nombre AS proveedor_nombre, 
-                pr.direccion AS proveedor_direccion,
-                pr.telefono AS proveedor_telefono,
-                pr.correo_contacto AS proveedor_correo
+                *
             FROM 
-                proveedors p            
+                proveedores p            
             WHERE 
                 p.estado = %s
             ORDER BY 
@@ -106,27 +126,27 @@ class Proveedor(conexion.Conexion):
         finally:
             conexion.close()
 
-#################################################################################
+#############################agregarProveedor####################################################
             
 
-    async def agregar_proveedor(self, nombre, descripcion, precio, stock_actual, proveedor_id, estado="Activo"):
+    async def agregarProveedor(self, nombre, direccion, telefono,correo_contacto, estado='Activo'):
         """Método para agregar un nuevo proveedor a la base de datos."""
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
             sql = """
-            INSERT INTO proveedors (nombre, descripcion, precio, stock_actual, proveedor_id, estado, fecha_creacion)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            INSERT INTO proveedores (nombre, direccion,telefono , correo_contacto, estado)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING id_proveedor;
             """
-            cursor.execute(sql, (nombre, descripcion, precio, stock_actual, proveedor_id, estado))
-            proveedor_id = cursor.fetchone()[0]
+            cursor.execute(sql, (nombre, direccion,  telefono, correo_contacto, estado))
+            id_proveedor = cursor.fetchone()[0]
             conexion.commit()
 
             return {
                 "status": "success",
-                "proveedor_id": proveedor_id,
-                "message": f"Producto '{nombre}' agregado exitosamente."
+                "id_proveedor": id_proveedor,
+                "message": f"Proveedor '{nombre}' agregado exitosamente."
             }
         except Exception as e:
             print(f"Error al agregar el proveedor: {e}")
@@ -136,27 +156,27 @@ class Proveedor(conexion.Conexion):
             conexion.close()
 
 
-######################################################################################################
+###############################eliminarProveedor#######################################################################
             
 
-    async def eliminar_proveedor(self, proveedor_id):
+    async def eliminarProveedor(self, id_proveedor):
         """Método para eliminar un proveedor de la base de datos."""
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
             sql = "DELETE FROM proveedores WHERE id_proveedor = %s;"
-            cursor.execute(sql, (proveedor_id,))
+            cursor.execute(sql, (id_proveedor,))
             conexion.commit()
 
             if cursor.rowcount > 0:
                 return {
                     "status": "success",
-                    "message": f"Producto con ID {proveedor_id} eliminado exitosamente."
+                    "message": f"Proveedor con ID {id_proveedor} eliminado exitosamente."
                 }
             else:
                 return {
                     "status": "error",
-                    "message": f"No se encontró ningún proveedor con ID {proveedor_id}."
+                    "message": f"No se encontró ningún proveedor con ID {id_proveedor}."
                 }
         except Exception as e:
             print(f"Error al eliminar el proveedor: {e}")
@@ -164,3 +184,97 @@ class Proveedor(conexion.Conexion):
             return {"status": "error", "message": str(e)}
         finally:
             conexion.close()
+
+##############################editarProveedor########################################################################
+
+
+    async def editarProveedor(self, id_proveedor: int, nombre: str = None, direccion: str = None, telefono: str = None, correo_contacto: str = None):
+        """Método para editar un proveedor en la base de datos."""
+        # Buscar el proveedor por su ID
+        proveedor = await self.buscarProveedorPorId(id_proveedor)
+        if not proveedor:
+            raise HTTPException(status_code=404, detail="Proveedor no encontrado.")
+        
+        # Verificar si al menos uno de los parámetros es diferente
+        cambios_realizados = False
+
+        # Actualizar los campos solo si se proporcionan
+        if nombre and nombre != proveedor.nombre:
+            proveedor._nombre = nombre
+            cambios_realizados = True
+        if direccion and direccion != proveedor.direccion:
+            proveedor._direccion = direccion
+            cambios_realizados = True
+        if telefono and telefono != proveedor.telefono:
+            proveedor._telefono = telefono
+            cambios_realizados = True
+        if correo_contacto and correo_contacto != proveedor.correo_contacto:
+            proveedor._correo_contacto = correo_contacto
+            cambios_realizados = True
+             # Si no se realizaron cambios, devolver un mensaje
+        if not cambios_realizados:
+            return {
+                "status": "warning",
+                "message": "No se realizaron cambios, ya que los valores proporcionados son los mismos."
+            }
+
+        
+        # Guardar los cambios en la base de datos
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor()
+            sql_update = """
+            UPDATE proveedores
+            SET nombre = %s, direccion = %s, telefono = %s, correo_contacto = %s
+            WHERE id_proveedor = %s
+            """
+            
+            # Ejecutar la actualización
+            cursor.execute(sql_update, (proveedor._nombre, proveedor._direccion, proveedor._telefono, proveedor._correo_contacto, id_proveedor))
+            conexion.commit()
+
+            # Verificar si realmente se actualizó el proveedor
+            if cursor.rowcount > 0:
+                return {
+                    "status": "success",
+                    "id_proveedor": id_proveedor,
+                    "message": "Proveedor actualizado exitosamente."
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "No se pudo actualizar el proveedor. Verifique el ID."
+                }
+        except Exception as e:
+            print(f"Error al editar el proveedor: {e}")
+            conexion.rollback()
+            return {"status": "error", "message": str(e)}
+        finally:
+            conexion.close()
+
+
+    async def buscarProveedorPorId(self, id_proveedor: int):
+        """Método para buscar un proveedor por su ID en la base de datos."""
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor(cursor_factory=DictCursor)
+            sql = "SELECT * FROM proveedores WHERE id_proveedor = %s"
+            cursor.execute(sql, (id_proveedor,))
+            result = cursor.fetchone()
+            if result:
+                # Crear el objeto proveedor con los datos obtenidos
+                proveedor = Proveedor(id_proveedor)
+                proveedor._nombre = result['nombre']
+                proveedor._direccion = result['direccion']
+                proveedor._telefono = result['telefono']
+                proveedor._correo_contacto = result['correo_contacto']
+                proveedor._estado = result['estado']
+                return proveedor
+            else:
+                return None
+        except Exception as e:
+            print(f"Error al buscar el proveedor: {e}")
+            return None
+        finally:
+            conexion.close()
+
