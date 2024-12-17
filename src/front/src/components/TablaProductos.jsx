@@ -58,8 +58,6 @@ const TablaProductos = () => {
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Precio</th>
-            <th>Stock</th>
-            <th>Proveedor</th>
             <th>Marca</th>
             <th>Acciones</th>
           </tr>
@@ -71,8 +69,6 @@ const TablaProductos = () => {
               <td>{producto.producto_nombre}</td>
               <td>{producto.producto_descripcion}</td>
               <td>{producto.producto_precio}</td>
-              <td>{producto.producto_stock}</td>
-              <td>{producto.proveedor_nombre}</td>
               <td>{producto.producto_marca}</td>
               <td>
                 {/* Ícono para editar */}

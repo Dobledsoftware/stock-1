@@ -5,6 +5,9 @@ import Stock from './pantallas/Stock';
 import Ventas from './pantallas/Ventas';
 import Administracion from './pantallas/Administracion';
 import Panel from './pantallas/Panel';
+import Abastecimiento from './pantallas/Abastecimiento';
+import CierreCaja from './pantallas/CierreCaja';
+import Configuracion from './pantallas/Configuracion';
 import 'font-awesome/css/font-awesome.min.css';
 
 
@@ -43,6 +46,9 @@ function App() {
             <Route path="/stock" element={<Stock />} />
             <Route path="/panel" element={<Panel />} />
             <Route path="/ventas" element={<Ventas />} />
+            <Route path="/cierre" element={< CierreCaja />} />
+            <Route path="/configuracion" element={< Configuracion />} />
+            <Route path="/abastecimiento" element={<Abastecimiento />} />
             <Route path="/administracion" element={<Administracion />} />
           </Routes>
         </main>

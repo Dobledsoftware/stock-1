@@ -19,21 +19,20 @@ const BarraLateral = () => {
 
   return (
     <div className="barra-lateral">
-      <div className="logo">
-        <h2>Sistema Stock</h2>
+      <div className="logo-container">
+        <img src="../public/img/imagen.jpg" alt="logo" className="logo" /> 
       </div>
+      
       <nav>
         <ul>
           <li className={activeItem === "stock" || location.pathname.includes("/inventario") || location.pathname.includes("/almacen") || location.pathname.includes("/panel") ? "active" : ""}>
             <div className="menu-desplegable" onClick={() => handleActiveItem("stock")}>
-            <i className="icono fa fa-archive"></i> Stock
-
-
+              <i className="icono fa fa-archive"></i> Stock
             </div>
             {activeItem === "stock" && (
               <ul className="dropdown">
                 <li><NavLink to="/stock">Inventario</NavLink></li>
-                <li><NavLink to="/almacen">Almacén</NavLink></li>
+                <li><NavLink to="/abastecimiento">Abastecimiento</NavLink></li>
                 <li><NavLink to="/panel">Panel</NavLink></li>
               </ul>
             )}
@@ -45,14 +44,13 @@ const BarraLateral = () => {
             {activeItem === "ventas" && (
               <ul className="dropdown">
                 <li><NavLink to="/ventas">Nueva Venta</NavLink></li>
-                <li><NavLink to="/historico-ventas">Histórico de Ventas</NavLink></li>
+                <li><NavLink to="/cierre">Cierre de Caja</NavLink></li>
               </ul>
             )}
           </li>
           <li className={activeItem === "administracion" || location.pathname.includes("/usuarios") || location.pathname.includes("/configuracion") ? "active" : ""}>
             <div className="menu-desplegable" onClick={() => handleActiveItem("administracion")}>
-            <i className="icono fa fa-cogs"></i> Administración
-
+              <i className="icono fa fa-cogs"></i> Administración
             </div>
             {activeItem === "administracion" && (
               <ul className="dropdown">
@@ -62,13 +60,11 @@ const BarraLateral = () => {
             )}
           </li>
           <li className={activeItem === "perfil" || location.pathname.includes("/editar-perfil") || location.pathname.includes("/cambiar-contrasena") ? "active" : ""}>
-            <div className="perfil" onClick={() => handleActiveItem("perfil")}>
+            <div className="menu-desplegable" onClick={() => handleActiveItem("perfil")}>
               <i className="icono fa fa-user"></i> Perfil
             </div>
-                {activeItem === "perfil" && (
-                <ul className="dropdown">
-                {/* <li><strong>{usuario.nombre}</strong></li>
-                <li>{usuario.correo}</li> */}
+            {activeItem === "perfil" && (
+              <ul className="dropdown">
                 <li><NavLink to="/editar-perfil">Editar Perfil</NavLink></li>
                 <li><NavLink to="/cambiar-contrasena">Cambiar Contraseña</NavLink></li>
               </ul>

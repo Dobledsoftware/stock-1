@@ -60,29 +60,13 @@ class ProductoRepository(conexion.Conexion):
                 p.nombre AS producto_nombre, 
                 p.descripcion AS producto_descripcion, 
                 p.precio AS producto_precio, 
-                s.stock_actual AS stock_actual,
-                s.stock_minimo AS stock_minimo,
-                s.stock_maximo AS stock_maximo,
-                p.fecha_creacion AS producto_fecha_creacion,
+                p.fecha_alta AS producto_alta,
                 p.fecha_ultima_modificacion AS producto_fecha_modificacion,
                 p.estado AS producto_estado,
-                p.codigo_barras AS producto_codigo_barras,
-                pr.id_proveedor AS id_proveedor, 
-                pr.nombre AS proveedor_nombre, 
-                pr.direccion AS proveedor_direccion,
-                pr.telefono AS proveedor_telefono,
-                pr.correo_contacto AS proveedor_correo
+                p.codigo_barras AS producto_codigo_barras                
             FROM 
-                productos p
-                
-            LEFT JOIN
-                stock s 
-            ON
-                s.id_producto = p.id_producto
-            LEFT JOIN 
-                proveedores pr 
-            ON 
-                p.id_proveedor = pr.id_proveedor
+                productos p                
+            
             WHERE 
                 p.estado = %s
             ORDER BY 
@@ -101,189 +85,70 @@ class ProductoRepository(conexion.Conexion):
             conexion.close()
 
 ######################################################################################################
-    async def agregar_producto(self, marca, nombre, descripcion, precio, stock_actual, stock_minimo, stock_maximo, id_proveedor, codigo_barras, forceAdd: Optional[bool] = False, accion_stock: Optional[str] = None, id_producto: Optional[int] = None):
+    async def agregar_producto(self, marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto=None, force_add=False):
         """
         Agrega un producto (variante) a la base de datos, verificando si ya existe un producto con el mismo código de barras.
-        Opción A: Permite elegir incrementar o disminuir el stock de un producto repetido.
-        Opción B: Si forceAdd es True, se fuerza la adición del producto y se incrementa el stock.
+        Si force_add es True, permite duplicar el producto aunque tenga el mismo código de barras.
         """
         conexion = self.conectar()
-        print (str(id_producto))
-        print (forceAdd)
-        print ()
+
         try:
             cursor = conexion.cursor()
             estado = "Activo"
 
             # Verificar si el código de barras ya existe
             sql_verificar = """
-            SELECT p.id_producto, p.marca, p.nombre, p.descripcion, s.stock_actual
-            FROM productos as p
-            LEFT JOIN stock as s ON s.id_producto = p.id_producto
-            WHERE p.codigo_barras = %s;
+            SELECT id_producto, marca, nombre, descripcion,codigo_barras
+            FROM productos
+            WHERE codigo_barras = %s;
             """
             cursor.execute(sql_verificar, (codigo_barras,))
             productos_existentes = cursor.fetchall()
-            
-            # Opción A: Si el producto existe y no se está forzando la adición, se ofrece elegir entre incrementar o disminuir el stock
-            if productos_existentes and forceAdd is False:
-                if isinstance(forceAdd, bool):
-                    print(forceAdd)
 
-                
-                productos_repetidos = []
-                for producto in productos_existentes:
-                    productos_repetidos.append({
+            # Si el producto ya existe y no se forza la adición, retornar advertencia
+            if productos_existentes and not force_add:
+                productos_repetidos = [
+                    {
                         "id_producto": producto[0],
                         "marca": producto[1],
                         "nombre": producto[2],
                         "descripcion": producto[3],
-                        "stock_actual": producto[4]
-                    })
-                
-                # Si se recibe una acción de stock (incrementar o disminuir), se ejecuta
-                if id_producto and accion_stock and forceAdd is True:
-                    print ("deberia entrrear")
-                    id_producto = productos_existentes[0][0]
-                    stock_actual_existente = productos_existentes[0][4]
-
-                    # Obtener los valores de stock mínimo y máximo para la validación
-                    sql_validar_stock = """
-                    SELECT stock_minimo, stock_maximo FROM stock WHERE id_producto = %i;
-                    """
-                    cursor.execute(sql_validar_stock, (id_producto,))
-                    stock_limits = cursor.fetchone()
-                    stock_minimo = stock_limits[0]
-                    stock_maximo = stock_limits[1]
-
-                    if accion_stock == "incrementar":
-                        nuevo_stock = stock_actual_existente + stock_actual
-
-                        # Validar que el nuevo stock no supere el máximo
-                        if nuevo_stock > stock_maximo:
-                            return {
-                                "status": "error",
-                                "message": f"No se puede incrementar el stock del producto '{nombre}' por encima del stock máximo ({stock_maximo}).",
-                            }
-
-                        sql_actualizar_stock = """
-                        UPDATE stock
-                        SET stock_actual = %s
-                        WHERE id_producto = %s;
-                        """
-                        cursor.execute(sql_actualizar_stock, (nuevo_stock, id_producto))
-                        conexion.commit()
-
-                        return {
-                            "status": "success",
-                            "producto_id": id_producto,
-                            "message": f"Stock del producto '{nombre}' incrementado exitosamente. Nuevo stock: {nuevo_stock}.",
-                        }
-
-                    # elif accion_stock == "disminuir":
-                    #     nuevo_stock = stock_actual_existente - stock_actual
-
-                    #     # Validar que el nuevo stock no sea menor que el mínimo
-                    #     if nuevo_stock < stock_minimo:
-                    #         return {
-                    #             "status": "error",
-                    #             "message": f"No se puede disminuir el stock del producto '{nombre}' por debajo del stock mínimo ({stock_minimo}).",
-                    #         }
-
-                    #     # Validar que el nuevo stock no sea negativo
-                    #     if nuevo_stock < 0:
-                    #         return {
-                    #             "status": "error",
-                    #             "message": f"No se puede disminuir el stock del producto '{nombre}' por debajo de 0.",
-                    #         }
-
-                    #     sql_actualizar_stock = """
-                    #     UPDATE stock
-                    #     SET stock_actual = %s
-                    #     WHERE id_producto = %s;
-                    #     """
-                    #     cursor.execute(sql_actualizar_stock, (nuevo_stock, id_producto))
-                    #     conexion.commit()
-
-                    #     return {
-                    #         "status": "success",
-                    #         "producto_id": id_producto,
-                    #         "message": f"Stock del producto '{nombre}' disminuido exitosamente. Nuevo stock: {nuevo_stock}.",
-                    #     }
-                    else:
-                        return {
-                            "status": "error",
-                            "message": "Acción de stock no válida. Debe ser 'incrementar'."
-                        }
-
-                # Si no se recibe ninguna acción, retornamos las opciones disponibles
+                        "codigo_barras": producto[4],
+                    }
+                    for producto in productos_existentes
+                ]
                 return {
                     "status": "warning",
-                    "message": f"¡Atención! Ya existe(n) producto(s) con el código de barras '{codigo_barras}'.",
+                    "message": f"Ya existe(n) producto(s) con el código de barras '{codigo_barras}'.",
                     "productos_repetidos": productos_repetidos,
-                    "accion": "Elija una de las siguientes opciones:",
-                    "opciones": ["A: Seleccionar un producto y elegir incrementar o disminuir el stock.",
-                                "B: Forzar la adición de un nuevo producto.",
-                                "C: No hacer nada."]
                 }
 
-            # Opción B: Si forceAdd es True, agregar el producto y aumentar el stock sin preguntar
-            # elif  productos_existentes and forceAdd is True:
-            #     # Insertar nuevo producto
-            #     sql_producto = """
-            #     INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado, fecha_creacion)
-            #     VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-            #     RETURNING id_producto;
-            #     """
-            #     cursor.execute(
-            #         sql_producto,
-            #         (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado),
-            #     )
-            #     id_producto = cursor.fetchone()[0]
-            #     # Insertar stock para el nuevo producto
-            #     sql_stock = """
-            #     INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo)
-            #     VALUES (%s, %s, %s, %s);
-            #     """
-            #     cursor.execute(sql_stock, (id_producto, stock_actual, stock_minimo, stock_maximo))
-            #     conexion.commit()
-            #     return {
-            #         "status": "success",
-            #         "producto_id": id_producto,
-            #         "message": f"Producto '{nombre}' agregado exitosamente primero.",
-            #     }
+            # Insertar el nuevo producto (aunque ya exista uno con el mismo código de barras, si force_add es True)
+            sql_producto = """
+            INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, estado, fecha_alta, imagen_producto,id_categoria)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s,%s)
+            RETURNING id_producto;
+            """
+            cursor.execute(
+                sql_producto,
+                (marca, nombre, descripcion, precio, codigo_barras, estado, imagen_producto,id_categoria),
+            )
+            id_producto = cursor.fetchone()[0]
+            conexion.commit()
 
-            # Si el producto no existe y no se está forzando la adición, no hacer nada
-            elif not productos_existentes and not forceAdd and not id_producto:
-                 # Insertar nuevo producto
-                sql_producto = """
-                INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado, fecha_creacion)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-                RETURNING id_producto;
-                """
-                cursor.execute(
-                    sql_producto,
-                    (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado),
-                )
-                id_producto = cursor.fetchone()[0]
-                # Insertar stock para el nuevo producto
-                sql_stock = """
-                INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo)
-                VALUES (%s, %s, %s, %s);
-                """
-                cursor.execute(sql_stock, (id_producto, stock_actual, stock_minimo, stock_maximo))
-                conexion.commit()
-                return {
-                    "status": "success",
-                    "producto_id": id_producto,
-                    "message": f"Producto '{nombre}' agregado exitosamente ultiomo.",
-                }
+            return {
+                "status": "success",
+                "producto_id": id_producto,
+                "message": f"Producto '{nombre}' agregado exitosamente.",
+            }
+
         except Exception as e:
             conexion.rollback()
             raise HTTPException(status_code=500, detail=f"Error al agregar el producto: {str(e)}")
 
         finally:
             conexion.close()
+
 
 
 #################################eliminar_producto#####################################################################
@@ -314,3 +179,194 @@ class ProductoRepository(conexion.Conexion):
             return {"status": "error", "message": str(e)}
         finally:
             conexion.close()
+
+
+
+############################################################################
+            
+
+        #     async def agregar_producto(self, marca, nombre, descripcion, precio, stock_actual, stock_minimo, stock_maximo, id_proveedor, codigo_barras, forceAdd: Optional[bool] = False, accion_stock: Optional[str] = None, id_producto: Optional[int] = None):
+        # """
+        # Agrega un producto (variante) a la base de datos, verificando si ya existe un producto con el mismo código de barras.
+        # Opción A: Permite elegir incrementar o disminuir el stock de un producto repetido.
+        # Opción B: Si forceAdd es True, se fuerza la adición del producto y se incrementa el stock.
+        # """
+        # conexion = self.conectar()
+        # print (str(id_producto))
+        # print (forceAdd)
+        # print ()
+        # try:
+        #     cursor = conexion.cursor()
+        #     estado = "Activo"
+
+        #     # Verificar si el código de barras ya existe
+        #     sql_verificar = """
+        #     SELECT p.id_producto, p.marca, p.nombre, p.descripcion, s.stock_actual
+        #     FROM productos as p
+        #     LEFT JOIN stock as s ON s.id_producto = p.id_producto
+        #     WHERE p.codigo_barras = %s;
+        #     """
+        #     cursor.execute(sql_verificar, (codigo_barras,))
+        #     productos_existentes = cursor.fetchall()
+            
+        #     # Opción A: Si el producto existe y no se está forzando la adición, se ofrece elegir entre incrementar o disminuir el stock
+        #     if productos_existentes and forceAdd is False:
+        #         if isinstance(forceAdd, bool):
+        #             print(forceAdd)
+
+                
+        #         productos_repetidos = []
+        #         for producto in productos_existentes:
+        #             productos_repetidos.append({
+        #                 "id_producto": producto[0],
+        #                 "marca": producto[1],
+        #                 "nombre": producto[2],
+        #                 "descripcion": producto[3],
+        #                 "stock_actual": producto[4]
+        #             })
+                
+        #         # Si se recibe una acción de stock (incrementar o disminuir), se ejecuta
+        #         if id_producto and accion_stock and forceAdd is True:
+        #             print ("deberia entrrear")
+        #             id_producto = productos_existentes[0][0]
+        #             stock_actual_existente = productos_existentes[0][4]
+
+        #             # Obtener los valores de stock mínimo y máximo para la validación
+        #             sql_validar_stock = """
+        #             SELECT stock_minimo, stock_maximo FROM stock WHERE id_producto = %i;
+        #             """
+        #             cursor.execute(sql_validar_stock, (id_producto,))
+        #             stock_limits = cursor.fetchone()
+        #             stock_minimo = stock_limits[0]
+        #             stock_maximo = stock_limits[1]
+
+        #             if accion_stock == "incrementar":
+        #                 nuevo_stock = stock_actual_existente + stock_actual
+
+        #                 # Validar que el nuevo stock no supere el máximo
+        #                 if nuevo_stock > stock_maximo:
+        #                     return {
+        #                         "status": "error",
+        #                         "message": f"No se puede incrementar el stock del producto '{nombre}' por encima del stock máximo ({stock_maximo}).",
+        #                     }
+
+        #                 sql_actualizar_stock = """
+        #                 UPDATE stock
+        #                 SET stock_actual = %s
+        #                 WHERE id_producto = %s;
+        #                 """
+        #                 cursor.execute(sql_actualizar_stock, (nuevo_stock, id_producto))
+        #                 conexion.commit()
+
+        #                 return {
+        #                     "status": "success",
+        #                     "producto_id": id_producto,
+        #                     "message": f"Stock del producto '{nombre}' incrementado exitosamente. Nuevo stock: {nuevo_stock}.",
+        #                 }
+
+        #             # elif accion_stock == "disminuir":
+        #             #     nuevo_stock = stock_actual_existente - stock_actual
+
+        #             #     # Validar que el nuevo stock no sea menor que el mínimo
+        #             #     if nuevo_stock < stock_minimo:
+        #             #         return {
+        #             #             "status": "error",
+        #             #             "message": f"No se puede disminuir el stock del producto '{nombre}' por debajo del stock mínimo ({stock_minimo}).",
+        #             #         }
+
+        #             #     # Validar que el nuevo stock no sea negativo
+        #             #     if nuevo_stock < 0:
+        #             #         return {
+        #             #             "status": "error",
+        #             #             "message": f"No se puede disminuir el stock del producto '{nombre}' por debajo de 0.",
+        #             #         }
+
+        #             #     sql_actualizar_stock = """
+        #             #     UPDATE stock
+        #             #     SET stock_actual = %s
+        #             #     WHERE id_producto = %s;
+        #             #     """
+        #             #     cursor.execute(sql_actualizar_stock, (nuevo_stock, id_producto))
+        #             #     conexion.commit()
+
+        #             #     return {
+        #             #         "status": "success",
+        #             #         "producto_id": id_producto,
+        #             #         "message": f"Stock del producto '{nombre}' disminuido exitosamente. Nuevo stock: {nuevo_stock}.",
+        #             #     }
+        #             else:
+        #                 return {
+        #                     "status": "error",
+        #                     "message": "Acción de stock no válida. Debe ser 'incrementar'."
+        #                 }
+
+        #         # Si no se recibe ninguna acción, retornamos las opciones disponibles
+        #         return {
+        #             "status": "warning",
+        #             "message": f"¡Atención! Ya existe(n) producto(s) con el código de barras '{codigo_barras}'.",
+        #             "productos_repetidos": productos_repetidos,
+        #             "accion": "Elija una de las siguientes opciones:",
+        #             "opciones": ["A: Seleccionar un producto y elegir incrementar o disminuir el stock.",
+        #                         "B: Forzar la adición de un nuevo producto.",
+        #                         "C: No hacer nada."]
+        #         }
+
+        #     # Opción B: Si forceAdd es True, agregar el producto y aumentar el stock sin preguntar
+        #     # elif  productos_existentes and forceAdd is True:
+        #     #     # Insertar nuevo producto
+        #     #     sql_producto = """
+        #     #     INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado, fecha_creacion)
+        #     #     VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+        #     #     RETURNING id_producto;
+        #     #     """
+        #     #     cursor.execute(
+        #     #         sql_producto,
+        #     #         (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado),
+        #     #     )
+        #     #     id_producto = cursor.fetchone()[0]
+        #     #     # Insertar stock para el nuevo producto
+        #     #     sql_stock = """
+        #     #     INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo)
+        #     #     VALUES (%s, %s, %s, %s);
+        #     #     """
+        #     #     cursor.execute(sql_stock, (id_producto, stock_actual, stock_minimo, stock_maximo))
+        #     #     conexion.commit()
+        #     #     return {
+        #     #         "status": "success",
+        #     #         "producto_id": id_producto,
+        #     #         "message": f"Producto '{nombre}' agregado exitosamente primero.",
+        #     #     }
+
+        #     # Si el producto no existe y no se está forzando la adición, no hacer nada
+        #     elif not productos_existentes and not forceAdd and not id_producto:
+        #          # Insertar nuevo producto
+        #         sql_producto = """
+        #         INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado, fecha_alta)
+        #         VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+        #         RETURNING id_producto;
+        #         """
+        #         cursor.execute(
+        #             sql_producto,
+        #             (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado),
+        #         )
+        #         id_producto = cursor.fetchone()[0]
+        #         # Insertar stock para el nuevo producto
+        #         sql_stock = """
+        #         INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo)
+        #         VALUES (%s, %s, %s, %s);
+        #         """
+        #         cursor.execute(sql_stock, (id_producto, stock_actual, stock_minimo, stock_maximo))
+        #         conexion.commit()
+        #         return {
+        #             "status": "success",
+        #             "producto_id": id_producto,
+        #             "message": f"Producto '{nombre}' agregado exitosamente ultiomo.",
+        #         }
+        # except Exception as e:
+        #     conexion.rollback()
+        #     raise HTTPException(status_code=500, detail=f"Error al agregar el producto: {str(e)}")
+
+        # finally:
+        #     conexion.close()
+
+

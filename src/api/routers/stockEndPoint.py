@@ -1,15 +1,19 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form  # Importa APIRouter para crear grupos de rutas y HTTPException para manejar errores.
 from fastapi.responses import JSONResponse, Response  # Importa JSONResponse para devolver respuestas JSON personalizadas.
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
-from typing import Optional
+from typing import List,Optional
+
 #importa las clases
 from models.producto import Producto # Importa Clase Producto
 from models.proveedor import Proveedor # Importa Clase Proveedor
 from models.producto_categoria import ProductoCategoria # Importa Clase productocategoria
+from models.stock import Stock
+
 
 from models.login import Login,create_jwt_token # Importa Clase Recibo
 #importa los schemas
-from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request
+from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response
+
 import logging
 import json
 import os
@@ -111,21 +115,19 @@ async def producto(request: Producto_request):
     - **agregarProducto**: Agregar un nuevo producto.
         ```json
             
-        {
+        
+            {
             "accion": "agregarProducto",
-            "marca": "aaaaaaaaaaaaaaaa",
-            "nombre": "aaaaaaaaaaaaaaaaa",
-            "descripcion": "aaaaaaaaaaaaaaaaaa",
-            "precio": 11111,
-            "stock_actual": 1,
-            "stock_minimo": 11,
-            "stock_maximo": 111,
-            "id_proveedor": 1,
-            "codigo_barras": "string",
-            "forceAdd": false,
-            "accion_stock": "incrementar",
-            "id_productoo" : "2"
-        }
+            "marca": "Nike",
+            "nombre": "Zapatillas Air Max 2024",
+            "descripcion": "Zapatillas deportivas de alta calidad, edición 2024",
+            "precio": 150.75,
+            "codigo_barras": "1234567890123aaa",
+            "id_categoria": 1,
+            "imagen_producto": "https://drive.google.com/uc?id=ID_DE_TU_IMAGEN",
+            "forceAdd": false
+            }
+        
         ```
 
     - **eliminarProducto**: Eliminar un producto por ID.
@@ -178,29 +180,24 @@ async def producto(request: Producto_request):
             Endpoint que maneja la solicitud de agregar un producto.
             Verifica si ya existe un producto con el mismo código de barras y maneja el caso de forceAdd.
             """
-            # Verificamos si todos los parámetros necesarios están presentes
-            if not all([request.marca, request.nombre, request.descripcion, request.precio, request.stock_actual, request.stock_minimo, request.stock_maximo, request.id_proveedor, request.codigo_barras]):
+                    # Verificar parámetros requeridos
+            if not all([request.marca, request.nombre, request.descripcion, request.precio, request.codigo_barras,request.id_categoria]):
                 raise HTTPException(
                     status_code=400,
-                    detail="Todos los parámetros 'marca', 'nombre', 'descripcion', 'precio', 'stock_actual', 'stock_minimo', 'stock_maximo', 'id_proveedor' y 'codigo_barras' son requeridos."
+                    detail="Los parámetros 'marca', 'nombre', 'descripcion', 'precio', 'codigo_barras' y  'id_categoria'son requeridos."
                 )
-            # Crear una instancia de Producto
+            # Crear instancia de Producto
             producto = Producto()
-
-            # Llamar al método agregar_producto de la clase Producto
+            # Llamar al método agregar_producto
             response = await producto.agregar_producto(
-                request.marca,
-                request.nombre,
-                request.descripcion,
-                request.precio,
-                request.stock_actual,
-                request.stock_minimo,
-                request.stock_maximo,
-                request.id_proveedor,
-                request.codigo_barras,
-                request.forceAdd,
-                request.accion_stock,
-                request.id_producto
+                marca=request.marca,
+                nombre=request.nombre,
+                descripcion=request.descripcion,
+                precio=request.precio,
+                codigo_barras=request.codigo_barras,
+                id_categoria=request.id_categoria,
+                imagen_producto=request.imagen_producto,                
+                force_add=request.forceAdd                
             )
 
             return response
@@ -552,9 +549,63 @@ async def producto_categoria(request: Categoria_request):
     Endpoint para manejar categorías de productos.
     Soporta las acciones:
     - 'verTodasLasCategorias': Listar todas las categorías.
+        ```json
+            {
+            "accion": "verTodasLasCategorias",
+            "incluir_inactivas": true
+            }
+        
+
+            {
+            "accion": "verTodasLasCategorias",
+            "incluir_inactivas": false
+            }
+        ```
+
     - 'agregarCategoria': Agregar una nueva categoría.
+        ```json
+
+            {
+            "accion": "agregarCategoria",
+            "descripcion": "Electrodomésticos",
+            "estado": true
+            }
+        ```
+
+
     - 'modificarCategoria': Modificar una categoría existente.
+        ```json
+
+            {
+            "accion": "modificarCategoria",
+            "id_categoria": 1,
+            "descripcion": "Electrónicssssa"
+            }
+
+            {
+            "accion": "modificarCategoria",
+            "id_categoria": 1,
+            "estado": false
+            }
+
+            {
+            "accion": "modificarCategoria",
+            "id_categoria": 1,
+            "descripcion": "Electrónica avanzada",
+            "estado": true
+            }
+
+        ```
     - 'eliminarCategoria': Eliminar (soft delete) una categoría.
+        ```json
+
+            {
+            "accion": "eliminarCategoria",
+            "id_categoria": 1
+            }
+        ```
+
+
     """
     try:
         categoria = ProductoCategoria()
@@ -595,3 +646,92 @@ async def producto_categoria(request: Categoria_request):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+
+###################################################################################################
+
+@router.post("/ajustar_stock_multiple/", response_model=dict)
+async def ajustar_stock_multiple(request: Stock_request):
+    """
+        Ejemplo de Payload de Entrada:
+
+            ```json
+            {
+            "movimientos": [
+                {
+                "id_producto": 1,
+                "cantidad": 10,
+                "operacion": "incrementar",
+                "id_usuario": 123,
+                "observaciones": "Reabastecimiento"
+                },
+                {
+                "id_producto": 2,
+                "cantidad": 5,
+                "operacion": "disminuir",
+                "id_usuario": 456,
+                "observaciones": "Venta realizada"
+                }
+            ]
+            }
+
+            ```
+    Respuesta Ejemplo:
+            ```json
+
+                {
+                "resultados": [
+                    {
+                    "id_producto": 1,
+                    "status": "success",
+                    "mensaje": "Stock incrementar correctamente para el producto 1.",
+                    "stock_actualizado": 110
+                    },
+                    {
+                    "id_producto": 2,
+                    "status": "success",
+                    "mensaje": "Stock disminuir correctamente para el producto 2.",
+                    "stock_actualizado": 45
+                    }
+                ]
+                }
+            ```
+    """       
+        
+
+
+    resultados = []  # Aquí guardaremos el resultado de cada movimiento
+
+    # Instancia del repositorio
+    stock_repo = Stock()
+
+    for movimiento in request.movimientos:
+        try:
+            # Llamar a la lógica del repositorio
+            resultado = await stock_repo.ajustar_stock(
+                id_producto=movimiento.id_producto,
+                cantidad=movimiento.cantidad,
+                operacion=movimiento.operacion,
+                id_usuario=movimiento.id_usuario,
+                observaciones=movimiento.observaciones
+            )
+
+            # Respuesta exitosa para este movimiento
+            resultados.append({
+                "id_producto": movimiento.id_producto,
+                "status": "success",
+                "mensaje": f"Stock {movimiento.operacion} correctamente para el producto {movimiento.id_producto}.",
+                "stock_actualizado": resultado.get("stock_actualizado")  # Asumiendo que ajusta el stock
+            })
+        except Exception as e:
+            # Respuesta en caso de error en este movimiento
+            resultados.append({
+                "id_producto": movimiento.id_producto,
+                "status": "error",
+                "mensaje": f"Error al procesar el producto {movimiento.id_producto}: {str(e)}"
+            })
+
+    return {"resultados": resultados}

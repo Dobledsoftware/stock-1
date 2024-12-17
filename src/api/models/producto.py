@@ -102,13 +102,12 @@ class Producto(conexion.Conexion):
 
 ##########################agregar_producto#########################################################################
     
-    async def agregar_producto(self, marca, nombre, descripcion, precio, stock_actual, stock_minimo, stock_maximo, id_proveedor, codigo_barras, forceAdd: Optional[bool] = False, accion_stock: Optional[str] = None,id_producto: Optional[int] = None):
+    async def agregar_producto(self, marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto=None, force_add=False,):
         """
         Agrega un producto (variante) a la base de datos, verificando si ya existe un producto con el mismo código de barras.
-        Opción A: Permite elegir incrementar o disminuir el stock de un producto repetido.
-        Opción B: Si forceAdd es True, se fuerza la adición del producto y se incrementa el stock
-        """        
-        return await self.repository.agregar_producto(marca, nombre, descripcion, precio, stock_actual, stock_minimo, stock_maximo, id_proveedor, codigo_barras, forceAdd, accion_stock,id_producto)      
+        Si force_add es True, permite duplicar el producto aunque tenga el mismo código de barras.
+        """
+        return await self.repository.agregar_producto(marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto, force_add)
 
 
     

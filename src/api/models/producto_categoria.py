@@ -1,6 +1,7 @@
 from routers import conexion
 from psycopg2.extras import DictCursor
 from typing import Optional
+from fastapi import HTTPException
 
 
 class ProductoCategoria(conexion.Conexion):
@@ -40,7 +41,7 @@ class ProductoCategoria(conexion.Conexion):
         try:
             cursor = conexion.cursor()
             sql = """
-            INSERT INTO categoria_producto (descripcion, estado)
+            INSERT INTO producto_categoria (descripcion, estado)
             VALUES (%s, %s)
             RETURNING id_categoria;
             """
@@ -77,7 +78,7 @@ class ProductoCategoria(conexion.Conexion):
 
             valores.append(id_categoria)
             sql = f"""
-            UPDATE categoria_producto
+            UPDATE producto_categoria
             SET {', '.join(campos)}
             WHERE id_categoria = %s;
             """
@@ -102,7 +103,7 @@ class ProductoCategoria(conexion.Conexion):
         try:
             cursor = conexion.cursor()
             sql = """
-            UPDATE categoria_producto
+            UPDATE producto_categoria
             SET estado = FALSE
             WHERE id_categoria = %s;
             """
@@ -126,7 +127,7 @@ class ProductoCategoria(conexion.Conexion):
         conexion = self.conectar()
         try:
             cursor = conexion.cursor(cursor_factory=DictCursor)
-            sql = "SELECT * FROM categoria_producto"
+            sql = "SELECT * FROM producto_categoria"
             if not incluir_inactivas:
                 sql += " WHERE estado = TRUE"
             sql += " ORDER BY id_categoria;"

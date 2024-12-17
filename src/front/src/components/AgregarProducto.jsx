@@ -6,52 +6,68 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [precio, setPrecio] = useState('');
-    const [stock, setStock] = useState('');
-    const [proveedorId, setProveedorId] = useState('');
-    const [imagen, setImagen] = useState(null); // Para almacenar la imagen seleccionada
+    const [marca, setMarca] = useState('');
+    const [id_categoria, setIdCategoria] = useState('');
+    const [codigo_barras, setCodigoBarras] = useState('');
+    //const [imagen, setImagen] = useState(null);  // Para almacenar la imagen seleccionada
+
     const [mensaje, setMensaje] = useState('');
     const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Asumir que no se está utilizando imagen por ahora
+        // const imagenProductoUrl = imagen ? `https://drive.google.com/uc?id=${imagen}` : '';  // URL de la imagen
+
         const nuevoProducto = {
             accion: 'agregarProducto',
             nombre,
             descripcion,
             precio: parseFloat(precio),
-            stock_actual: parseInt(stock),
-            id_proveedor: parseInt(proveedorId),
-            imagen, // Incluir la imagen en los datos
+            marca,
+            id_categoria: parseFloat(id_categoria),
+            codigo_barras,
+            //imagen_producto: imagenProductoUrl, // Aquí agregas la URL de la imagen (comentado por ahora)
+            forceAdd: false
         };
 
         try {
             const formData = new FormData();
             formData.append('producto', JSON.stringify(nuevoProducto));
-            if (imagen) {
-                formData.append('imagen', imagen); // Agregar la imagen
-            }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
+            // Si tienes la imagen en un archivo y necesitas enviarla (comentado por ahora)
+            /* if (imagen) {
+                formData.append('imagen_producto', imagen); // Agregar la imagen como archivo
+            } */
+
+            const response = await fetch(`
+                ${import.meta.env.VITE_API_BASE_URL}/producto`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (response.ok) {
                 const data = await response.json();
-                setMensaje('Producto agregado exitosamente');
+                setMensaje(`Producto '${data.message}' agregado exitosamente.`);
                 setError('');
                 onProductoAgregado(data);
                 onClose(); // Cerrar el modal al agregar el producto
                 setNombre('');
                 setDescripcion('');
                 setPrecio('');
-                setStock('');
-                setProveedorId('');
-                setImagen(null);
+                setIdCategoria('');
+                setCodigoBarras('');
+                setMarca('');
+                //setImagen(null); // Resetear la imagen seleccionada (comentado por ahora)
             } else {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al agregar el producto');
+                if (errorData.status === 'warning') {
+                    setMensaje('');
+                    setError(`Advertencia: ${errorData.message}`);
+                } else {
+                    throw new Error(errorData.message || 'Error al agregar el producto');
+                }
             }
         } catch (error) {
             setError(`Error: ${error.message}`);
@@ -59,12 +75,13 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
         }
     };
 
-    const handleImageChange = (e) => {
+    // El código para manejar la imagen ha sido comentado por ahora
+    /* const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setImagen(file);
+            setImagen(file);  // Guardar la imagen seleccionada
         }
-    };
+    }; */
 
     return (
         <div className="modal">
@@ -95,26 +112,34 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
                     />
                     <input
                         type="number"
-                        placeholder="Stock"
-                        value={stock}
-                        onChange={(e) => setStock(e.target.value)}
+                        placeholder="Categoría"
+                        value={id_categoria}
+                        onChange={(e) => setIdCategoria(e.target.value)}
                         required
                     />
                     <input
-                        type="number"
-                        placeholder="Proveedor ID"
-                        value={proveedorId}
-                        onChange={(e) => setProveedorId(e.target.value)}
+                        type="text"
+                        placeholder="Marca"
+                        value={marca}
+                        onChange={(e) => setMarca(e.target.value)}
                         required
                     />
-                    <div className="file-input-container">
+                    <input
+                        type="text"
+                        placeholder="Código de Barras"
+                        value={codigo_barras}
+                        onChange={(e) => setCodigoBarras(e.target.value)}
+                        required
+                    />
+                    {/* Aquí va el componente de imagen que hemos comentado por ahora */}
+                    {/* <div className="file-input-container">
                         <input
                             type="file"
                             onChange={handleImageChange}
                             accept="image/*"
                         />
                         {imagen && <p>Imagen seleccionada: {imagen.name}</p>}
-                    </div>
+                    </div> */}
                     <button type="submit">Agregar Producto</button>
                 </form>
 

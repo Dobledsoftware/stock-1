@@ -1,5 +1,5 @@
 from pydantic import BaseModel,EmailStr, validator,Field,root_validator
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 
@@ -13,15 +13,16 @@ class Producto_request(BaseModel):
     marca: Optional[str] = None
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
-    precio: Optional[float] = None
-    stock_actual: Optional[int] = None
-    stock_minimo: Optional[int] = None
-    stock_maximo: Optional[int] = None
-    id_proveedor: Optional[int] = None
+    precio: Optional[float] = None  
     estado: Optional[str] = None
     codigo_barras: Optional[str] = None
     forceAdd: Optional[bool] = False  # Si el usuario desea agregar el producto aunque ya exista
     accion_stock: Optional[AccionStock] = None  # Opción de incremento/disminución de stock
+    imagen_producto: Optional[str] = None  # URL de la imagen del producto
+    id_categoria: Optional[int] = None
+
+
+
     # Definir un Enum para limitar las opciones válidas
 
 
@@ -43,6 +44,7 @@ class Categoria_request(BaseModel):
     descripcion: Optional[str] = None
     estado:Optional[bool] = True 
     observaciones: Optional[str] = None
+    incluir_inactivas:Optional[bool] = True 
 
 
     
@@ -96,6 +98,20 @@ class Usuario_request(BaseModel):
                     raise ValueError("El email es obligatorio para esta acción.")
         return values  
     
+
+
+
+
+
+class MovimientoStock(BaseModel):
+    id_producto: int
+    cantidad: int
+    operacion: str  # Puede ser "incrementar" o "disminuir"
+    id_usuario: int
+    observaciones: Optional[str] = None
+
+class Stock_request(BaseModel):
+    movimientos: List[MovimientoStock]
 #valido datos de salida*********************************************************************
 
 class Producto_response(BaseModel):
@@ -125,3 +141,10 @@ class TodosLosUsuarios_response(BaseModel):
     legajo:str
     email:str
     cuil:str 
+
+# Esquema de salida (respuesta)
+class Stock_response(BaseModel):
+    id_producto: int
+    stock_actualizado: int
+    accion_realizada: str
+    mensaje: str
