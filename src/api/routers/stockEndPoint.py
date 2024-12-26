@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form  # Importa APIRouter para crear grupos de rutas y HTTPException para manejar errores.
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form  # Importa APIRouter para crear grupos de rutas y HTTPException para gestion errores.
 from fastapi.responses import JSONResponse, Response  # Importa JSONResponse para devolver respuestas JSON personalizadas.
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
 from typing import List,Optional
@@ -6,13 +6,18 @@ from typing import List,Optional
 #importa las clases
 from models.producto import Producto # Importa Clase Producto
 from models.proveedor import Proveedor # Importa Clase Proveedor
+from models.almacen import Almacen # Importa Clase Almacen
+from models.almacen_estante import Estante # Importa Clase Almacen
+
 from models.producto_categoria import ProductoCategoria # Importa Clase productocategoria
+from models.producto_marca import ProductoMarca # Importa Clase productocategoria
+
 from models.stock import Stock
 
 
-from models.login import Login,create_jwt_token # Importa Clase Recibo
+from models.login import Login,create_jwt_token
 #importa los schemas
-from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response
+from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response,Marca_request,MovimientoStock,Almacen_request,Estante_request
 
 import logging
 import json
@@ -101,7 +106,7 @@ async def todosLosUsuarios(request: TodosLosUsuarios_request):
 @router.post("/producto")
 async def producto(request: Producto_request):
     """
-    Endpoint para manejar productos.
+    Endpoint para gestion productos.
     Soporta las acciones: 
 
     - **verTodosLosProductos**: Ver todos los productos según su estado.
@@ -118,7 +123,7 @@ async def producto(request: Producto_request):
         
             {
             "accion": "agregarProducto",
-            "marca": "Nike",
+            "id_marca": 1,
             "nombre": "Zapatillas Air Max 2024",
             "descripcion": "Zapatillas deportivas de alta calidad, edición 2024",
             "precio": 150.75,
@@ -181,16 +186,16 @@ async def producto(request: Producto_request):
             Verifica si ya existe un producto con el mismo código de barras y maneja el caso de forceAdd.
             """
                     # Verificar parámetros requeridos
-            if not all([request.marca, request.nombre, request.descripcion, request.precio, request.codigo_barras,request.id_categoria]):
+            if not all([request.id_marca, request.nombre, request.descripcion, request.precio, request.codigo_barras,request.id_categoria]):
                 raise HTTPException(
                     status_code=400,
-                    detail="Los parámetros 'marca', 'nombre', 'descripcion', 'precio', 'codigo_barras' y  'id_categoria'son requeridos."
+                    detail="Los parámetros 'id_marca', 'nombre', 'descripcion', 'precio', 'codigo_barras' y  'id_categoria'son requeridos."
                 )
             # Crear instancia de Producto
             producto = Producto()
             # Llamar al método agregar_producto
             response = await producto.agregar_producto(
-                marca=request.marca,
+                id_marca=request.id_marca,
                 nombre=request.nombre,
                 descripcion=request.descripcion,
                 precio=request.precio,
@@ -201,6 +206,39 @@ async def producto(request: Producto_request):
             )
 
             return response
+        
+#Editar producto
+
+        elif request.accion == "editarProducto":
+                
+            """
+            Endpoint que maneja la solicitud de editar un producto.
+            """
+                    # Verificar parámetros requeridos
+            if not all([request.id_marca, request.nombre, request.descripcion, request.precio, request.codigo_barras,request.id_categoria]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Los parámetros 'id_marca', 'nombre', 'descripcion', 'precio', 'codigo_barras' y  'id_categoria'son requeridos."
+                )
+            # Crear instancia de Producto
+            producto = Producto()
+            # Llamar al método agregar_producto
+            response = await producto.editarProducto(
+                request.id_producto,
+                request.id_marca,
+                request.nombre, 
+                request.descripcion, 
+                request.precio, 
+                request.codigo_barras,
+                request.id_categoria, 
+                request.id_usuario,
+                request.imagen_producto              
+            )
+
+            return response
+
+
+
 
 # Eliminar producto
         elif request.accion == "eliminarProducto":
@@ -332,24 +370,39 @@ async def login(usuario: UsuarioLogin_request, response: Response):
 #             raise HTTPException(status_code=400, detail="Acción no válida. Las acciones permitidas son: 'insert', 'update', 'activar', 'desactivar'.")
 #     except Exception as e:
 #         raise HTTPException(status_code=400, detail=str(e))
-###############################manejar_proveedor############################################################################################
+###############################gestion_proveedor############################################################################################
 
 
 
 @router.post("/proveedor")
-async def manejar_proveedor(request: Proveedor_request):
+async def gestion_proveedor(request: Proveedor_request):
     """
-    Endpoint para manejar provedores.
+    Endpoint para gestion provedores.
     Soporta las acciones: 
     - 'verTodosLosProveedores': 
 
     ```Jsoon
         {
         "accion": "verTodosLosProveedores",
-        "estado": "Activo"
+        "estado": true
+        }
+
+
+         {
+        "accion": "verTodosLosProveedores",
+        "estado": false
         }
     ```
 
+    - 'cambiarEstado': Cambia de estado solo acepta true o false.
+         ```Jsoon
+
+        {
+            "accion": "cambiarEstado",
+            "id_proveedor": 1,
+            "estado": false
+        }
+        ```
     - 'agregarProveedor': Agregar un nuevo Proveedor.
          ```Jsoon
         {        
@@ -383,7 +436,6 @@ async def manejar_proveedor(request: Proveedor_request):
             "status": "warning",
             "message": "No se realizaron cambios, ya que los valores proporcionados son los mismos."
             }
-
         ```
 
     """
@@ -434,7 +486,7 @@ async def manejar_proveedor(request: Proveedor_request):
                     detail="El parámetro 'id_proveedor' es requerido para esta acción."
                 )
             
-            # Asegurarse de que los parámetros a editar estén definidos, si se requieren.
+# Asegurarse de que los parámetros a editar estén definidos, si se requieren.
             if not any([request.nombre, request.direccion, request.telefono, request.correo_contacto]):
                 raise HTTPException(
                     status_code=400,
@@ -451,6 +503,20 @@ async def manejar_proveedor(request: Proveedor_request):
             )
             return response
         
+
+
+
+        # Cambiar estado del proveedor
+        elif request.accion == "cambiarEstado":
+            if request.id_proveedor is None or request.estado is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Los parámetros 'id_proveedor' y 'estado' son requeridos para esta acción."
+                )
+            proveedor = Proveedor(id_proveedor=request.id_proveedor)
+            response = await proveedor.cambiar_estado(request.estado)
+            return response
+                
 
         else:
             # Acción no válida
@@ -546,7 +612,7 @@ async def manejar_proveedor(request: Proveedor_request):
 @router.post("/producto_categoria")
 async def producto_categoria(request: Categoria_request):
     """
-    Endpoint para manejar categorías de productos.
+    Endpoint para gestion categorías de productos.
     Soporta las acciones:
     - 'verTodasLasCategorias': Listar todas las categorías.
         ```json
@@ -651,10 +717,123 @@ async def producto_categoria(request: Categoria_request):
 
 
 
-###################################################################################################
 
-@router.post("/ajustar_stock_multiple/", response_model=dict)
-async def ajustar_stock_multiple(request: Stock_request):
+
+
+
+    ####################################marca#####################################################################
+
+
+
+
+@router.post("/producto_marca")
+async def producto_marca(request: Marca_request):
+    """
+    Endpoint para gestion marcas de productos.
+    Soporta las acciones:
+    - 'verTodasLasMarcas': Listar todas las marcas.
+        ```json
+            {
+            "accion": "verTodasLasMarcas",
+            "incluir_inactivas": true
+            }
+        
+
+            {
+            "accion": "verTodasLasMarcas",
+            "incluir_inactivas": false
+            }
+        ```
+
+    - 'agregarMarcas': Agregar una nueva marca.
+        ```json
+
+            {
+            "accion": "agregarMarca",
+            "descripcion": "Coca Cola",
+            "estado": true
+            }
+        ```
+
+
+    - 'modificarMarca': Modificar una marca existente.
+        ```json
+
+            {
+            "accion": "modificarMarca",
+            "id_marca": 1,
+            "descripcion": "Electrónicssssa"
+            }
+
+            {
+            "accion": "modificarMarca",
+            "id_marca": 1,
+            "estado": false
+            }
+
+            {
+            "accion": "modificarMarca",
+            "id_marca": 1,
+            "descripcion": "Electrónica avanzada",
+            "estado": true
+            }
+
+        ```
+    - 'eliminarMarca': Eliminar (soft delete) una marca.
+        ```json
+
+            {
+            "accion": "eliminarMarca",
+            "id_marca": 1
+            }
+        ```
+    """
+    try:
+        marca = ProductoMarca()
+        # Listar todas las marcas
+        if request.accion == "verTodasLasMarcas":
+            resultado = await marca.ver_todas_marcas(request.incluir_inactivas)
+            return {"status": "success", "data": resultado}
+
+        # Agregar una nueva marca
+        elif request.accion == "agregarMarca":
+            if not request.descripcion:
+                raise HTTPException(status_code=400, detail="El campo 'descripcion' es requerido.")
+            resultado = await marca.agregar_marca(request.descripcion, request.estado)
+            return resultado
+
+        # Modificar una marca existente
+        elif request.accion == "modificarMarca":
+            if not request.id_marca:
+                raise HTTPException(status_code=400, detail="El campo 'id_marca' es requerido.")
+            if not (request.descripcion or request.estado is not None):
+                raise HTTPException(status_code=400, detail="Debe proporcionar 'descripcion' o 'estado' para modificar.")
+            resultado = await marca.modificar_marca(request.id_marca, request.descripcion, request.estado)
+            return resultado
+
+        # Eliminar una marca (soft delete)
+        elif request.accion == "eliminarMarca":
+            if not request.id_marca:
+                raise HTTPException(status_code=400, detail="El campo 'id_marca' es requerido.")
+            resultado = await marca.eliminar_marca(request.id_marca)
+            return resultado
+
+        else:
+            # Acción no válida
+            raise HTTPException(status_code=400, detail="Acción no válida. Verifique la documentación.")
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+############################Movimiento_stock#######################################################################
+
+@router.post("/Movimiento_stock")
+async def Movimiento_stock(request: MovimientoStock):
     """
         Ejemplo de Payload de Entrada:
 
@@ -706,32 +885,337 @@ async def ajustar_stock_multiple(request: Stock_request):
     resultados = []  # Aquí guardaremos el resultado de cada movimiento
 
     # Instancia del repositorio
-    stock_repo = Stock()
+    stock = Stock()
 
-    for movimiento in request.movimientos:
-        try:
-            # Llamar a la lógica del repositorio
-            resultado = await stock_repo.ajustar_stock(
-                id_producto=movimiento.id_producto,
-                cantidad=movimiento.cantidad,
-                operacion=movimiento.operacion,
-                id_usuario=movimiento.id_usuario,
-                observaciones=movimiento.observaciones
-            )
+    for accion in request.accion:
+        try:                        
+            if request.accion == "entradaStock":
+                resultado = await stock.entradaStock(request.incluir_inactivas)
 
-            # Respuesta exitosa para este movimiento
-            resultados.append({
-                "id_producto": movimiento.id_producto,
-                "status": "success",
-                "mensaje": f"Stock {movimiento.operacion} correctamente para el producto {movimiento.id_producto}.",
-                "stock_actualizado": resultado.get("stock_actualizado")  # Asumiendo que ajusta el stock
-            })
+
+                
+                return {"status": "success", "data": resultado}
+
+            # Agregar una nueva marca
+            elif request.accion == "agregarMarca":
+                if not request.descripcion:
+                    raise HTTPException(status_code=400, detail="El campo 'descripcion' es requerido.")
+                resultado = await marca.agregar_marca(request.descripcion, request.estado)
+                return resultado
+
+            # Modificar una marca existente
+            elif request.accion == "modificarMarca":
+                if not request.id_marca:
+                    raise HTTPException(status_code=400, detail="El campo 'id_marca' es requerido.")
+                if not (request.descripcion or request.estado is not None):
+                    raise HTTPException(status_code=400, detail="Debe proporcionar 'descripcion' o 'estado' para modificar.")
+                resultado = await marca.modificar_marca(request.id_marca, request.descripcion, request.estado)
+                return resultado
+
+            # Eliminar una marca (soft delete)
+            elif request.accion == "eliminarMarca":
+                if not request.id_marca:
+                    raise HTTPException(status_code=400, detail="El campo 'id_marca' es requerido.")
+                resultado = await marca.eliminar_marca(request.id_marca)
+                return resultado
+
+            else:
+                # Acción no válida
+                raise HTTPException(status_code=400, detail="Acción no válida. Verifique la documentación.")
+
+        except HTTPException as e:
+            raise e
         except Exception as e:
-            # Respuesta en caso de error en este movimiento
-            resultados.append({
-                "id_producto": movimiento.id_producto,
-                "status": "error",
-                "mensaje": f"Error al procesar el producto {movimiento.id_producto}: {str(e)}"
-            })
+            raise HTTPException(status_code=500, detail=str(e))
+        
 
     return {"resultados": resultados}
+
+
+###########################Almacen#################################################
+
+
+@router.post("/almacen")
+async def gestion_almacen(request: Almacen_request):
+    """
+    Endpoint para gestion almacen.
+    Soporta las acciones: 
+    - 'verTodosLosAlmacenes': 
+
+    ```Jsoon
+        {
+        "accion": "verTodosLosAlmacenes",
+        "estado": true
+        }
+
+
+         {
+        "accion": "verTodosLosAlmacenes",
+        "estado": false
+        }
+    ```
+
+    - 'cambiarEstado': Cambia de estado solo acepta true o false.
+         ```Jsoon
+
+        {
+            "accion": "cambiarEstado",
+            "id_almacen": 1,
+            "estado": false
+        }
+        ```
+    - 'agregarAlmacen': Agregar un nuevo Almacen.
+         ```Jsoon
+        {        
+        "accion": "agregarAlmacen",
+        "descripcion": "almcaen 2"
+        
+        }
+        
+        ```    
+    
+    - 'editarAlmacen' : Editar un Almacen por ID.
+
+        ```Jsoon
+            {
+            "accion": "editarAlmacen",
+            "id_almacen": 8,
+            "descripcion": "aaaaaa"
+            }
+        
+        ```
+    
+    - 'en caso de error al editar devuelve':
+
+        ```Jsoon
+            {
+            "status": "warning",
+            "message": "No se realizaron cambios, ya que los valores proporcionados son los mismos."
+            }
+        ```
+
+    """
+    try:
+# Ver todos los almacenes
+        if request.accion == "verTodosLosAlmacenes":
+            if request.estado is None:
+                raise HTTPException(
+                    status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
+                )            
+            almacen = Almacen()            
+            response = await almacen.verTodosLosAlmacenes(request.estado)
+            return {"data": response}
+
+# Agregar nuevo almacen
+        elif request.accion == "agregarAlmacen":
+            if not all([request.descripcion]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Todos los parámetros 'descripcion'son requeridos."
+                )
+            almacen = Almacen()
+            response = await almacen.agregarAlmacen(               
+            request.descripcion
+            )
+            return response
+# Eliminar almacen
+        elif request.accion == "eliminarAlmacen":
+            if request.id_almacen is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="El parámetro 'id_almacen' es requerido para esta acción."
+                )
+            almacen = Almacen()
+            response = await almacen.eliminarAlmacen(request.id_almacen)
+            return response
+
+# Editar almacen
+        elif request.accion == "editarAlmacen":
+            if request.id_almacen is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="El parámetro 'id_almacen' es requerido para esta acción."
+                )
+            
+# Asegurarse de que los parámetros a editar estén definidos, si se requieren.
+            if not any([request.descripcion]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Al menos uno de los parámetros  'descripcion' debe ser proporcionado para editar."
+                )
+
+            almacen = Almacen()
+            response = await almacen.editaralmacen(
+                request.id_almacen,  # El ID del almacen que se va a editar
+                request.descripcion  # El nuevo correo, si se proporciona
+            )
+            return response
+        
+        # Cambiar estado del almacen
+        elif request.accion == "cambiarEstado":
+            if request.id_almacen is None or request.estado is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Los parámetros 'id_almacen' y 'estado' son requeridos para esta acción."
+                )
+            almacen = Almacen(id_almacen=request.id_almacen)
+            response = await almacen.cambiar_estado(request.estado)
+            return response
+                
+
+        else:
+            # Acción no válida
+            raise HTTPException(
+                status_code=400,
+                detail="Acción no válida. Las acciones soportadas son: 'verTodosLosAlmacenes', 'agregarAlmacen', 'eliminarEstante'."
+            )
+    except Exception as e:
+        # Manejo de errores inesperados
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+###################################almacen_estante###################################
+
+
+@router.post("/almacen_estante")
+async def gestion_almacen_estante(request: Estante_request):
+    """
+    Endpoint para gestion estante.
+    Soporta las acciones: 
+    - 'verTodosLosEstantes': 
+
+    ```Jsoon
+        {
+        "accion": "verTodosLosEstantes",
+        "id_almacen": 1,
+        "estado": true
+        }
+
+
+         {
+        "accion": "verTodosLosEstantes",
+        "estado": false
+        }
+    ```
+
+    - 'cambiarEstado': Cambia de estado solo acepta true o false.
+         ```Jsoon
+
+        {
+            "accion": "cambiarEstado",
+            "id_estante": 1,
+            "estado": false
+        }
+        ```
+    - 'agregarEstante': Agregar un nuevo Estante.
+         ```Jsoon
+        {        
+        "accion": "agregarEstante",
+        "id_almacen":1,
+        "descripcion": "estante 2"
+        
+        }
+        
+        ```    
+    
+    - 'editarEstante' : Editar un Estante por ID.
+
+        ```Jsoon
+            {
+            "accion": "editarEstante",
+            "id_estante": 8,
+            "descripcion": "aaaaaa"
+            }
+        
+        ```
+    
+    - 'en caso de error al editar devuelve':
+
+        ```Jsoon
+            {
+            "status": "warning",
+            "message": "No se realizaron cambios, ya que los valores proporcionados son los mismos."
+            }
+        ```
+
+    """
+    try:
+# Ver todos los estantes
+        if request.accion == "verTodosLosEstantes":
+            if request.estado is None:
+                raise HTTPException(
+                    status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
+                )            
+            estante = Estante()            
+            response = await estante.verTodosLosestantes(request.id_almacen,request.estado)
+            return {"data": response}
+
+# Agregar nuevo estante
+        elif request.accion == "agregarEstante":
+            if not all([request.descripcion]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Todos los parámetros 'id_almacen', 'descripcion'son requeridos."
+                )
+            estante = Estante()
+            response = await estante.agregarEstante( 
+            request.id_almacen,              
+            request.descripcion
+            )
+            return response
+# Eliminar estante
+        elif request.accion == "eliminarEstante":
+            if request.id_estante is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="El parámetro 'id_estante' es requerido para esta acción."
+                )
+            estante = Estante()
+            response = await estante.eliminarEstante(request.id_estante)
+            return response
+
+# Editar estante
+        elif request.accion == "editarEstante":
+            if request.id_estante is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="El parámetro 'id_estante' es requerido para esta acción."
+                )
+            
+# Asegurarse de que los parámetros a editar estén definidos, si se requieren.
+            if not any([request.descripcion]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Al menos uno de los parámetros  'descripcion' debe ser proporcionado para editar."
+                )
+
+            estante = Estante()
+            response = await estante.editarEstante(
+                request.id_estante,  # El ID del estante que se va a editar
+                request.descripcion  # El nuevo correo, si se proporciona
+            )
+            return response
+        
+        # Cambiar estado del estante
+        elif request.accion == "cambiarEstado":
+            if request.id_estante is None or request.estado is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Los parámetros 'id_estante' y 'estado' son requeridos para esta acción."
+                )
+            estante = Estante(id_estante=request.id_estante)
+            response = await estante.cambiar_estado(request.estado)
+            return response
+                
+
+        else:
+            # Acción no válida
+            raise HTTPException(
+                status_code=400,
+                detail="Acción no válida. Las acciones soportadas son: 'verTodosLosEstantes', 'agregarEstante', 'eliminarEstante'."
+            )
+    except Exception as e:
+        # Manejo de errores inesperados
+        raise HTTPException(status_code=500, detail=str(e))
+    
+

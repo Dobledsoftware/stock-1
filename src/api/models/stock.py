@@ -5,7 +5,7 @@ from typing import Optional
 
 
 class Stock(conexion.Conexion):
-    async def ajustar_stock(self, id_producto: int, cantidad: int, operacion: str, id_usuario: int, observaciones: Optional[str]):
+    async def entradaStock(self, id_producto: int, cantidad: int, operacion: str, id_usuario: int, observaciones: Optional[str]):
         """
         Ajusta el stock en la tabla 'stock' y registra el movimiento.
         """

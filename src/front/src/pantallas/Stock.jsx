@@ -1,41 +1,56 @@
 import React, { useState } from "react";
-import AgregarProducto from '../components/AgregarProducto'; // Importar el componente del modal
-import TablaProductos from '../components/TablaProductos'; // Importar la tabla de productos
+import AgregarProducto from "../components/AgregarProducto"; // Modal para agregar productos
+import TablaProductos from "../components/TablaProductos"; // Tabla de productos
+import Categorias from "../components/Categorias"; // Modal para gestionar categorías
+import '../styles/stock.css';
 
-const Stock = () => {
+const Stock = ({ apiBaseUrl }) => {
   const [productos, setProductos] = useState([]); // Estado para la lista de productos
-  const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
+  const [modalProductoVisible, setModalProductoVisible] = useState(false); // Control del modal de productos
+  const [modalCategoriasVisible, setModalCategoriasVisible] = useState(false); // Control del modal de categorías
 
-  // Función que maneja la adición de un producto
+  // Función para agregar un producto y cerrar el modal
   const manejarProductoAgregado = (nuevoProducto) => {
-    setProductos([...productos, nuevoProducto]); // Agregar el nuevo producto
-    setModalVisible(false); // Cerrar el modal después de agregar
+    setProductos([...productos, nuevoProducto]); // Agregar el producto al estado
+    setModalProductoVisible(false); // Cerrar el modal
   };
 
-  // Función para abrir el modal
-  const manejarAbrirModal = () => {
-    setModalVisible(true);
+  // Función para abrir el modal de productos
+  const manejarAbrirModalProducto = () => {
+    setModalProductoVisible(true);
   };
 
-  // Función para cerrar el modal
-  const manejarCerrarModal = () => {
-    setModalVisible(false);
+  // Función para cerrar el modal de productos
+  const manejarCerrarModalProducto = () => {
+    setModalProductoVisible(false);
   };
+
+
 
   return (
     <div className="content">
       <div className="half">
-        {/* Botón para abrir el modal */}
-        <button onClick={manejarAbrirModal}>Agregar Producto</button>
+        {/* Botón para abrir el modal de productos */}
+        <button onClick={manejarAbrirModalProducto}>Agregar Producto</button>
 
-        {/* Mostrar el modal solo si modalVisible es true */}
-        {modalVisible && (
-          <AgregarProducto
-            onClose={manejarCerrarModal} // Pasar la función para cerrar el modal
-            onProductoAgregado={manejarProductoAgregado} // Pasar la función para agregar un producto
-          />
+        {/* Modal de productos */}
+        {modalProductoVisible && (
+          <div className="modal">
+            <div className="modal-content">
+              <span className="close" onClick={manejarCerrarModalProducto}>
+                &times;
+              </span>
+              <AgregarProducto
+                onClose={manejarCerrarModalProducto}
+                onProductoAgregado={manejarProductoAgregado}
+              />
+            </div>
+          </div>
         )}
+
+        
       </div>
+
       <div className="half">
         {/* Tabla de productos */}
         <TablaProductos productos={productos} />

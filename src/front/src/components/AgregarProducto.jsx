@@ -1,87 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import '../styles/AgregarProducto.css';  // Asegúrate de incluir los estilos necesarios
+import '../styles/AgregarProducto.module.css';
+import { toast } from 'react-toastify'; // Importamos toast
+import Swal from 'sweetalert2';  // Importamos SweetAlert2
 
 const AgregarProducto = ({ onProductoAgregado, onClose }) => {
-    const [nombre, setNombre] = useState('');
-    const [descripcion, setDescripcion] = useState('');
-    const [precio, setPrecio] = useState('');
-    const [marca, setMarca] = useState('');
-    const [id_categoria, setIdCategoria] = useState('');
-    const [codigo_barras, setCodigoBarras] = useState('');
-    //const [imagen, setImagen] = useState(null);  // Para almacenar la imagen seleccionada
+    const [formData, setFormData] = useState({
+        nombre: '',
+        descripcion: '',
+        precio: '',
+        id_marca: '',
+        id_categoria: '',
+        codigo_barras: '',
+    });
+    const [categorias, setCategorias] = useState([]);
+    const [marcas, setMarcas] = useState([]);
 
-    const [mensaje, setMensaje] = useState('');
-    const [error, setError] = useState('');
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const fetchData = async (url, setState, body) => {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            if (response.ok) {
+                const { data } = await response.json();
+                setState(data);
+            } else {
+                throw new Error('Error al obtener datos del servidor.');
+            }
+        } catch (err) {
+            toast.error(`Error: ${err.message}`);  // Usamos Toastify para mostrar error
+        }
+    };
+
+    useEffect(() => {
+        fetchData(
+            `${import.meta.env.VITE_API_BASE_URL}/producto_categoria`,
+            setCategorias,
+            { accion: 'verTodasLasCategorias', incluir_inactivas: true }
+        );
+        fetchData(
+            `${import.meta.env.VITE_API_BASE_URL}/producto_marca`,
+            setMarcas,
+            { accion: 'verTodasLasMarcas', incluir_inactivas: true }
+        );
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Asumir que no se está utilizando imagen por ahora
-        // const imagenProductoUrl = imagen ? `https://drive.google.com/uc?id=${imagen}` : '';  // URL de la imagen
-
-        const nuevoProducto = {
+        const producto = {
             accion: 'agregarProducto',
-            nombre,
-            descripcion,
-            precio: parseFloat(precio),
-            marca,
-            id_categoria: parseFloat(id_categoria),
-            codigo_barras,
-            //imagen_producto: imagenProductoUrl, // Aquí agregas la URL de la imagen (comentado por ahora)
-            forceAdd: false
+            nombre: formData.nombre,
+            descripcion: formData.descripcion,
+            precio: parseFloat(formData.precio),
+            codigo_barras: formData.codigo_barras,
+            id_marca: formData.id_marca ? parseInt(formData.id_marca, 10) : null,
+            id_categoria: formData.id_categoria ? parseInt(formData.id_categoria, 10) : null,
+            forceAdd: false,
         };
 
         try {
-            const formData = new FormData();
-            formData.append('producto', JSON.stringify(nuevoProducto));
-
-            // Si tienes la imagen en un archivo y necesitas enviarla (comentado por ahora)
-            /* if (imagen) {
-                formData.append('imagen_producto', imagen); // Agregar la imagen como archivo
-            } */
-
-            const response = await fetch(`
-                ${import.meta.env.VITE_API_BASE_URL}/producto`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
                 method: 'POST',
-                body: formData,
+                body: JSON.stringify(producto),
+                headers: { 'Content-Type': 'application/json' },
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setMensaje(`Producto '${data.message}' agregado exitosamente.`);
-                setError('');
-                onProductoAgregado(data);
-                onClose(); // Cerrar el modal al agregar el producto
-                setNombre('');
-                setDescripcion('');
-                setPrecio('');
-                setIdCategoria('');
-                setCodigoBarras('');
-                setMarca('');
-                //setImagen(null); // Resetear la imagen seleccionada (comentado por ahora)
-            } else {
-                const errorData = await response.json();
-                if (errorData.status === 'warning') {
-                    setMensaje('');
-                    setError(`Advertencia: ${errorData.message}`);
+                const { status, message, productos_repetidos } = await response.json();
+                
+                // Si el status es warning, mostramos una alerta con los productos repetidos
+                if (status === 'warning' && productos_repetidos.length > 0) {
+                    const productos = productos_repetidos.map(
+                        (prod) => `- ${prod.nombre} (Código: ${prod.codigo_barras})`
+                    ).join('\n');
+
+                    Swal.fire({
+                        title: '¡Advertencia!',
+                        text: `Ya existen productos con el código de barras:\n${productos}\n¿Desea agregar el producto de todos modos?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, agregar',
+                        cancelButtonText: 'No, cancelar',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            producto.forceAdd = true;
+                            agregarProductoConConfirmacion(producto);
+                        }
+                    });
                 } else {
-                    throw new Error(errorData.message || 'Error al agregar el producto');
+                    // Si la respuesta es exitosa y no hay productos repetidos
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: message,
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar',
+                    });
+
+                    onProductoAgregado(); // Llamamos la función para actualizar la lista de productos
+                    onClose(); // Cerramos el modal
+                    resetForm();
                 }
+            } else {
+                const { message } = await response.json();
+                toast.error(`Error: ${message || 'Error al agregar el producto'}`);
             }
-        } catch (error) {
-            setError(`Error: ${error.message}`);
-            setMensaje('');
+        } catch (err) {
+            toast.error(`Error: ${err.message}`);
         }
     };
 
-    // El código para manejar la imagen ha sido comentado por ahora
-    /* const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImagen(file);  // Guardar la imagen seleccionada
+    const agregarProductoConConfirmacion = async (producto) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
+                method: 'POST',
+                body: JSON.stringify(producto),
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.ok) {
+                const { message } = await response.json();
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: message,
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                });
+
+                onProductoAgregado();
+                onClose();
+                resetForm();
+            } else {
+                const { message } = await response.json();
+                toast.error(`Error: ${message || 'Error al agregar el producto'}`);
+            }
+        } catch (err) {
+            toast.error(`Error: ${err.message}`);
         }
-    }; */
+    };
+
+    const resetForm = () => {
+        setFormData({
+            nombre: '',
+            descripcion: '',
+            precio: '',
+            id_marca: '',
+            id_categoria: '',
+            codigo_barras: '',
+        });
+    };
 
     return (
         <div className="modal">
@@ -91,60 +166,64 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
                 <form onSubmit={handleSubmit}>
                     <input
                         type="text"
+                        name="nombre"
                         placeholder="Nombre"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
+                        value={formData.nombre}
+                        onChange={handleInputChange}
                         required
                     />
                     <input
                         type="text"
+                        name="descripcion"
                         placeholder="Descripción"
-                        value={descripcion}
-                        onChange={(e) => setDescripcion(e.target.value)}
+                        value={formData.descripcion}
+                        onChange={handleInputChange}
                         required
                     />
                     <input
                         type="number"
+                        name="precio"
                         placeholder="Precio"
-                        value={precio}
-                        onChange={(e) => setPrecio(e.target.value)}
+                        value={formData.precio}
+                        onChange={handleInputChange}
                         required
                     />
-                    <input
-                        type="number"
-                        placeholder="Categoría"
-                        value={id_categoria}
-                        onChange={(e) => setIdCategoria(e.target.value)}
+                    <select
+                        name="id_categoria"
+                        value={formData.id_categoria}
+                        onChange={handleInputChange}
                         required
-                    />
+                    >
+                        <option value="" disabled>Seleccionar categoría</option>
+                        {categorias.map((categoria) => (
+                            <option key={categoria.id_categoria} value={categoria.id_categoria}>
+                                {categoria.descripcion}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        name="id_marca"
+                        value={formData.id_marca}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="" disabled>Seleccionar marca</option>
+                        {marcas.map((marca) => (
+                            <option key={marca.id_marca} value={marca.id_marca}>
+                                {marca.descripcion}
+                            </option>
+                        ))}
+                    </select>
                     <input
                         type="text"
-                        placeholder="Marca"
-                        value={marca}
-                        onChange={(e) => setMarca(e.target.value)}
-                        required
-                    />
-                    <input
-                        type="text"
+                        name="codigo_barras"
                         placeholder="Código de Barras"
-                        value={codigo_barras}
-                        onChange={(e) => setCodigoBarras(e.target.value)}
+                        value={formData.codigo_barras}
+                        onChange={handleInputChange}
                         required
                     />
-                    {/* Aquí va el componente de imagen que hemos comentado por ahora */}
-                    {/* <div className="file-input-container">
-                        <input
-                            type="file"
-                            onChange={handleImageChange}
-                            accept="image/*"
-                        />
-                        {imagen && <p>Imagen seleccionada: {imagen.name}</p>}
-                    </div> */}
                     <button type="submit">Agregar Producto</button>
                 </form>
-
-                {mensaje && <p className="mensaje-exito">{mensaje}</p>}
-                {error && <p className="mensaje-error">{error}</p>}
             </div>
         </div>
     );

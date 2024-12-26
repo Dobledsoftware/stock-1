@@ -8,6 +8,7 @@ import Panel from './pantallas/Panel';
 import Abastecimiento from './pantallas/Abastecimiento';
 import CierreCaja from './pantallas/CierreCaja';
 import Configuracion from './pantallas/Configuracion';
+import Config from './pantallas/Config';
 import 'font-awesome/css/font-awesome.min.css';
 
 
@@ -48,6 +49,8 @@ function App() {
             <Route path="/ventas" element={<Ventas />} />
             <Route path="/cierre" element={< CierreCaja />} />
             <Route path="/configuracion" element={< Configuracion />} />
+            <Route path="/config" element={< Config />} />
+            
             <Route path="/abastecimiento" element={<Abastecimiento />} />
             <Route path="/administracion" element={<Administracion />} />
           </Routes>

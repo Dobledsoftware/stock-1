@@ -39,11 +39,33 @@ const TablaProductos = () => {
 
   useEffect(() => {
     if (productos.length > 0) {
+      // Destruir la tabla si ya está inicializada para evitar duplicados
+      if ($.fn.DataTable.isDataTable("#tablaProductos")) {
+        $("#tablaProductos").DataTable().destroy();
+      }
+
+      // Inicializar DataTable
       $("#tablaProductos").DataTable({
         responsive: true,
         language: {
           url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json",
         },
+        columnDefs: [
+          { targets: 0, width: "10%" }, // ID
+              { targets: 1, width: "20%" }, // Nombre
+              { targets: 2, width: "30%" }, // Descripción
+              { targets: 3, width: "10%" }, // Precio
+              { targets: 4, width: "10%" }, // Marca
+              { targets: 5, width: "20%" }, // Codigo de barra
+          {
+              
+            targets: [5], // Índice de la columna 'Codigo de barra'
+            searchable: true,
+            
+              
+            
+          },
+        ],
       });
     }
   }, [productos]);
@@ -59,6 +81,7 @@ const TablaProductos = () => {
             <th>Descripción</th>
             <th>Precio</th>
             <th>Marca</th>
+            <th>Codigo de barra</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -70,10 +93,13 @@ const TablaProductos = () => {
               <td>{producto.producto_descripcion}</td>
               <td>{producto.producto_precio}</td>
               <td>{producto.producto_marca}</td>
+              <td>{producto.producto_codigo_barras || "N/A"}</td>
               <td>
                 {/* Ícono para editar */}
                 <button
-                  onClick={() => console.log("Editar producto con ID:", producto.producto_id)}
+                  onClick={() =>
+                    console.log("Editar producto con ID:", producto.producto_id)
+                  }
                   title="Editar"
                   className="icon-button"
                 >

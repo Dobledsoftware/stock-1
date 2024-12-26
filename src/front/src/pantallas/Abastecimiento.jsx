@@ -1,38 +1,71 @@
 import React, { useState } from 'react';
-import '../styles/abastecimiento.css';
+import { FaSearch, FaPlus, FaTrash } from 'react-icons/fa'; // Importación de íconos
+import '../styles/abastecimiento.module.css';
 
 const Abastecimiento = () => {
-    const [productosEncontrados, setProductosEncontrados] = useState([]); // Lista de productos encontrados
-    const [tablaTrabajo, setTablaTrabajo] = useState([]); // Productos en la tabla de trabajo
-    const [busqueda, setBusqueda] = useState(''); // Texto del buscador
-    const [accion, setAccion] = useState(''); // Aumentar o Disminuir
-    const [motivo, setMotivo] = useState(''); // Motivo de la acción
+    const [productosEncontrados, setProductosEncontrados] = useState([]);
+    const [tablaTrabajo, setTablaTrabajo] = useState([]);
+    const [busqueda, setBusqueda] = useState('');
+    const [accion, setAccion] = useState('');
+    const [motivo, setMotivo] = useState('');
+    const [mostrarResultados, setMostrarResultados] = useState(false);
 
-    const buscarProducto = () => {
-        // Validar que se haya seleccionado una acción y proporcionado un motivo
+    const buscarProducto = async () => {
         if (!accion) {
-            alert('Por favor, selecciona una acción: Aumentar o Disminuir.');
+            alert('Por favor, selecciona una acción.');
             return;
         }
         if (!motivo.trim()) {
-            alert('Por favor, ingresa un motivo para la acción.');
+            alert('Por favor, ingresa un motivo.');
             return;
         }
 
-        // Simula buscar productos en una base de datos o API
-        const productosMock = [
-            { id: 1, nombre: 'Producto A', stock: 10 },
-            { id: 2, nombre: 'Producto B', stock: 20 },
-        ];
+        setProductosEncontrados([]);
 
-        const resultados = productosMock.filter((prod) =>
-            prod.nombre.toLowerCase().includes(busqueda.toLowerCase())
-        );
-        setProductosEncontrados(resultados);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    accion: 'verTodosLosProductos',
+                    estado: 'Activo',
+                }),
+            });
+
+            const data = await response.json();
+
+            if (Array.isArray(data.data)) {
+                const resultados = data.data.filter((prod) => {
+                    const nombre = prod.producto_nombre ? prod.producto_nombre.toLowerCase() : '';
+                    const marca = prod.producto_marca ? prod.producto_marca.toLowerCase() : '';
+                    const codigoBarras = prod.producto_codigo_barras ? prod.producto_codigo_barras.toLowerCase() : '';
+                    return (
+                        nombre.includes(busqueda.toLowerCase()) ||
+                        marca.includes(busqueda.toLowerCase()) ||
+                        codigoBarras.includes(busqueda.toLowerCase())
+                    );
+                });
+                
+
+                setMostrarResultados(true);
+                setProductosEncontrados(resultados);
+            } else {
+                console.error('La respuesta de la API no contiene un arreglo en la propiedad "data":', data);
+                alert('Hubo un problema al obtener los productos.');
+            }
+
+            setBusqueda('');
+            setAccion('');
+            setMotivo('');
+        } catch (error) {
+            console.error('Error al obtener productos:', error);
+            alert('Hubo un error al obtener los productos.');
+        }
     };
-
+   
+    
     const agregarATabla = (producto) => {
-        if (!tablaTrabajo.some((p) => p.id === producto.id)) {
+        if (!tablaTrabajo.some((p) => p.producto_id === producto.producto_id)) {
             setTablaTrabajo([...tablaTrabajo, { ...producto, cantidad: 0 }]);
         }
     };
@@ -40,7 +73,7 @@ const Abastecimiento = () => {
     const actualizarCantidad = (id, nuevaCantidad) => {
         setTablaTrabajo((prev) =>
             prev.map((prod) =>
-                prod.id === id ? { ...prod, cantidad: nuevaCantidad } : prod
+                prod.producto_id === id ? { ...prod, cantidad: nuevaCantidad } : prod
             )
         );
     };
@@ -59,11 +92,13 @@ const Abastecimiento = () => {
 
         console.log('Datos enviados al backend:', datosAEnviar);
         alert('Datos enviados correctamente.');
+
         setTablaTrabajo([]);
         setProductosEncontrados([]);
         setBusqueda('');
         setMotivo('');
         setAccion('');
+        setMostrarResultados(false);
     };
 
     return (
@@ -92,21 +127,44 @@ const Abastecimiento = () => {
                     placeholder="Buscar producto..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && buscarProducto()} // Detecta "Enter"
                 />
-                <button onClick={buscarProducto}>Buscar</button>
+                <button onClick={buscarProducto}>
+                    <FaSearch /> Buscar
+                </button>
             </div>
 
             {/* Resultados de búsqueda */}
             <div className="resultados">
                 <h2>Resultados de la búsqueda</h2>
-                <ul>
-                    {productosEncontrados.map((producto) => (
-                        <li key={producto.id}>
-                            {producto.nombre} (Stock: {producto.stock})
-                            <button onClick={() => agregarATabla(producto)}>Agregar</button>
-                        </li>
-                    ))}
-                </ul>
+                {mostrarResultados ? (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Marca</th>
+                                <th>Código de Barras</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {productosEncontrados.map((producto) => (
+                                <tr key={producto.producto_id}>
+                                    <td>{producto.producto_nombre}</td>
+                                    <td>{producto.producto_marca}</td>
+                                    <td>{producto.producto_codigo_barras}</td>
+                                    <td>
+                                        <button onClick={() => agregarATabla(producto)}>
+                                            <FaPlus /> Agregar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No se han encontrado productos.</p>
+                )}
             </div>
 
             {/* Tabla de trabajo */}
@@ -123,17 +181,14 @@ const Abastecimiento = () => {
                         </thead>
                         <tbody>
                             {tablaTrabajo.map((producto) => (
-                                <tr key={producto.id}>
-                                    <td>{producto.nombre}</td>
+                                <tr key={producto.producto_id}>
+                                    <td>{producto.producto_nombre}</td>
                                     <td>
                                         <input
                                             type="number"
                                             value={producto.cantidad}
                                             onChange={(e) =>
-                                                actualizarCantidad(
-                                                    producto.id,
-                                                    parseInt(e.target.value) || 0
-                                                )
+                                                actualizarCantidad(producto.producto_id, parseInt(e.target.value) || 0)
                                             }
                                         />
                                     </td>
@@ -141,11 +196,10 @@ const Abastecimiento = () => {
                                         <button
                                             onClick={() =>
                                                 setTablaTrabajo((prev) =>
-                                                    prev.filter((p) => p.id !== producto.id)
+                                                    prev.filter((p) => p.producto_id !== producto.producto_id)
                                                 )
-                                            }
-                                        >
-                                            Eliminar
+                                            }>
+                                            <FaTrash /> Eliminar
                                         </button>
                                     </td>
                                 </tr>

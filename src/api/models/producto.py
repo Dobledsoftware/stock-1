@@ -50,7 +50,7 @@ class Producto(conexion.Conexion):
             if result:
                 self._estado = result[0]
             else:
-                raise ValueError(f"Recibo con id {self._id_producto} no encontrado.")
+                raise ValueError(f"Producto con id {self._id_producto} no encontrado.")
         finally:
             conexion.close()
 ##################################### CAMBIA ESTADO AL OBJETO #################################################
@@ -102,12 +102,12 @@ class Producto(conexion.Conexion):
 
 ##########################agregar_producto#########################################################################
     
-    async def agregar_producto(self, marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto=None, force_add=False,):
+    async def agregar_producto(self, id_marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto=None, force_add=False,):
         """
         Agrega un producto (variante) a la base de datos, verificando si ya existe un producto con el mismo código de barras.
         Si force_add es True, permite duplicar el producto aunque tenga el mismo código de barras.
         """
-        return await self.repository.agregar_producto(marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto, force_add)
+        return await self.repository.agregar_producto(id_marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto, force_add)
 
 
     
@@ -119,51 +119,15 @@ class Producto(conexion.Conexion):
 
 
     
-########################################################################################
-
-
+#################################buscarPorCodigoDeBarras#######################################################
     async def buscarPorCodigoDeBarras(self, codigo_barras):
-        """
-        Busca todas las variantes asociadas a un código de barras.
-        """
-        conexion = self.conectar()
-        try:
-            cursor = conexion.cursor()
-            sql = """
-            SELECT p.id_producto, p.nombre, p.descripcion, p.precio, s.stock_actual, s.stock_minimo, s.stock_maximo
-            FROM productos p
-            JOIN stock s ON p.id_producto = s.id_producto
-            WHERE p.codigo_barras = %s;
-            """
-            cursor.execute(sql, (codigo_barras,))
-            variantes = cursor.fetchall()
+       
+        return await self.repository.buscarPorCodigoDeBarras(codigo_barras)    
+    
 
-            if not variantes:
-                return {"status": "error", "message": "No se encontraron productos con este código de barras."}
-
-            return {
-                "status": "success",
-                "variantes": [
-                    {
-                        "id_producto": var[0],
-                        "nombre": var[1],
-                        "descripcion": var[2],
-                        "precio": var[3],
-                        "stock_actual": var[4],
-                        "stock_minimo": var[5],
-                        "stock_maximo": var[6]
-                    }
-                    for var in variantes
-                ]
-            }
-
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-
-        finally:
-            conexion.close()
-
-
-
-########################################################################################
+    
+#################################editarProducto#######################################################
+    async def editarProducto(self,id_producto, id_marca, nombre, descripcion, precio, codigo_barras,id_categoria,id_usuario, imagen_producto=None):
+        
+        return await self.repository.editarProducto(id_producto,id_marca, nombre, descripcion, precio, codigo_barras,id_categoria,id_usuario,imagen_producto)
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/configuracion.css';
 
-const Configuracion = () => {
+const Config = () => {
     const [tabSeleccionada, setTabSeleccionada] = useState('general');
 
     // Estado para configuraciones generales
@@ -134,4 +134,4 @@ const Configuracion = () => {
     );
 };
 
-export default Configuracion;
+export default Config;

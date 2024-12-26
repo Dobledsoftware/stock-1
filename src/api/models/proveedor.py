@@ -11,9 +11,9 @@ class Proveedor(conexion.Conexion):
         self._nombre = None
         self._direccion = None
         self._telefono = None
-        self._correo_contacto = None  # Inicialmente no conocemos el estado
+        self._correo_contacto = None
+        self._estado = None  # Estado almacenado como booleano
 
-      
     # Propiedades
     @property
     def estado(self):
@@ -21,9 +21,10 @@ class Proveedor(conexion.Conexion):
 
     @estado.setter
     def estado(self, value):
-        if value not in ['Activo', 'Inactivo']:
-            raise ValueError("El estado debe ser 'Activo' o 'Inactivo'.")
-        self._estado = value
+        if isinstance(value, bool):
+            self._estado = value
+        else:
+            raise ValueError("El estado debe ser un valor booleano (True o False).")
 
     @property
     def nombre(self):
@@ -32,17 +33,16 @@ class Proveedor(conexion.Conexion):
     @property
     def direccion(self):
         return self._direccion
-    
+
     @property
     def telefono(self):
         return self._telefono
-    
+
     @property
     def correo_contacto(self):
         return self._correo_contacto
 
-   
-################################# CARGA DATOS DEL OBJETO ############################################################
+    ################################# CARGA DATOS DEL OBJETO ############################################################
     async def cargar_estado(self):
         """Método para cargar el estado actual del proveedor desde la base de datos."""
         conexion = self.conectar()
@@ -51,18 +51,18 @@ class Proveedor(conexion.Conexion):
             sql = "SELECT estado FROM proveedores WHERE id_proveedor = %s"
             cursor.execute(sql, (self._id_proveedor,))
             result = cursor.fetchone()
-            print ("muestro el objeto cargado",self._id_proveedor)
             if result:
-                self._estado = result[0]
+                self.estado = result[0]  # Convierte automáticamente a booleano
             else:
-                raise ValueError(f"Recibo con id {self._id_proveedor} no encontrado.")
+                raise ValueError(f"Proveedor con id {self._id_proveedor} no encontrado.")
         finally:
             conexion.close()
-##################################### CAMBIA ESTADO AL OBJETO #################################################
+
+    ##################################### CAMBIA ESTADO AL OBJETO #################################################
     async def cambiar_estado(self, nuevo_estado):
         """Método para cambiar el estado del proveedor."""
-        if nuevo_estado not in ['Activado', 'Desactivado']:
-            raise ValueError("El estado debe ser 'Activado' o 'Desactivado'.")
+        if not isinstance(nuevo_estado, bool):
+            raise ValueError("El estado debe ser un valor booleano (True/False).")
 
         conexion = self.conectar()
         try:
@@ -85,11 +85,9 @@ class Proveedor(conexion.Conexion):
                 self._estado = nuevo_estado
                 return {"status": "success", "estado": nuevo_estado, "id_proveedor": self._id_proveedor}
             else:
-                # Si no coincide el nuevo estado, se devuelve un error
                 return {"status": "error", "message": f"Error al actualizar el estado a {nuevo_estado}."}
         finally:
             conexion.close()
-
    
    
 
@@ -129,7 +127,7 @@ class Proveedor(conexion.Conexion):
 #############################agregarProveedor####################################################
             
 
-    async def agregarProveedor(self, nombre, direccion, telefono,correo_contacto, estado='Activo'):
+    async def agregarProveedor(self, nombre, direccion, telefono,correo_contacto, estado=True):
         """Método para agregar un nuevo proveedor a la base de datos."""
         conexion = self.conectar()
         try:

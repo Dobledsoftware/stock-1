@@ -32,6 +32,7 @@ const BarraLateral = () => {
             {activeItem === "stock" && (
               <ul className="dropdown">
                 <li><NavLink to="/stock">Inventario</NavLink></li>
+                <li><NavLink to="/config">Configuracion de producto</NavLink></li>
                 <li><NavLink to="/abastecimiento">Abastecimiento</NavLink></li>
                 <li><NavLink to="/panel">Panel</NavLink></li>
               </ul>

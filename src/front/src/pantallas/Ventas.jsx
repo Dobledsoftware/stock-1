@@ -1,211 +1,148 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const Ventas = () => {
-  // Estado para el término de búsqueda
+export default function PanelVentas() {
+  const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
-  
-  // Estado para almacenar el carrito
   const [carrito, setCarrito] = useState([]);
-  
-  // Estado para el método de pago
-  const [metodoPago, setMetodoPago] = useState("");
-  
-  // Estado para la cantidad de dinero entregado (solo en efectivo)
-  const [dineroEntregado, setDineroEntregado] = useState(0);
 
-  // Datos de ejemplo de ventas
-  const ventas = [
-    { id: 7790520028785, producto: "Producto A", cantidad: 2, precio: 10.0, total: 20.0 },
-    { id: 2, producto: "Producto B", cantidad: 1, precio: 15.5, total: 15.5 },
-    { id: 3, producto: "Producto C", cantidad: 5, precio: 5.0, total: 25.0 },
-    { id: 4, producto: "Producto D", cantidad: 3, precio: 12.0, total: 36.0 },
-  ];
+  // Cargar los productos desde el servidor al montar el componente
+  useEffect(() => {
+    const obtenerProductos = async () => {
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/producto`,
+          {
+            accion: "verTodosLosProductos",
+            estado: "Activo",
+          }
+        );
 
-  // Filtrar ventas según el término de búsqueda por ID
-  const ventasFiltradas = ventas.filter(venta =>
-    venta.id.toString().includes(busqueda)
-  );
+        if (response.data && Array.isArray(response.data.data)) {
+          setProductos(response.data.data);
+        } else {
+          console.error("Respuesta inesperada:", response.data);
+        }
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+      }
+    };
 
-  // Función para agregar productos al carrito
+    obtenerProductos();
+  }, []);
+
+  // Filtrar productos según la búsqueda
+  const productosFiltrados = productos.filter((producto) => {
+    const valores = [
+      producto.producto_id?.toString(),
+      producto.producto_nombre?.toLowerCase(),
+      producto.producto_marca?.toLowerCase(),
+      producto.producto_codigo_barras?.toLowerCase(),
+    ];
+    return valores.some((valor) =>
+      valor?.includes(busqueda.toLowerCase())
+    );
+  });
+
+  // Agregar producto al carrito
   const agregarAlCarrito = (producto) => {
-    setCarrito([...carrito, producto]);
+    setCarrito((prevCarrito) => [...prevCarrito, producto]);
   };
 
-  // Función para calcular el total del carrito
-  const calcularTotalCarrito = () => {
-    return carrito.reduce((total, producto) => total + producto.total, 0).toFixed(2);
+  // Quitar producto del carrito
+  const quitarDelCarrito = (id) => {
+    setCarrito((prevCarrito) =>
+      prevCarrito.filter((item) => item.producto_id !== id)
+    );
   };
 
-  // Función para calcular el cambio si el pago es en efectivo
-  const calcularCambio = () => {
-    const total = parseFloat(calcularTotalCarrito());
-    if (metodoPago === "efectivo" && dineroEntregado >= total) {
-      return (dineroEntregado - total).toFixed(2);
-    }
-    return "0.00"; // Si no es efectivo o no hay suficiente dinero, no mostrar cambio
+  // Calcular el total de la venta
+  const calcularTotal = () => {
+    return carrito.reduce((total, producto) => total + producto.producto_precio, 0);
+  };
+
+  // Realizar la venta
+  const realizarVenta = () => {
+    console.log("Venta realizada con los productos:", carrito);
+    // Aquí se enviaría el carrito al backend para registrar la venta
+    setCarrito([]); // Limpiar el carrito después de la venta
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-     {/* <h1>Gestión de Ventas</h1>
-       <p>Desde aquí puedes gestionar las ventas realizadas.</p>
-      <button onClick={() => alert("Agregar venta")}>Agregar Venta</button>
- */}
-      {/* Buscador por ID */}
-      <input
-        type="text"
-        placeholder="Buscar por ID..."
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        style={{
-          padding: "10px",
-          fontSize: "1rem",
-          width: "100%",
-          marginTop: "20px",
-          marginBottom: "20px",
-          border: "1px solid #ccc",
-          borderRadius: "5px",
-        }}
-      />
-
-      {/* Tabla de ventas filtradas */}
-      <table style={{ marginTop: "20px", width: "100%", borderCollapse: "collapse" }}>
+    <div>
+      <h1>Panel de Ventas</h1>
+      <div>
+        <input
+          type="text"
+          placeholder="Buscar producto"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+      <h2>Productos</h2>
+      <table>
         <thead>
           <tr>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>ID</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Producto</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Cantidad</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Precio</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Total</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Acciones</th>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Precio</th>
+            <th>Código de Barras</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {ventasFiltradas.length > 0 ? (
-            ventasFiltradas.map((venta) => (
-              <tr key={venta.id}>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{venta.id}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{venta.producto}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{venta.cantidad}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>${venta.precio.toFixed(2)}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>${venta.total.toFixed(2)}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                  <button onClick={() => alert("Editar venta")}>Editar</button>
-                  <button
-                    onClick={() => alert("Eliminar venta")}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Eliminar
-                  </button>
-                  {/* Botón para agregar al carrito */}
-                  <button
-                    onClick={() => agregarAlCarrito(venta)}
-                    style={{ marginLeft: "10px", backgroundColor: "#4CAF50", color: "white", padding: "5px 10px", borderRadius: "4px" }}
-                  >
-                    Agregar al Carrito
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" style={{ textAlign: "center", padding: "10px" }}>
-                No se encontraron ventas.
+          {productosFiltrados.map((producto) => (
+            <tr key={producto.producto_id}>
+              <td>{producto.producto_id}</td>
+              <td>{producto.producto_nombre}</td>
+              <td>{producto.producto_marca}</td>
+              <td>${producto.producto_precio}</td>
+              <td>{producto.producto_codigo_barras}</td>
+              <td>
+                <button onClick={() => agregarAlCarrito(producto)}>
+                  Agregar
+                </button>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
-
-      {/* Carrito */}
-      <div style={{ marginTop: "30px", borderTop: "2px solid #ccc", paddingTop: "20px" }}>
-        <h2>Carrito de Compras</h2>
-        {carrito.length > 0 ? (
-          <>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>ID</th>
-                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>Producto</th>
-                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>Cantidad</th>
-                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>Precio</th>
-                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>Total</th>
+      <h2>Carrito</h2>
+      {carrito.length > 0 ? (
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {carrito.map((producto) => (
+                <tr key={producto.producto_id}>
+                  <td>{producto.producto_nombre}</td>
+                  <td>{producto.producto_marca}</td>
+                  <td>${producto.producto_precio}</td>
+                  <td>
+                    <button onClick={() => quitarDelCarrito(producto.producto_id)}>
+                      Quitar
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {carrito.map((producto, index) => (
-                  <tr key={index}>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{producto.id}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{producto.producto}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>{producto.cantidad}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>${producto.precio.toFixed(2)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>${producto.total.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ marginTop: "20px" }}>
-              <strong>Total: </strong>${calcularTotalCarrito()}
-            </div>
-          </>
-        ) : (
-          <p>No hay productos en el carrito.</p>
-        )}
-
-        {/* Método de pago */}
-        <div style={{ marginTop: "20px" }}>
-          <label htmlFor="metodoPago" style={{ marginRight: "10px" }}>
-            Método de pago:
-          </label>
-          <select
-            id="metodoPago"
-            value={metodoPago}
-            onChange={(e) => setMetodoPago(e.target.value)}
-            style={{
-              padding: "10px",
-              fontSize: "1rem",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-            }}
-          >
-            <option value="">Seleccionar método</option>
-            <option value="tarjeta">Tarjeta de Crédito</option>
-            <option value="paypal">PayPal</option>
-            <option value="efectivo">Efectivo</option>
-          </select>
+              ))}
+            </tbody>
+          </table>
+          <h3>Total: ${calcularTotal()}</h3>
+          <button onClick={realizarVenta}>Realizar Venta</button>
         </div>
-
-        {/* Solo mostrar campo para dinero entregado si el método de pago es en efectivo */}
-        {metodoPago === "efectivo" && (
-          <div style={{ marginTop: "20px" }}>
-            <label htmlFor="dineroEntregado" style={{ marginRight: "10px" }}>
-              Dinero entregado:
-            </label>
-            <input
-              type="number"
-              id="dineroEntregado"
-              value={dineroEntregado}
-              onChange={(e) => setDineroEntregado(parseFloat(e.target.value))}
-              style={{
-                padding: "10px",
-                fontSize: "1rem",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                width: "100px",
-              }}
-            />
-          </div>
-        )}
-
-        {/* Mostrar cambio si es efectivo */}
-        {metodoPago === "efectivo" && dineroEntregado >= parseFloat(calcularTotalCarrito()) && (
-          <div style={{ marginTop: "20px" }}>
-            <strong>Cambio: </strong>${calcularCambio()}
-          </div>
-        )}
-      </div>
+      ) : (
+        <p>El carrito está vacío</p>
+      )}
     </div>
   );
-};
+}
 
-export default Ventas;
+

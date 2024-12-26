@@ -1,0 +1,193 @@
+.abastecimiento {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  margin-left: 20px; /* Ajusta el valor según el ancho de tu barra lateral */
+  background-color: var(--color-fondo);
+  width: calc(100% - 220px); /* Ajusta el contenido para que no se superponga con la barra lateral */
+}
+
+h1 {
+  color: #1976D2;
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: left; /* Alinea el título a la izquierda */
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.acciones select, .acciones input {
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  width: 45%; /* Ajustamos para que ocupe un espacio adecuado */
+}
+
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.buscador input {
+  padding: 10px;
+  font-size: 1rem;
+  width: 45%; /* Ocupa un espacio ajustado, puedes ajustar según tus necesidades */
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+}
+
+.buscador button {
+  background-color: var(--color-principal);
+  padding: 10px 15px;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.resultados {
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow-x: auto;
+  display: block;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+button {
+  background-color: #28a745;
+  padding: 8px 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: white;
+  cursor: pointer;
+  min-width: 90px;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+button.eliminar {
+  background-color: #dc3545;
+}
+
+button.eliminar:hover {
+  background-color: #c82333;
+}
+
+/* Tabla de trabajo */
+.tabla-trabajo {
+  margin-bottom: 30px;
+}
+
+.tabla-trabajo table {
+  width: 100%;
+  margin-top: 20px;
+  overflow-x: auto;
+  display: block;
+}
+
+.tabla-trabajo input {
+  width: 60px;
+  padding: 8px;
+  font-size: 1rem;
+}
+
+.tabla-trabajo button {
+  padding: 8px 12px;
+  font-size: 1rem;
+}
+
+.btn-confirmar {
+  background-color: var(--color-principal);
+  padding: 10px 20px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 20px;
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .acciones {
+      flex-direction: column;
+      gap: 10px;
+  }
+
+  .buscador {
+      flex-direction: column;
+      gap: 10px;
+  }
+
+  .tabla-trabajo input {
+      width: 100%;
+  }
+
+  .tabla-trabajo table, .resultados table {
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+  }
+
+  .tabla-trabajo th, .tabla-trabajo td {
+      padding: 8px;
+  }
+
+  .btn-confirmar {
+      width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+      font-size: 1.5rem;
+  }
+
+  .acciones select, .acciones input {
+      font-size: 0.9rem;
+  }
+
+  .buscador input, .buscador button {
+      font-size: 0.9rem;
+  }
+
+  .tabla-trabajo input {
+      width: 100%;
+  }
+
+  .btn-confirmar {
+      font-size: 1rem;
+  }
+}

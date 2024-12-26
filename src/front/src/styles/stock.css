@@ -1,155 +1,39 @@
-/* styles.css */
-body {
-    font-family: Arial, sans-serif;
-   
-}
 
-.header {
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    text-align: center;
-    
-}
-
-.sidebar {
-    background-color: #f4f4f4;
-    width: 200px;
-    padding: 15px;
-}
-
-.sidebar nav ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.sidebar nav ul li {
-    margin: 10px 0;
-}
-
-.sidebar nav ul li a {
-    text-decoration: none;
-    color: #333;
-}
-
-.stock-container {
-    display: flex;
-    flex-direction: column;
-}
-
-.main-content {
-    display: flex;
-    flex-direction: row;
-}
-
-.content {
-    display: flex;
-    width: 100%;
-    padding: 20px;
-    
-}
-
+/* Contenedores de las mitades izquierda y derecha */
 .half {
-    width: 50%;
-    padding: 20px;
+  flex: 1;
 }
 
-
-
-
-
-
-  header {
-    background-color: #34495e;
-    color: white;
-    padding: 10px 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-  }
-  
-  header .logo img {
-    width: 50px; /* Tamaño fijo para el logo */
-  }
-  
-  header .usuario {
-    float: right;
-    margin-top: -30px;
-  }
-  
-  header .usuario-boton {
-    background: none;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  header .dropdown ul {
-    display: none;
-    position: absolute;
-    top: 30px;
-    right: 0;
-    background-color: #34495e;
-    color: white;
-    padding: 10px;
-    list-style: none;
-  }
-  
-  header .usuario:hover .dropdown ul {
-    display: block;
-  }
-  .content {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-  }
-  
-  .half {
-    flex: 1;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  
-  
-  
-  .btn {
-    padding: 5px 10px;
-    cursor: pointer;
-    background-color: red;
-    color: white;
-    border: none;
-  }
-  
-  .content {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 20px;
-}
-
-.half {
-    width: 48%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #f9f9f9;
-}
-
-/* Tabla de productos */
-/* .icon-button {
-  background: none;
+/* Estilos para los botones en la pantalla Stock */
+.half button {
+  display: inline-block;
+  padding: 10px 20px;
+  margin: 10px 5px; /* Espaciado entre botones */
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
-  padding: 5px;
-  margin: 0 5px;
-  color: #555;
-  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+  min-width: 150px; /* Asegura un tamaño consistente */
+  text-align: center;
 }
 
-.icon-button:hover {
-  color: #007bff;
+.half button:hover {
+  background-color: #0056b3;
 }
- */
+
+/* Alinear botones uno al lado del otro */
+.half {
+  display: flex;
+  justify-content: center; /* Centrar los botones en el contenedor */
+  gap: 10px; /* Espaciado entre botones */
+}
+
+/* Estilos adicionales para tablas o contenido en la otra mitad */
+.tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
