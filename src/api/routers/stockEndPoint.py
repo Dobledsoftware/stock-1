@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form  # Importa APIRouter para crear grupos de rutas y HTTPException para gestion errores.
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form,Query  # Importa APIRouter para crear grupos de rutas y HTTPException para gestion errores.
 from fastapi.responses import JSONResponse, Response  # Importa JSONResponse para devolver respuestas JSON personalizadas.
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
 from typing import List,Optional
@@ -17,7 +17,7 @@ from models.stock import Stock
 
 from models.login import Login,create_jwt_token
 #importa los schemas
-from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response,Marca_request,MovimientoStock,Almacen_request,Estante_request
+from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response,Marca_request,MovimientoStock,Almacen_request,Estante_request,Stock_request,StockResponse,MovimientoStockResponse,FiltrosStock
 
 import logging
 import json
@@ -832,105 +832,106 @@ async def producto_marca(request: Marca_request):
 
 ############################Movimiento_stock#######################################################################
 
-@router.post("/Movimiento_stock")
-async def Movimiento_stock(request: MovimientoStock):
+@router.post("/movimiento_stock")
+async def movimiento_stock(request: Stock_request):
     """
         Ejemplo de Payload de Entrada:
 
             ```json
-            {
-            "movimientos": [
+                    {
+                "movimientos": [
                 {
                 "id_producto": 1,
                 "cantidad": 10,
                 "operacion": "incrementar",
                 "id_usuario": 123,
-                "observaciones": "Reabastecimiento"
+                "observaciones": "Reabastecimiento",
+                "id_proveedor": 1,
+                "id_almacen": 1,
+                "id_estante": 1,
+                "descripcion": "primer producto en entrar"
                 },
                 {
                 "id_producto": 2,
-                "cantidad": 5,
-                "operacion": "disminuir",
-                "id_usuario": 456,
-                "observaciones": "Venta realizada"
+                "cantidad": 10,
+                "operacion": "incrementar",
+                "id_usuario": 123,
+                "observaciones": "Reabastecimiento",
+                "id_proveedor": 1,
+                "id_almacen": 1,
+                "id_estante": 1,
+                "descripcion": "segundo producto en entrar"
                 }
             ]
             }
 
-            ```
-    Respuesta Ejemplo:
-            ```json
-
-                {
-                "resultados": [
-                    {
-                    "id_producto": 1,
-                    "status": "success",
-                    "mensaje": "Stock incrementar correctamente para el producto 1.",
-                    "stock_actualizado": 110
-                    },
-                    {
-                    "id_producto": 2,
-                    "status": "success",
-                    "mensaje": "Stock disminuir correctamente para el producto 2.",
-                    "stock_actualizado": 45
-                    }
-                ]
-                }
-            ```
+            ```    
     """       
         
 
 
     resultados = []  # Aquí guardaremos el resultado de cada movimiento
-
-    # Instancia del repositorio
+    print("entra antes de instanciar el objeto")
     stock = Stock()
 
-    for accion in request.accion:
-        try:                        
-            if request.accion == "entradaStock":
-                resultado = await stock.entradaStock(request.incluir_inactivas)
-
-
-                
-                return {"status": "success", "data": resultado}
-
-            # Agregar una nueva marca
-            elif request.accion == "agregarMarca":
-                if not request.descripcion:
-                    raise HTTPException(status_code=400, detail="El campo 'descripcion' es requerido.")
-                resultado = await marca.agregar_marca(request.descripcion, request.estado)
-                return resultado
-
-            # Modificar una marca existente
-            elif request.accion == "modificarMarca":
-                if not request.id_marca:
-                    raise HTTPException(status_code=400, detail="El campo 'id_marca' es requerido.")
-                if not (request.descripcion or request.estado is not None):
-                    raise HTTPException(status_code=400, detail="Debe proporcionar 'descripcion' o 'estado' para modificar.")
-                resultado = await marca.modificar_marca(request.id_marca, request.descripcion, request.estado)
-                return resultado
-
-            # Eliminar una marca (soft delete)
-            elif request.accion == "eliminarMarca":
-                if not request.id_marca:
-                    raise HTTPException(status_code=400, detail="El campo 'id_marca' es requerido.")
-                resultado = await marca.eliminar_marca(request.id_marca)
-                return resultado
-
+    for movimiento in request.movimientos:
+        try:
+            if movimiento.operacion == "incrementar":
+                resultado = await stock.entradaStock(
+                    id_producto=movimiento.id_producto,
+                    cantidad=movimiento.cantidad,
+                    id_usuario=movimiento.id_usuario,                    
+                    id_proveedor=movimiento.id_proveedor,
+                    id_almacen=movimiento.id_almacen,
+                    id_estante=movimiento.id_estante,
+                    descripcion=movimiento.descripcion,
+                    operacion=movimiento.operacion
+                )
+            elif movimiento.operacion == "disminuir":
+                resultado = await stock.salidaStock(
+                    id_stock=movimiento.id_stock,
+                    id_producto=movimiento.id_producto,
+                    stock_actual=movimiento.stock_actual,
+                    stock_minimo=movimiento.stock_minimo,
+                    stock_maximo=movimiento.stock_maximo,
+                    id_almacen=movimiento.id_almacen,
+                    id_proveedor=movimiento.id_proveedor,
+                    id_estante=movimiento.id_estante,
+                    id_stock_movimiento=movimiento.id_stock_movimiento,
+                    id_tipo_movimiento=movimiento.id_tipo_movimiento,
+                    descripcion=movimiento.descripcion,
+                    cantidad=movimiento.cantidad,
+                    id_usuario=movimiento.id_usuario,
+                    observaciones=movimiento.observaciones
+                )
             else:
-                # Acción no válida
-                raise HTTPException(status_code=400, detail="Acción no válida. Verifique la documentación.")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Operación no válida: {movimiento.operacion}"
+                )
+
+            # Agregar resultado al listado
+            resultados.append({
+                "id_producto": movimiento.id_producto,
+                "status": "success",
+                "mensaje": f"Stock {movimiento.operacion} correctamente para el producto {movimiento.id_producto}.",
+                "stock_actualizado": resultado.get("stock_actualizado")  # Ajusta según la respuesta de tus métodos
+            })
 
         except HTTPException as e:
-            raise e
+            resultados.append({
+                "id_producto": movimiento.id_producto,
+                "status": "error",
+                "mensaje": str(e.detail)
+            })
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-        
+            resultados.append({
+                "id_producto": movimiento.id_producto,
+                "status": "error",
+                "mensaje": f"Error interno: {str(e)}"
+            })
 
     return {"resultados": resultados}
-
 
 ###########################Almacen#################################################
 
@@ -1219,3 +1220,68 @@ async def gestion_almacen_estante(request: Estante_request):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+############################stock#######################################################################
+@router.post("/tabla_stock", response_model=List[StockResponse])
+async def consultar_stock(
+    filtros: FiltrosStock  # Recibimos los filtros en el cuerpo de la solicitud
+):
+    """
+    Endpoint para consultar la tabla 'stock' con filtros en el cuerpo de la solicitud.
+    """
+
+    """
+        Endpoint para gestion estante.
+        Soporta las acciones: 
+        - 'verTodosLosEstantes': 
+
+            ```Jsoon
+                {
+            
+                }
+            ```
+
+   
+
+
+    """
+
+
+    stock = Stock()  # Instancia de la clase Stock
+    try:
+        resultados = await stock.obtener_stock(  # Usamos el método obtener_stock
+            id_producto=filtros.id_producto,
+            id_almacen=filtros.id_almacen,
+            estado=filtros.estado
+        )
+        return resultados
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+
+############################stock_movimientos_endpoints#######################################################################
+
+
+@router.post("/tabla_consulta_stock_movimientos")
+async def consultar_movimientos(
+    filtros: FiltrosStock  # Recibimos un objeto con los filtros en el cuerpo de la solicitud
+):
+    """
+    Endpoint para consultar la tabla 'stock_movimientos' con filtros en el cuerpo de la solicitud.
+    """
+    stock = Stock()  # Instancia de la clase Stock
+    try:
+        # Pasamos los parámetros desde el cuerpo de la solicitud
+        resultados = await stock.obtener_movimientos(
+            id_producto=filtros.id_producto,
+            id_usuario=filtros.id_usuario,
+            fecha_inicio=filtros.fecha_inicio,
+            fecha_fin=filtros.fecha_fin
+        )
+        return resultados  # Devuelve la respuesta directamente
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+    

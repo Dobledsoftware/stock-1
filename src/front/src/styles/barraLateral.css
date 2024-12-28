@@ -1,153 +1,234 @@
-/* Barra lateral */
+/* Barra Lateral */
 .barra-lateral {
-  background-color: #ffffff;
-  width: 250px;
-  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
-  padding: 20px;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  transition: width 0.3s ease-in-out;
-  display: flex;
-  flex-direction: column;  /* Organiza los elementos en columna */
+  width: 250px;
+  height: 100%;
+  background-color: #34495e;
+  box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 1000;
 }
 
-/* Contenedor de logo */
-.logo-container {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end; /* Alinea el logo a la derecha */
-  align-items: center; /* Centra el logo verticalmente */
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+.barra-lateral.closed {
+  width: 70px;
 }
+
+.barra-lateral.open {
+  width: 250px;
+}
+
+/* Contenedor del logo */
+.logo-container {
+  position: relative;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2c3e50;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo del logo */
+.logo {
+  max-width: 180px; /* Puedes ajustar este valor si es necesario */
+  height: auto;
+  cursor: pointer; /* Cambia el cursor para indicar que es clickeable */
+  transition: max-width 0.3s ease;
+}
+/* Si la barra lateral está cerrada, el logo debe ser más pequeño */
+.barra-lateral.closed .logo {
+  max-width: 50px; /* Tamaño pequeño del logo cuando la barra lateral está cerrada */
+  transition: max-width 0.3s ease;
+}
+
 
 /* Logo */
 .logo {
-  width: 100%; /* El logo ocupa el 100% del ancho */
-  height: auto; /* Mantiene la proporción del logo */
+  max-width: 180px;
+  height: auto;
+  transition: max-width 0.3s ease; /* Transición para el logo */
 }
 
-/* Estilo para el menú de navegación */
-.barra-lateral nav ul {
-  list-style-type: none;
-  padding-left: 0;
-  margin: 0;
-  flex-grow: 1; /* Hace que el menú ocupe todo el espacio disponible */
+/* Si la barra lateral está cerrada, el logo debe ser más pequeño */
+.barra-lateral.closed .logo {
+  max-width: 50px; /* Tamaño pequeño del logo cuando la barra lateral está cerrada */
+  transition: max-width 0.3s ease;
 }
 
-.barra-lateral nav li {
-  margin: 10px 0;
+/* Estilo del botón hamburguesa */
+.hamburger-button {
+  position: absolute;
+  top: 50%; /* Desplazar el botón hacia el centro vertical */
+  left: 10px; /* Ajusta la posición a la izquierda */
+  transform: translateY(-50%); /* Centra el botón verticalmente */
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px; /* Ajusta el tamaño del icono */
 }
 
-/* Menú desplegable */
-.barra-lateral .menu-desplegable {
+.hamburger-button:focus {
+  outline: none;
+}
+
+/* Menú de Navegación */
+nav ul {
+  list-style: none;
+  margin-top: 20px;
+  padding: 0;
+}
+
+nav li {
+  position: relative;
+}
+
+.menu-desplegable {
   display: flex;
   align-items: center;
-  color: #333333;
-  text-decoration: none;
-  padding: 12px 20px;
-  font-size: 1.1rem;
-  margin: 8px 0;
-  border-radius: 8px;
+  padding: 15px 20px;
+  color: #ecf0f1;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease, padding-left 0.3s ease;
-  margin-top: 20%;
+  transition: background-color 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.barra-lateral .menu-desplegable i {
+.menu-desplegable i {
   margin-right: 10px;
-  font-size: 1.3rem;
+  font-size: 18px;
 }
 
-/* Hover en el menú desplegable */
-.barra-lateral .menu-desplegable:hover,
-.barra-lateral .menu-desplegable:focus {
-  background-color: #041cf7;
-  color: white;
-  padding-left: 20px;
+.menu-desplegable:hover,
+.menu-desplegable.active {
+  background-color: #2980b9;
+  color: #fff;
 }
 
-/* Submenú */
-.barra-lateral .dropdown {
-  list-style-type: none;
+.menu-desplegable.active {
+  background-color: #3498db;
+}
+
+.menu-desplegable span {
+  display: inline-block;
+  transition: opacity 0.3s ease;
+}
+
+/* Submenú (Dropdown) */
+.dropdown {
+  list-style: none;
   padding-left: 20px;
-  margin: 5px 0 0 0;
+  background-color: #34495e;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dropdown li {
+  padding: 10px 20px;
+}
+
+.dropdown li a {
+  text-decoration: none;
+  color: #ecf0f1;
+  font-size: 14px;
+  display: block;
+  transition: color 0.3s;
+}
+
+.dropdown li a:hover {
+  color: #3498db;
+}
+
+.dropdown.open {
+  display: block;
+  opacity: 1;
+}
+
+/* Botón Salir */
+.boton-salir {
+  width: 100%;
+  padding: 15px 20px;
+  text-align: left;
+  color: #ecf0f1;
+  background-color: #e74c3c;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.boton-salir:hover {
+  background-color: #c0392b;
+}
+
+/* Visibilidad de Iconos cuando la Barra está cerrada */
+.barra-lateral.closed .menu-desplegable span,
+.barra-lateral.closed .dropdown li a {
   display: none;
 }
 
-.barra-lateral .dropdown li {
-  margin: 5px 0;
+.barra-lateral.closed .menu-desplegable i {
+  font-size: 24px;
 }
 
-.barra-lateral .dropdown li a {
-  color: #555;
-  font-size: 0.95rem;
-  padding: 8px 0;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
+/* Efectos de Hover y Animaciones */
+.barra-lateral,
+.menu-desplegable,
+.dropdown li {
+  transition: all 0.3s ease;
 }
 
-.barra-lateral .dropdown li a:hover {
-  background-color: #041cf7;
-  color: white;
+/* Responsive: Barra Lateral Abierta en Pantallas Pequeñas */
+@media screen and (max-width: 768px) {
+  .barra-lateral {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .hamburger-button {
+    display: block;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1001;
+  }
+
+  .logo-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+  }
+
+  .barra-lateral.open {
+    width: 250px;
+  }
+
+  .barra-lateral.closed .menu-desplegable i {
+    display: inline-block;
+  }
 }
 
-/* Elemento activo en el menú */
-.barra-lateral nav li.active .menu-desplegable {
-  background-color: #041cf7;
-  color: white;
-  padding-left: 20px;
-}
-
-.barra-lateral nav li.active .menu-desplegable:hover {
-  background-color: #041cf7;
-  padding-left: 20px;
-}
-
-.barra-lateral nav li.active .dropdown {
+/* Transición del menú */
+.barra-lateral.open .dropdown {
   display: block;
+  opacity: 1;
 }
 
-/* Estilo para los enlaces activos en el submenú */
-.barra-lateral nav .dropdown a.active {
-  color: #041cf7;
-  font-weight: bold;
-  background-color: white;
-  padding-left: 25px;
-  text-decoration: none;
+.barra-lateral.closed .dropdown {
+  display: none;
 }
-
-/* Enlaces en el submenú */
-.barra-lateral nav .dropdown a {
-  color: #555;
-  text-decoration: none;
-  padding: 8px 0;
-  display: block;
-  transition: background-color 0.3s ease;
-}
-
-.barra-lateral nav .dropdown a:hover {
-  background-color: #041cf7;
-  color: white;
-  padding-left: 30px;
-}
-
-/* Botón de salida */
-.boton-salir {
-  margin-top: auto;  /* Esto asegura que el botón se quede en la parte inferior */
-  background-color: transparent;
+/* Estilo del botón hamburguesa */
+.hamburger-button {
+  position: absolute;
+  top: 50%; /* Desplazar el botón hacia el centro vertical */
+  left: 10px; /* Ajusta la posición a la izquierda */
+  transform: translateY(-50%); /* Centra el botón verticalmente */
+  background: none;
   border: none;
-  color: #333;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.boton-salir i {
-  margin-right: 10px;
-  font-size: 1.3rem;
+  color: #fff;
+  font-size: 24px; /* Ajusta el tamaño del icono */
 }

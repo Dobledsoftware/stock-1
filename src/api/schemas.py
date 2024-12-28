@@ -1,6 +1,8 @@
 from pydantic import BaseModel,EmailStr, validator,Field,root_validator
 from typing import List, Optional
 from enum import Enum
+from datetime import datetime
+
 
 
 #valido datos de entrada*****************************************************************
@@ -133,23 +135,24 @@ class Usuario_request(BaseModel):
 
 
 class MovimientoStock(BaseModel):
-    accion: str
-    id_stock: int
+    id_stock: Optional[int] = None
     id_producto: int
-    stock_actual: int
-    stock_minimo: int
-    stock_maximo: int
-    id_almacen: int
+    cantidad: int
+    operacion: str  # Puede ser "incrementar" o "disminuir"
+    id_usuario: Optional[int]
+    observaciones: Optional[str] = None    
     id_proveedor: int
     id_almacen: int
     id_estante: int
-    id_stock_movimiento: int
-    id_tipo_movimiento: int
-    descripcion: str
-    cantidad: int
-    operacion: str  # Puede ser "incrementar" o "disminuir"
-    id_usuario: int
-    observaciones: Optional[str] = None
+    descripcion: Optional[str]
+    stock_actual: Optional[int] = None
+    stock_minimo: Optional[int] = None
+    stock_maximo: Optional[int] = None
+    id_stock_movimiento: Optional[int] = None
+    id_tipo_movimiento: Optional[int] = None
+    
+    
+    
     
 
 class Stock_request(BaseModel):
@@ -192,3 +195,50 @@ class Stock_response(BaseModel):
     stock_actualizado: int
     accion_realizada: str
     mensaje: str
+
+
+
+    # Esquema de consulta de stock (salida)
+class StockResponse(BaseModel):
+    id_stock: int
+    id_producto: int
+    stock_actual: int
+    stock_minimo: int
+    stock_maximo: int
+    id_almacen: int
+    id_proveedor: int
+    fecha_alta: datetime  # Fecha con tipo datetime
+    id_estante: int
+    estado: bool
+    cantidad: Optional[int] = None  # Hacer que 'cantidad' sea opcional
+
+class MovimientoStockResponse(BaseModel):
+    id_stock_movimiento: int
+    id_stock: int
+    cantidad: int
+    fecha_movimiento: str  # Esto será una cadena, no un datetime
+    id_usuario: int
+    id_proveedor: int
+    descripcion: str
+    id_tipo_movimiento: int
+    id_producto: int  # Asegúrate de que esté presente en el modelo
+    operacion: str  # Asegúrate de que esté presente en el modelo
+
+    class Config:
+        orm_mode = True
+
+    @classmethod
+    def from_orm(cls, obj):
+        obj_dict = obj.__dict__
+        # Convertir fecha_movimiento a cadena ISO
+        if isinstance(obj_dict.get('fecha_movimiento'), datetime):
+            obj_dict['fecha_movimiento'] = obj_dict['fecha_movimiento'].isoformat()
+        # Asegúrate de que el resto de los campos también se conviertan correctamente
+        return super().from_orm(obj)
+
+# Esquema de consulta de movimientos de stock (salida)
+class FiltrosStock(BaseModel):
+    id_producto: Optional[int] = None
+    id_usuario: Optional[int] = None
+    fecha_inicio: Optional[datetime] = None
+    fecha_fin: Optional[datetime] = None

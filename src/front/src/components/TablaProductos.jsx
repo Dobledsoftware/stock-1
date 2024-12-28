@@ -50,22 +50,6 @@ const TablaProductos = () => {
         language: {
           url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json",
         },
-        columnDefs: [
-          { targets: 0, width: "10%" }, // ID
-              { targets: 1, width: "20%" }, // Nombre
-              { targets: 2, width: "30%" }, // Descripción
-              { targets: 3, width: "10%" }, // Precio
-              { targets: 4, width: "10%" }, // Marca
-              { targets: 5, width: "20%" }, // Codigo de barra
-          {
-              
-            targets: [5], // Índice de la columna 'Codigo de barra'
-            searchable: true,
-            
-              
-            
-          },
-        ],
       });
     }
   }, [productos]);
@@ -73,52 +57,51 @@ const TablaProductos = () => {
   return (
     <div>
       <h2>Lista de Productos</h2>
-      <table id="tablaProductos" className="display">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Precio</th>
-            <th>Marca</th>
-            <th>Codigo de barra</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productos.map((producto) => (
-            <tr key={producto.producto_id}>
-              <td>{producto.producto_id}</td>
-              <td>{producto.producto_nombre}</td>
-              <td>{producto.producto_descripcion}</td>
-              <td>{producto.producto_precio}</td>
-              <td>{producto.producto_marca}</td>
-              <td>{producto.producto_codigo_barras || "N/A"}</td>
-              <td>
-                {/* Ícono para editar */}
-                <button
-                  onClick={() =>
-                    console.log("Editar producto con ID:", producto.producto_id)
-                  }
-                  title="Editar"
-                  className="icon-button"
-                >
-                  <FontAwesomeIcon icon={faEdit} />
-                </button>
-
-                {/* Ícono para eliminar */}
-                <button
-                  onClick={() => handleEliminar(producto.producto_id)}
-                  title="Eliminar"
-                  className="icon-button"
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-              </td>
+      <div style={{ overflowX: "auto" }}>
+        <table id="tablaProductos" className="display">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Precio</th>
+              <th>Marca</th>
+              <th>Codigo de barra</th>
+              <th>Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {productos.map((producto) => (
+              <tr key={producto.producto_id}>
+                <td>{producto.producto_id}</td>
+                <td>{producto.producto_nombre}</td>
+                <td>{producto.producto_descripcion}</td>
+                <td>{producto.producto_precio}</td>
+                <td>{producto.producto_marca}</td>
+                <td>{producto.producto_codigo_barras || "N/A"}</td>
+                <td>
+                  <button
+                    onClick={() =>
+                      console.log("Editar producto con ID:", producto.producto_id)
+                    }
+                    title="Editar"
+                    className="icon-button"
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                  </button>
+                  <button
+                    onClick={() => handleEliminar(producto.producto_id)}
+                    title="Eliminar"
+                    className="icon-button"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

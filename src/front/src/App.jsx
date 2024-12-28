@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import BarraLateral from './components/BarraLateral';
 import Stock from './pantallas/Stock';
@@ -10,52 +10,48 @@ import CierreCaja from './pantallas/CierreCaja';
 import Configuracion from './pantallas/Configuracion';
 import Config from './pantallas/Config';
 import 'font-awesome/css/font-awesome.min.css';
-
-
-
 import styled from 'styled-components';
 
-// Estilo para el título de bienvenida
-const Bienvenida = styled.h1`
-  font-size: 2rem;
-  color: #4CAF50;
-  text-align: center;
-  margin-top: 20px;
+// Contenedor principal para la aplicación
+const AppContainer = styled.div`
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 `;
 
-// Estilo para la leyenda
-const Leyenda = styled.p`
-  font-size: 1rem;
-  color: #555;
-  text-align: center;
-  margin-top: 10px;
-  font-style: italic;
+// Contenido principal de la aplicación
+const MainContent = styled.main`
+  margin-left: ${(props) => (props.isSidebarOpen ? '240px' : '0')};
+  flex-grow: 1;
+  padding: 20px;
+  background-color: #f4f4f9;
+  overflow-y: auto;
+
+  @media (max-width: 768px) {
+    margin-left: ${(props) => (props.isSidebarOpen ? '10px' : '0')};
+  }
 `;
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
     <Router>
-      <div style={{ display: "flex" }}>
-        <BarraLateral />
-        <main style={{ marginLeft: "240px", padding: "20px", width: "100%" }}>
-          {/*<Bienvenida>Bienvenido a tu Panel de Administración</Bienvenida>
-           Leyenda que da confianza al usuario 
-          <Leyenda>
-            Puedes usar el sistema de manera confiable y segura. Todos los datos están protegidos y son privados.
-          </Leyenda>*/}
+      <AppContainer>
+        <BarraLateral isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+        <MainContent isSidebarOpen={isSidebarOpen}>
           <Routes>
             <Route path="/stock" element={<Stock />} />
             <Route path="/panel" element={<Panel />} />
             <Route path="/ventas" element={<Ventas />} />
-            <Route path="/cierre" element={< CierreCaja />} />
-            <Route path="/configuracion" element={< Configuracion />} />
-            <Route path="/config" element={< Config />} />
-            
+            <Route path="/cierre" element={<CierreCaja />} />
+            <Route path="/configuracion" element={<Configuracion />} />
+            <Route path="/config" element={<Config />} />
             <Route path="/abastecimiento" element={<Abastecimiento />} />
             <Route path="/administracion" element={<Administracion />} />
           </Routes>
-        </main>
-      </div>
+        </MainContent>
+      </AppContainer>
     </Router>
   );
 }

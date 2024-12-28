@@ -1,7 +1,7 @@
 /* Paleta de Colores */
 :root {
   --color-principal: #041cf7; /* Verde principal */
-  --color-secundario: #2196F3; /* Azul */
+  --color-secundario: #f3f021; /* Azul */
   --color-fondo: #f4f4f9; /* Fondo claro */
   --color-blanco: #ffffff;
   --color-texto: #333333; /* Texto oscuro */
@@ -22,12 +22,12 @@
 }
 
 body {
-  margin-left: 200px;
-  margin-right:200px;
   background-color: var(--color-fondo);
   color: var(--color-texto);
   line-height: 1.6;
   font-size: 16px;
+  padding: 0 10px; /* Padding para asegurar margen en dispositivos pequeños */
+  overflow-x: hidden;
 }
 
 /* Estilos generales */
@@ -163,17 +163,115 @@ table tbody tr:hover {
   color: #31708f;
 }
 
-/* Adaptabilidad para pantallas más pequeñas */
+/* ---------------------- */
+/* Media Queries Responsive */
+/* ---------------------- */
+
+/* Estilo para pantallas pequeñas */
 @media (max-width: 768px) {
+  body {
+    font-size: 14px; /* Reducir tamaño de fuente en pantallas pequeñas */
+  }
+
   .container {
-      padding: 15px;
+    padding: 10px;
   }
 
   button {
-      width: 100%;
+    width: 100%; /* Botones ocupan todo el ancho en pantallas pequeñas */
   }
 
   table th, table td {
-      padding: 8px;
+    padding: 8px; /* Reducir padding en tablas */
   }
+
+  h1 {
+    font-size: 1.8rem; /* Reducir tamaño de los títulos */
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  /* Mejorar la visualización de las alertas */
+  .alerta {
+    font-size: 0.9rem;
+    padding: 12px;
+  }
+
+  /* Mejorar la visualización de formularios */
+  input, select, textarea {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+}
+
+/* Estilo para pantallas medianas (tablets y dispositivos similares) */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 1.9rem;
+  }
+
+  table th, table td {
+    padding: 9px;
+  }
+
+  .alerta {
+    font-size: 1rem;
+  }
+}
+
+/* Estilo para pantallas grandes (desktops) */
+@media (min-width: 1025px) {
+  .container {
+    padding: 20px;
+  }
+
+  button {
+    font-size: 1.1rem; /* Aumentar tamaño de fuente de botones */
+  }
+
+  input, select, textarea {
+    font-size: 1rem; /* Tamaño de fuente adecuado en pantallas grandes */
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  table th, table td {
+    padding: 12px;
+  }
+}
+
+
+/* Estilo global para tablas responsivas */
+@media (max-width: 768px) {
+  .display {
+    width: 100% !important;
+  }
+
+  table th, table td {
+    padding: 8px;
+  }
+
+  /* Aseguramos que la tabla pueda desplazarse horizontalmente */
+  .dataTables_wrapper {
+    overflow-x: auto;
+  }
+}
+
+/* Estilo para las columnas de la tabla */
+table th, table td {
+  word-wrap: break-word; /* Para que el texto largo se ajuste */
+  max-width: 150px; /* Limita el ancho de las celdas */
 }
