@@ -202,6 +202,7 @@ class Stock_response(BaseModel):
 class StockResponse(BaseModel):
     id_stock: int
     id_producto: int
+    nombre_producto: str
     stock_actual: int
     stock_minimo: int
     stock_maximo: int
@@ -209,7 +210,7 @@ class StockResponse(BaseModel):
     id_proveedor: int
     fecha_alta: datetime  # Fecha con tipo datetime
     id_estante: int
-    estado: bool
+    estado: str
     cantidad: Optional[int] = None  # Hacer que 'cantidad' sea opcional
 
 class MovimientoStockResponse(BaseModel):
@@ -239,6 +240,8 @@ class MovimientoStockResponse(BaseModel):
 # Esquema de consulta de movimientos de stock (salida)
 class FiltrosStock(BaseModel):
     id_producto: Optional[int] = None
+    id_almacen: Optional[int] = None
+    estado: Optional[bool]= True
     id_usuario: Optional[int] = None
     fecha_inicio: Optional[datetime] = None
     fecha_fin: Optional[datetime] = None

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import BarraLateral from './components/BarraLateral';
-import Stock from './pantallas/Stock';
+import Productos from './pantallas/Productos';
 import Ventas from './pantallas/Ventas';
 import Administracion from './pantallas/Administracion';
 import Panel from './pantallas/Panel';
@@ -9,6 +9,8 @@ import Abastecimiento from './pantallas/Abastecimiento';
 import CierreCaja from './pantallas/CierreCaja';
 import Configuracion from './pantallas/Configuracion';
 import Config from './pantallas/Config';
+import MovimientosStock from './pantallas/Movimientos';
+import Inventario from './pantallas/Inventario';
 import 'font-awesome/css/font-awesome.min.css';
 import styled from 'styled-components';
 
@@ -41,12 +43,15 @@ function App() {
         <BarraLateral isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
         <MainContent isSidebarOpen={isSidebarOpen}>
           <Routes>
-            <Route path="/stock" element={<Stock />} />
+            <Route path="/productos" element={<Productos />} />
             <Route path="/panel" element={<Panel />} />
             <Route path="/ventas" element={<Ventas />} />
             <Route path="/cierre" element={<CierreCaja />} />
             <Route path="/configuracion" element={<Configuracion />} />
             <Route path="/config" element={<Config />} />
+            <Route path="/movimientos" element={<MovimientosStock />} />
+            <Route path="/inventario" element={<Inventario />} />
+            
             <Route path="/abastecimiento" element={<Abastecimiento />} />
             <Route path="/administracion" element={<Administracion />} />
           </Routes>

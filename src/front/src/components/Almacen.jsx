@@ -22,7 +22,7 @@ const Almacenes = ({ apiBaseUrl }) => {
                     estado,
                 }),
             });
-
+ 
             if (response.ok) {
                 const { data } = await response.json();
                 setAlmacenes(data);

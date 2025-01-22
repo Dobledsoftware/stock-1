@@ -1,35 +1,28 @@
 import React, { useEffect, useState } from "react";
+import { Button, IconButton, TextField, Snackbar } from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
 import $ from "jquery";
 import "datatables.net";
 import "datatables.net-dt/css/jquery.datatables.min.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const TablaProductos = () => {
   const [productos, setProductos] = useState([]);
-
-  const handleEliminar = (idProducto) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      console.log("Producto eliminado con ID:", idProducto);
-      // Aquí se llamaría al backend para eliminar el producto
-    }
-  };
-
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  
   useEffect(() => {
     const obtenerProductos = async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/producto`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            accion: "verTodosLosProductos",
-            estado: "Activo",
-          }),
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accion: "verTodosLosProductos",
+          estado: "Activo",
+        }),
+      });
       const data = await response.json();
       setProductos(data.data || []);
     };
@@ -54,10 +47,26 @@ const TablaProductos = () => {
     }
   }, [productos]);
 
+  const handleEliminar = (idProducto) => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+      console.log("Producto eliminado con ID:", idProducto);
+      setSnackbarMessage("Producto eliminado con éxito.");
+      setOpenSnackbar(true);
+    }
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value.toLowerCase());
+  };
+
+  const filteredProductos = productos.filter((producto) =>
+    producto.producto_nombre.toLowerCase().includes(searchTerm)
+  );
+
   return (
-    <div>
-      <h2>Lista de Productos</h2>
-      <div style={{ overflowX: "auto" }}>
+    <>
+      <div className="table-container">
+        <h2>Lista de Productos</h2>
         <table id="tablaProductos" className="display">
           <thead>
             <tr>
@@ -71,7 +80,7 @@ const TablaProductos = () => {
             </tr>
           </thead>
           <tbody>
-            {productos.map((producto) => (
+            {filteredProductos.map((producto) => (
               <tr key={producto.producto_id}>
                 <td>{producto.producto_id}</td>
                 <td>{producto.producto_nombre}</td>
@@ -80,29 +89,36 @@ const TablaProductos = () => {
                 <td>{producto.producto_marca}</td>
                 <td>{producto.producto_codigo_barras || "N/A"}</td>
                 <td>
-                  <button
-                    onClick={() =>
-                      console.log("Editar producto con ID:", producto.producto_id)
-                    }
-                    title="Editar"
-                    className="icon-button"
+                  <IconButton
+                    color="primary"
+                    onClick={() => console.log("Editar", producto.producto_id)}
                   >
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  <button
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color="error"
                     onClick={() => handleEliminar(producto.producto_id)}
-                    title="Eliminar"
-                    className="icon-button"
                   >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
+                    <Delete />
+                  </IconButton>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {/* Paginación con MUI */}
+        {/* Agregar la paginación aquí si es necesario */}
       </div>
-    </div>
+
+      {/* Snackbar de notificación */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
+      />
+    </>
   );
 };
 

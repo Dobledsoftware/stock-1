@@ -1,34 +1,57 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Grid } from '@mui/material';
+import axios from 'axios';
 
 function Panel() {
   const [minStockProducts, setMinStockProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Definir los umbrales
   const MIN_THRESHOLD = 10; // Stock mínimo
   const LOW_THRESHOLD = 5;  // Por agotarse
 
-  // Simulación de productos
-  const simulatedProducts = [
-    { id: 1, name: 'Producto A', barcode: '123456', stock: 8 },
-    { id: 2, name: 'Producto B', barcode: '234567', stock: 3 },
-    { id: 3, name: 'Producto C', barcode: '345678', stock: 12 },
-    { id: 4, name: 'Producto D', barcode: '456789', stock: 2 },
-    { id: 5, name: 'Producto E', barcode: '567890', stock: 15 },
-  ];
-
+  // Llamada al endpoint para obtener los productos de stock
   useEffect(() => {
-    // Simular la carga de productos
-    const products = simulatedProducts;
+    const fetchStockData = async () => {
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/tabla_stock`, {});
+        console.log("Productos recibidos:", response.data); // Verifica la estructura de los datos
+        const products = response.data || [];
 
-    // Filtrar productos según los umbrales
-    const minStock = products.filter((product) => product.stock <= MIN_THRESHOLD && product.stock > LOW_THRESHOLD);
-    const lowStock = products.filter((product) => product.stock <= LOW_THRESHOLD);
+        // Filtrar productos según los umbrales
+        const minStock = products.filter((product) => 
+          product.stock_actual != null && 
+          product.stock_minimo != null && 
+          product.stock_actual <= MIN_THRESHOLD && 
+          product.stock_actual > LOW_THRESHOLD && 
+          product.estado
+        );
+        const lowStock = products.filter((product) => 
+          product.stock_actual != null && 
+          product.stock_minimo != null && 
+          product.stock_actual <= LOW_THRESHOLD && 
+          product.estado
+        );
 
-    setMinStockProducts(minStock);
-    setLowStockProducts(lowStock);
+        console.log("Productos en el mínimo:", minStock); // Verifica los productos filtrados
+        console.log("Productos por agotarse:", lowStock); // Verifica los productos filtrados
+
+        setMinStockProducts(minStock);
+        setLowStockProducts(lowStock);
+      } catch (error) {
+        console.error("Error al obtener los productos de stock:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStockData();
   }, []);
+
+  if (loading) {
+    return <Typography variant="h6" align="center">Cargando...</Typography>;
+  }
 
   return (
     <Grid container spacing={3} style={{ padding: 20 }}>
@@ -48,22 +71,28 @@ function Panel() {
             <TableHead>
               <TableRow>
                 <TableCell>Producto</TableCell>
-                <TableCell>Código de Barras</TableCell>
-                <TableCell>Stock</TableCell>
+                <TableCell>Stock Actual</TableCell>
+                <TableCell>Stock Mínimo</TableCell>
+                <TableCell>Stock Máximo</TableCell>
+                <TableCell>Estado</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {minStockProducts.length > 0 ? (
                 minStockProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.barcode}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
+                  <TableRow key={product.id_stock}>
+                    <TableCell>{product.id_producto}</TableCell> {/* Aquí podrías reemplazar por el nombre del producto si lo tienes */}
+                    <TableCell>{product.stock_actual}</TableCell>
+                    <TableCell>{product.stock_minimo}</TableCell>
+                    <TableCell>{product.stock_maximo}</TableCell>
+                    <TableCell>
+                      {product.stock_actual < product.stock_minimo ? "Por debajo del mínimo" : "Suficiente"}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} align="center">
+                  <TableCell colSpan={5} align="center">
                     No hay productos en el mínimo.
                   </TableCell>
                 </TableRow>
@@ -83,22 +112,28 @@ function Panel() {
             <TableHead>
               <TableRow>
                 <TableCell>Producto</TableCell>
-                <TableCell>Código de Barras</TableCell>
-                <TableCell>Stock</TableCell>
+                <TableCell>Stock Actual</TableCell>
+                <TableCell>Stock Mínimo</TableCell>
+                <TableCell>Stock Máximo</TableCell>
+                <TableCell>Estado</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {lowStockProducts.length > 0 ? (
                 lowStockProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.barcode}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
+                  <TableRow key={product.id_stock}>
+                    <TableCell>{product.id_producto}</TableCell> {/* Aquí podrías reemplazar por el nombre del producto si lo tienes */}
+                    <TableCell>{product.stock_actual}</TableCell>
+                    <TableCell>{product.stock_minimo}</TableCell>
+                    <TableCell>{product.stock_maximo}</TableCell>
+                    <TableCell>
+                      {product.stock_actual < product.stock_minimo ? "Por debajo del mínimo" : "Suficiente"}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} align="center">
+                  <TableCell colSpan={5} align="center">
                     No hay productos por agotarse.
                   </TableCell>
                 </TableRow>

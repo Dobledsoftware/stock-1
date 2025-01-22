@@ -1,222 +1,175 @@
-import React, { useState } from 'react';
-import { FaSearch, FaPlus, FaTrash } from 'react-icons/fa'; // Importación de íconos
-import '../styles/abastecimiento.module.css';
+import React, { useState, useEffect } from 'react';
+import BuscarProductos from '../components/BuscarProductos';
+import ProductosSeleccionados from '../components/ProductosSeleccionados';
 
 const Abastecimiento = () => {
-    const [productosEncontrados, setProductosEncontrados] = useState([]);
-    const [tablaTrabajo, setTablaTrabajo] = useState([]);
-    const [busqueda, setBusqueda] = useState('');
-    const [accion, setAccion] = useState('');
-    const [motivo, setMotivo] = useState('');
-    const [mostrarResultados, setMostrarResultados] = useState(false);
+    const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+    const [proveedores, setProveedores] = useState([]);
+    const [almacenes, setAlmacenes] = useState([]);
+    const [estantes, setEstantes] = useState([]);
+    const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
+    const [almacenSeleccionado, setAlmacenSeleccionado] = useState(null);
+    const [estanteSeleccionado, setEstanteSeleccionado] = useState(null);
 
-    const buscarProducto = async () => {
-        if (!accion) {
-            alert('Por favor, selecciona una acción.');
-            return;
-        }
-        if (!motivo.trim()) {
-            alert('Por favor, ingresa un motivo.');
-            return;
-        }
-
-        setProductosEncontrados([]);
-
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
+    // Cargar listas desplegables al montar
+    useEffect(() => {
+        const fetchProveedores = async () => {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/proveedor`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodosLosProductos',
-                    estado: 'Activo',
-                }),
+                body: JSON.stringify({ accion: 'verTodosLosProveedores', estado: true }),
             });
-
             const data = await response.json();
+            setProveedores(data.data || []);
+        };
 
-            if (Array.isArray(data.data)) {
-                const resultados = data.data.filter((prod) => {
-                    const nombre = prod.producto_nombre ? prod.producto_nombre.toLowerCase() : '';
-                    const marca = prod.producto_marca ? prod.producto_marca.toLowerCase() : '';
-                    const codigoBarras = prod.producto_codigo_barras ? prod.producto_codigo_barras.toLowerCase() : '';
-                    return (
-                        nombre.includes(busqueda.toLowerCase()) ||
-                        marca.includes(busqueda.toLowerCase()) ||
-                        codigoBarras.includes(busqueda.toLowerCase())
-                    );
+        const fetchAlmacenes = async () => {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/almacen`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accion: 'verTodosLosAlmacenes', estado: true }),
+            });
+            const data = await response.json();
+            setAlmacenes(data.data || []);
+        };
+
+        fetchProveedores();
+        fetchAlmacenes();
+    }, []);
+
+    // Cargar estantes cuando se selecciona un almacén
+    useEffect(() => {
+        const fetchEstantes = async () => {
+            if (almacenSeleccionado) {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/estante`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        accion: 'verTodosLosEstantes',
+                        id_almacen: almacenSeleccionado,
+                        estado: true,
+                    }),
                 });
-                
-
-                setMostrarResultados(true);
-                setProductosEncontrados(resultados);
-            } else {
-                console.error('La respuesta de la API no contiene un arreglo en la propiedad "data":', data);
-                alert('Hubo un problema al obtener los productos.');
+                const data = await response.json();
+                setEstantes(data.data || []);
             }
+        };
 
-            setBusqueda('');
-            setAccion('');
-            setMotivo('');
-        } catch (error) {
-            console.error('Error al obtener productos:', error);
-            alert('Hubo un error al obtener los productos.');
+        fetchEstantes();
+    }, [almacenSeleccionado]);
+
+    // Agregar un producto a la lista de movimientos
+    const agregarProducto = (producto) => {
+        if (!productosSeleccionados.find((p) => p.id_producto === producto.producto_id)) {
+            setProductosSeleccionados([
+                ...productosSeleccionados,
+                {
+                    id_producto: producto.producto_id,
+                    producto_nombre: producto.producto_nombre,
+                    cantidad: 0,
+                    descripcion: '',
+                },
+            ]);
         }
     };
-   
-    
-    const agregarATabla = (producto) => {
-        if (!tablaTrabajo.some((p) => p.producto_id === producto.producto_id)) {
-            setTablaTrabajo([...tablaTrabajo, { ...producto, cantidad: 0 }]);
-        }
+
+    // Eliminar un producto de la lista de movimientos
+    const eliminarProducto = (idProducto) => {
+        setProductosSeleccionados(productosSeleccionados.filter((p) => p.id_producto !== idProducto));
     };
 
-    const actualizarCantidad = (id, nuevaCantidad) => {
-        setTablaTrabajo((prev) =>
-            prev.map((prod) =>
-                prod.producto_id === id ? { ...prod, cantidad: nuevaCantidad } : prod
+    // Manejar el cambio de valores (cantidad y descripción) en la lista
+    const actualizarProducto = (idProducto, campo, valor) => {
+        setProductosSeleccionados(
+            productosSeleccionados.map((p) =>
+                p.id_producto === idProducto ? { ...p, [campo]: valor } : p
             )
         );
     };
 
-    const confirmarAbastecimiento = () => {
-        if (!tablaTrabajo.length) {
-            alert('No hay productos en la tabla para confirmar.');
+    // Enviar el JSON al backend
+    const procesarMovimiento = async () => {
+        if (!proveedorSeleccionado || !almacenSeleccionado || !estanteSeleccionado) {
+            alert('Debes seleccionar un proveedor, almacén y estante.');
             return;
         }
 
-        const datosAEnviar = {
-            accion,
-            motivo,
-            productos: tablaTrabajo,
-        };
+        const movimientos = productosSeleccionados.map((p) => ({
+            id_producto: p.id_producto,
+            cantidad: p.cantidad,
+            operacion: 'incrementar',
+            id_usuario: 123, // Aquí se debe reemplazar con el usuario real
+            observaciones: 'Reabastecimiento',
+            id_proveedor: proveedorSeleccionado,
+            id_almacen: almacenSeleccionado,
+            id_estante: estanteSeleccionado,
+            descripcion: p.descripcion,
+        }));
 
-        console.log('Datos enviados al backend:', datosAEnviar);
-        alert('Datos enviados correctamente.');
+        const payload = { movimientos };
 
-        setTablaTrabajo([]);
-        setProductosEncontrados([]);
-        setBusqueda('');
-        setMotivo('');
-        setAccion('');
-        setMostrarResultados(false);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/movimientos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al procesar el movimiento');
+            }
+
+            alert('Movimiento procesado con éxito');
+            setProductosSeleccionados([]); // Limpiar la lista
+        } catch (error) {
+            console.error('Error al enviar el movimiento:', error);
+            alert('Hubo un problema al procesar el movimiento.');
+        }
     };
 
     return (
-        <div className="abastecimiento">
-            <h1>Movimiento de stock</h1>
-
-            {/* Selección de Acción y Motivo */}
-            <div className="acciones">
-                <select value={accion} onChange={(e) => setAccion(e.target.value)}>
-                    <option value="">Seleccionar acción</option>
-                    <option value="aumentar">Entrada Stock</option>
-                    <option value="disminuir">Salida Stock</option>
-                </select>
-                <input
-                    type="text"
-                    placeholder="Motivo de la acción"
-                    value={motivo}
-                    onChange={(e) => setMotivo(e.target.value)}
-                />
-            </div>
+        <div>
+            <h1>Abastecimiento de Stock</h1>
 
             {/* Buscador */}
-            <div className="buscador">
-                <input
-                    type="text"
-                    placeholder="Buscar producto..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && buscarProducto()} // Detecta "Enter"
-                />
-                <button onClick={buscarProducto}>
-                    <FaSearch /> Buscar
-                </button>
+            <BuscarProductos onAgregarProducto={agregarProducto} />
+
+            {/* Listas desplegables */}
+            <div>
+                <select onChange={(e) => setProveedorSeleccionado(e.target.value)} value={proveedorSeleccionado || ''}>
+                    <option value="">Selecciona un proveedor</option>
+                    {proveedores.map((p) => (
+                        <option key={p.id_proveedor} value={p.id_proveedor}>
+                            {p.nombre}
+                        </option>
+                    ))}
+                </select>
+
+                <select onChange={(e) => setAlmacenSeleccionado(e.target.value)} value={almacenSeleccionado || ''}>
+                    <option value="">Selecciona un almacén</option>
+                    {almacenes.map((a) => (
+                        <option key={a.id_almacen} value={a.id_almacen}>
+                            {a.nombre}
+                        </option>
+                    ))}
+                </select>
+
+                <select onChange={(e) => setEstanteSeleccionado(e.target.value)} value={estanteSeleccionado || ''}>
+                    <option value="">Selecciona un estante</option>
+                    {estantes.map((e) => (
+                        <option key={e.id_estante} value={e.id_estante}>
+                            {e.nombre}
+                        </option>
+                    ))}
+                </select>
             </div>
 
-            {/* Resultados de búsqueda */}
-            <div className="resultados">
-                <h2>Resultados de la búsqueda</h2>
-                {mostrarResultados ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Marca</th>
-                                <th>Código de Barras</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {productosEncontrados.map((producto) => (
-                                <tr key={producto.producto_id}>
-                                    <td>{producto.producto_nombre}</td>
-                                    <td>{producto.producto_marca}</td>
-                                    <td>{producto.producto_codigo_barras}</td>
-                                    <td>
-                                        <button onClick={() => agregarATabla(producto)}>
-                                            <FaPlus /> Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No se han encontrado productos.</p>
-                )}
-            </div>
-
-            {/* Tabla de trabajo */}
-            <div className="tabla-trabajo">
-                <h2>Tabla de Trabajo</h2>
-                {tablaTrabajo.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Cantidad</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tablaTrabajo.map((producto) => (
-                                <tr key={producto.producto_id}>
-                                    <td>{producto.producto_nombre}</td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            value={producto.cantidad}
-                                            onChange={(e) =>
-                                                actualizarCantidad(producto.producto_id, parseInt(e.target.value) || 0)
-                                            }
-                                        />
-                                    </td>
-                                    <td>
-                                        <button
-                                            onClick={() =>
-                                                setTablaTrabajo((prev) =>
-                                                    prev.filter((p) => p.producto_id !== producto.producto_id)
-                                                )
-                                            }>
-                                            <FaTrash /> Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No hay productos en la tabla de trabajo.</p>
-                )}
-            </div>
-
-            {/* Botón para confirmar */}
-            {tablaTrabajo.length > 0 && (
-                <button onClick={confirmarAbastecimiento} className="btn-confirmar">
-                    Confirmar Abastecimiento
-                </button>
-            )}
+            {/* Productos seleccionados */}
+            <ProductosSeleccionados
+                productos={productosSeleccionados}
+                onEliminarProducto={eliminarProducto}
+                onProcesarPaquete={procesarMovimiento}
+            />
         </div>
     );
 };

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form,Query  # Importa APIRouter para crear grupos de rutas y HTTPException para gestion errores.
 from fastapi.responses import JSONResponse, Response  # Importa JSONResponse para devolver respuestas JSON personalizadas.
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
-from typing import List,Optional
+from typing import List,Optional,Dict, Any
+
 
 #importa las clases
 from models.producto import Producto # Importa Clase Producto
@@ -889,20 +890,14 @@ async def movimiento_stock(request: Stock_request):
                 )
             elif movimiento.operacion == "disminuir":
                 resultado = await stock.salidaStock(
-                    id_stock=movimiento.id_stock,
                     id_producto=movimiento.id_producto,
-                    stock_actual=movimiento.stock_actual,
-                    stock_minimo=movimiento.stock_minimo,
-                    stock_maximo=movimiento.stock_maximo,
-                    id_almacen=movimiento.id_almacen,
-                    id_proveedor=movimiento.id_proveedor,
-                    id_estante=movimiento.id_estante,
-                    id_stock_movimiento=movimiento.id_stock_movimiento,
-                    id_tipo_movimiento=movimiento.id_tipo_movimiento,
-                    descripcion=movimiento.descripcion,
                     cantidad=movimiento.cantidad,
-                    id_usuario=movimiento.id_usuario,
-                    observaciones=movimiento.observaciones
+                    id_usuario=movimiento.id_usuario,                    
+                    id_proveedor=movimiento.id_proveedor,
+                    id_almacen=movimiento.id_almacen,
+                    id_estante=movimiento.id_estante,
+                    descripcion=movimiento.descripcion,
+                    operacion=movimiento.operacion
                 )
             else:
                 raise HTTPException(
@@ -1221,31 +1216,22 @@ async def gestion_almacen_estante(request: Estante_request):
     
 
 ############################stock#######################################################################
-@router.post("/tabla_stock", response_model=List[StockResponse])
+##@router.post("/tabla_stock", response_model=List[StockResponse])
+@router.post("/stock", response_model=List[Dict[str, Any]])
 async def consultar_stock(
     filtros: FiltrosStock  # Recibimos los filtros en el cuerpo de la solicitud
 ):
     """
     Endpoint para consultar la tabla 'stock' con filtros en el cuerpo de la solicitud.
-    """
-
-    """
         Endpoint para gestion estante.
         Soporta las acciones: 
         - 'verTodosLosEstantes': 
 
-            ```Jsoon
-                {
-            
-                }
-            ```
-
-   
-
-
+    ```Json
+        {            
+        }
+     ```
     """
-
-
     stock = Stock()  # Instancia de la clase Stock
     try:
         resultados = await stock.obtener_stock(  # Usamos el método obtener_stock
@@ -1269,6 +1255,10 @@ async def consultar_movimientos(
 ):
     """
     Endpoint para consultar la tabla 'stock_movimientos' con filtros en el cuerpo de la solicitud.
+     ```Json
+        {            
+        }
+     ```
     """
     stock = Stock()  # Instancia de la clase Stock
     try:

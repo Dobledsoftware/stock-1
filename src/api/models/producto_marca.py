@@ -55,6 +55,7 @@ class ProductoMarca(conexion.Conexion):
             conexion.close()
 
 ################################ MODIFICAR MARCA ###########################################################
+            
     async def modificar_marca(self, id_marca, descripcion: Optional[str] = None, estado: Optional[bool] = None):
         """
         Modifica los datos de una marca existente en la base de datos.

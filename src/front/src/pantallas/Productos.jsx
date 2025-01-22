@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import AgregarProducto from "../components/AgregarProducto"; // Modal para agregar productos
 import TablaProductos from "../components/TablaProductos"; // Tabla de productos
 import Categorias from "../components/Categorias"; // Modal para gestionar categorías
-import '../styles/stock.css';
+/* import '../styles/stock.css'; */
 
-const Stock = ({ apiBaseUrl }) => {
+const Productos = ({ apiBaseUrl }) => {
   const [productos, setProductos] = useState([]); // Estado para la lista de productos
   const [modalProductoVisible, setModalProductoVisible] = useState(false); // Control del modal de productos
   const [modalCategoriasVisible, setModalCategoriasVisible] = useState(false); // Control del modal de categorías
@@ -59,4 +59,4 @@ const Stock = ({ apiBaseUrl }) => {
   );
 };
 
-export default Stock;
+export default Productos;

@@ -1,277 +1,280 @@
-/* Paleta de Colores */
+/* Paleta de colores */
 :root {
-  --color-principal: #041cf7; /* Verde principal */
-  --color-secundario: #f3f021; /* Azul */
-  --color-fondo: #f4f4f9; /* Fondo claro */
+  --color-principal: #041cf7;
+  --color-secundario: #f3f021;
+  --color-fondo: #f9f9f9;
   --color-blanco: #ffffff;
-  --color-texto: #333333; /* Texto oscuro */
-  --color-boton: #1e05f8; /* Verde para botones */
-  --color-boton-hover: #45a049; /* Hover sobre botones */
-  --color-boton-secundario: #2196F3; /* Azul para botones secundarios */
-  --color-boton-secundario-hover: #1976D2; /* Hover sobre botones secundarios */
-  --color-border: #ddd; /* Borde suave */
-  --color-sombra: rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  --color-texto: #333333;
+  --color-boton: #1e05f8;
+  --color-boton-hover: #1c60e0;
+  --color-error: #e53935;
+  --color-border: #ddd;
 }
 
-/* Reset global de márgenes, paddings y fuentes */
+/* Reset global */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 body {
   background-color: var(--color-fondo);
   color: var(--color-texto);
-  line-height: 1.6;
   font-size: 16px;
-  padding: 0 10px; /* Padding para asegurar margen en dispositivos pequeños */
-  overflow-x: hidden;
+  line-height: 1.5;
 }
-
-/* Estilos generales */
-h1, h2, h3 {
-  color: #1976D2;
-  font-weight: 600;
-}
-
+/* Estilos modernos para los encabezados h1 */
 h1 {
-  font-size: 2rem;
-  margin-bottom: 15px;
+  font-family: 'Poppins', sans-serif; /* Fuente moderna */
+  font-size: 2rem; /* Tamaño de fuente grande */
+  font-weight: 700; /* Peso de la fuente */
+  color: #333; /* Color de texto oscuro */
+  text-transform: uppercase; /* Todo en mayúsculas */
+  letter-spacing: 3px; /* Espaciado entre letras */
+  background-image: linear-gradient(to right, #3c49fd, #69645f); /* Fondo con gradiente */
+  -webkit-background-clip: text; /* Aplicar gradiente solo al texto */
+  color: transparent; /* Hacer que el texto sea transparente para mostrar el gradiente */
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+  padding: 15px; /* Espaciado alrededor del texto */
+  transition: all 0.4s ease-in-out; /* Efecto de transición suave */
 }
 
+/* Efecto al pasar el cursor */
+h1:hover {
+  
+  color: #030303; /* Cambiar el color a blanco al pasar el cursor */
+  text-shadow: 5px 5px 8px rgba(0, 0, 0, 0.3); /* Sombra más fuerte al pasar el cursor */
+}
+
+/* Estilos modernos para los encabezados h2 */
 h2 {
-  font-size: 1.6rem;
-  margin-bottom: 10px;
+  font-family: 'Poppins', sans-serif; /* Fuente moderna */
+  font-size: 2rem; /* Tamaño de fuente grande */
+  font-weight: 600; /* Peso de la fuente */
+  color: #333; /* Color de texto oscuro */
+  text-transform: uppercase; /* Todo en mayúsculas */
+  letter-spacing: 2px; /* Espaciado entre letras */
+  background-image: linear-gradient(to right, #00b4d8, #0077b6); /* Fondo con gradiente */
+  -webkit-background-clip: text; /* Aplicar gradiente solo al texto */
+  color: transparent; /* Hacer que el texto sea transparente para mostrar el gradiente */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+  padding: 10px; /* Espaciado alrededor del texto */
+  transition: all 0.3s ease-in-out; /* Efecto de transición suave */
 }
 
-h3 {
-  font-size: 1.4rem;
-  margin-bottom: 8px;
+/* Efecto al pasar el cursor */
+h2:hover {
+  
+  color: #0077b6; /* Cambiar el color a blanco al pasar el cursor */
+  text-shadow: 4px 4px 6px rgba(0, 0, 0, 0.3); /* Sombra más fuerte al pasar el cursor */
 }
 
-/* Estilo para contenedores y layout */
-.container {
+
+/* Botones */
+/* Estilos generales para los botones */
+button, .MuiButton-root {
+  background-color: #4caf50; /* Fondo verde suave */
+  color: white; /* Color del texto blanco */
+  font-family: 'Poppins', sans-serif; /* Fuente moderna */
+  font-size: 0.9rem; /* Tamaño de fuente pequeño */
+  padding: 8px 16px; /* Padding más pequeño */
+  border-radius: 8px; /* Bordes redondeados */
+  border: none; /* Eliminar bordes */
+  cursor: pointer; /* Cursor tipo puntero */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Transición suave */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+/* Efecto al pasar el cursor sobre el botón */
+button:hover, .MuiButton-root:hover {
+  background-color: #45a049; /* Cambio de color al hacer hover */
+  transform: scale(1.05); /* Efecto de agrandado al pasar el cursor */
+}
+
+/* Estilo de los botones secundarios (Ejemplo: eliminar o cancelar) */
+button.secondary, .MuiButton-secondary {
+  background-color: #f44336; /* Fondo rojo para botones secundarios */
+  color: white; /* Texto blanco */
+}
+
+button.secondary:hover, .MuiButton-secondary:hover {
+  background-color: #e53935; /* Cambio de color al hacer hover */
+  transform: scale(1.05); /* Efecto de agrandado */
+}
+
+/* Estilo de los botones con íconos */
+button.icon-button, .MuiIconButton-root {
+  background-color: #e0e0e0; /* Fondo gris claro para los botones con iconos */
+  color: #444444; /* Color gris oscuro para los iconos */
+  padding: 8px; /* Padding pequeño */
+  border-radius: 50%; /* Forma circular para los botones con íconos */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Transición suave */
+}
+
+/* Efecto al pasar el cursor por encima de los iconos */
+button.icon-button:hover, .MuiIconButton-root:hover {
+  background-color: #d3d3d3; /* Fondo gris más oscuro al hacer hover */
+  transform: scale(1.1); /* Efecto de agrandado */
+}
+
+/* Estilo para botones de tamaño pequeño */
+button.small, .MuiButton-small {
+  padding: 6px 12px; /* Reducir padding para botones pequeños */
+  font-size: 0.8rem; /* Fuente más pequeña */
+}
+
+/* Estilo para botones de tamaño grande */
+button.large, .MuiButton-large {
+  padding: 12px 24px; /* Mayor padding para botones grandes */
+  font-size: 1.1rem; /* Fuente más grande */
+}
+
+/* Contenedor responsivo para tablas */
+.data-grid-container {
   width: 100%;
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-}
-
-/* ------------------------- */
-/* Estilos para los botones */
-/* ------------------------- */
-button {
-  background-color: var(--color-boton);
-  color: var(--color-blanco);
-  border: none;
-  padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: var(--color-boton-hover);
-}
-
-button:focus {
-  outline: none;
-}
-
-.boton-salir {
-  background: none;
-  color: var(--color-texto);
-  border: none;
-  font-size: 16px;
+  overflow-x: auto;
   padding: 10px;
-  cursor: pointer;
+  background-color: var(--color-blanco);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-
-.boton-salir:hover {
-  background-color: var(--color-boton-hover);
-}
-
-/* Botones secundarios */
-button.secundario {
-  background-color: var(--color-boton-secundario);
-}
-
-button.secundario:hover {
-  background-color: var(--color-boton-secundario-hover);
-}
-
-/* Formularios y campos de entrada */
-input, select, textarea {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  font-size: 1rem;
-}
-
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--color-principal);
-}
-
-/* Tabla */
+/* Estilos modernos para las tablas */
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse; /* Eliminar espacios entre las celdas */
+  font-family: 'Poppins', sans-serif; /* Fuente moderna */
+  background-color: #ffffff; /* Fondo blanco para la tabla */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  border-radius: 8px; /* Bordes redondeados */
   margin-top: 20px;
+  table-layout: fixed; /* Fija el ancho de las columnas */
+  border-collapse: collapse; /* Elimina los bordes dobles */
 }
 
-table th, table td {
-  padding: 10px;
-  text-align: left;
-  border: 1px solid var(--color-border);
+
+/* Ajustar celdas */
+table td {
+  height: 0px; /* Establece una altura fija */
+  padding: 0px; /* Relleno de celdas */
+  vertical-align: middle; /* Alineación vertical */
+  
+  border: 1px solid #ddd; /* Borde sutil */
+  font-family: 'Poppins', sans-serif; /* Fuente moderna */
 }
 
-table th {
-  background-color: var(--color-principal);
-  color: white;
+/* Ajustes adicionales si se necesita un alto mínimo */
+table td {
+  min-height: 20px; /* Altura mínima */
+  line-height: 20px; /* Controla la altura del texto */
 }
 
-table tbody tr:hover {
-  background-color: #f1f1f1;
+/* Estilos para las celdas de la tabla */
+th{
+  padding: 10px 15px; /* Espaciado más pequeño para las celdas */
+  text-align: left; /* Alinear texto a la izquierda */
+  font-size: 0.9rem; /* Tamaño de fuente más pequeño */
+  color: #444444; /* Color de texto gris oscuro */
+  border-bottom: 1px solid #f0f0f0; /* Línea suave entre filas */
 }
 
-/* Mensajes de alerta */
-.alerta {
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 5px;
+/* Estilos de las celdas de encabezado */
+th {
   font-weight: bold;
+  background-color: #4caf50; /* Color de fondo de los encabezados */
+  color: white; /* Color blanco para el texto */
+  text-transform: uppercase; /* Texto en mayúsculas */
+  letter-spacing: 1px; /* Espaciado entre letras */
+  font-size: 1rem; /* Tamaño ligeramente más grande */
+  border-top-left-radius: 8px; /* Bordes redondeados solo en la parte superior */
+  border-top-right-radius: 8px; /* Bordes redondeados solo en la parte superior */
 }
 
-.alerta-success {
-  background-color: #dff0d8;
-  color: #3c763d;
+/* Estilo al pasar el cursor por encima de las filas */
+tr:hover {
+  background-color: #f5f5f5; /* Fondo gris claro al pasar el cursor */
+  cursor: pointer; /* Cambiar el cursor para indicar que es interactivo */
 }
 
-.alerta-error {
-  background-color: #f2dede;
-  color: #a94442;
+/* Efecto de transición para las filas */
+tr {
+  transition: background-color 0.3s ease-in-out; /* Transición suave al pasar el mouse */
 }
 
-.alerta-info {
-  background-color: #d9edf7;
-  color: #31708f;
+/* Estilo para las celdas con datos nulos */
+td.null {
+  color: #888888; /* Color gris para datos nulos */
+  font-style: italic; /* Texto en cursiva */
 }
 
-/* ---------------------- */
-/* Media Queries Responsive */
-/* ---------------------- */
+/* Estilo de las celdas de acciones */
+td:last-child {
+  text-align: center; /* Centrar las acciones */
+  padding: 5px 10px; /* Espaciado más pequeño para las acciones */
+}
 
-/* Estilo para pantallas pequeñas */
+/* Estilo para filas alternadas */
+tr:nth-child(even) {
+  background-color: #f9f9f9; /* Fondo suave para filas pares */
+}
+
+/* Estilo para la tabla de DataTable */
+.dataTables_wrapper {
+  margin-top: 20px; /* Separar la tabla del contenido superior */
+}
+
+/* Estilo para los inputs de búsqueda y select en DataTables */
+.dataTables_filter input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.dataTables_length select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+/* Estilo para el contenedor de la tabla */
+.table-container {
+  margin: 20px;
+}
+
+/* Estilo adicional para la tabla cuando es responsiva */
 @media (max-width: 768px) {
-  body {
-    font-size: 14px; /* Reducir tamaño de fuente en pantallas pequeñas */
+  table {
+    font-size: 0.8rem; /* Reducir el tamaño de la fuente en pantallas pequeñas */
   }
 
-  .container {
-    padding: 10px;
-  }
-
-  button {
-    width: 100%; /* Botones ocupan todo el ancho en pantallas pequeñas */
-  }
-
-  table th, table td {
-    padding: 8px; /* Reducir padding en tablas */
-  }
-
-  h1 {
-    font-size: 1.8rem; /* Reducir tamaño de los títulos */
-  }
-
-  h2 {
-    font-size: 1.4rem;
-  }
-
-  h3 {
-    font-size: 1.2rem;
-  }
-
-  /* Mejorar la visualización de las alertas */
-  .alerta {
-    font-size: 0.9rem;
-    padding: 12px;
-  }
-
-  /* Mejorar la visualización de formularios */
-  input, select, textarea {
-    font-size: 0.9rem;
-    padding: 8px;
+  th, td {
+    padding: 8px 12px; /* Reducir padding en pantallas pequeñas */
   }
 }
 
-/* Estilo para pantallas medianas (tablets y dispositivos similares) */
-@media (max-width: 1024px) {
-  .container {
-    max-width: 100%;
-    padding: 15px;
-  }
-
-  h1 {
-    font-size: 1.9rem;
-  }
-
-  table th, table td {
-    padding: 9px;
-  }
-
-  .alerta {
-    font-size: 1rem;
-  }
+/* Estilo de los botones de acción */
+.icon-button {
+  margin: 0 5px;
 }
 
-/* Estilo para pantallas grandes (desktops) */
-@media (min-width: 1025px) {
-  .container {
-    padding: 20px;
-  }
-
-  button {
-    font-size: 1.1rem; /* Aumentar tamaño de fuente de botones */
-  }
-
-  input, select, textarea {
-    font-size: 1rem; /* Tamaño de fuente adecuado en pantallas grandes */
-  }
-
-  h1 {
-    font-size: 2rem;
-  }
-
-  table th, table td {
-    padding: 12px;
-  }
+.icon-button:hover {
+  cursor: pointer;
+  opacity: 0.8;
 }
 
-
-/* Estilo global para tablas responsivas */
-@media (max-width: 768px) {
-  .display {
-    width: 100% !important;
-  }
-
-  table th, table td {
-    padding: 8px;
-  }
-
-  /* Aseguramos que la tabla pueda desplazarse horizontalmente */
-  .dataTables_wrapper {
-    overflow-x: auto;
-  }
+/* Estilo para los campos de búsqueda */
+input[type="Buscar"] {
+  padding: 8px;
+  margin-bottom: 20px;
+  width: 300px;
 }
 
-/* Estilo para las columnas de la tabla */
-table th, table td {
-  word-wrap: break-word; /* Para que el texto largo se ajuste */
-  max-width: 150px; /* Limita el ancho de las celdas */
+/* Paginación (si decides implementarla en las tablas) */
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: 10px;
 }
