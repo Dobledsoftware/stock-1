@@ -14,37 +14,33 @@ const Inventario = () => {
   // Obtener inventario desde el API
   useEffect(() => {
     const obtenerInventario = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/tabla_stock`, {
-        method: "POST",
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stock`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({}), // Pasar objeto vacío
       });
 
       const data = await response.json();
-      console.log("Datos del inventario:", data); // Verifica qué llega aquí
+      console.log("Datos del inventario:", data);
 
-      // Verifica si la respuesta tiene los datos y setea el estado correctamente
-      if (data && data.length > 0) {
-        setProductos(data); // Asegúrate de que la respuesta sea un array
+      if (data && Array.isArray(data)) {
+        setProductos(data);
       } else {
-        setProductos([]); // En caso de que no haya datos
+        setProductos([]);
       }
     };
 
     obtenerInventario();
   }, []);
 
-  // Inicialización de DataTable y actualización de la tabla
+  // Inicialización de DataTable
   useEffect(() => {
     if (productos.length > 0) {
-      // Destruir la tabla si ya está inicializada para evitar duplicados
       if ($.fn.DataTable.isDataTable("#tablaInventario")) {
         $("#tablaInventario").DataTable().destroy();
       }
 
-      // Inicializar DataTable
       $("#tablaInventario").DataTable({
         responsive: true,
         language: {
@@ -60,10 +56,12 @@ const Inventario = () => {
   };
 
   const filteredProductos = productos.filter((producto) =>
-    producto.id_producto.toString().includes(searchTerm) || 
-    producto.stock_actual.toString().includes(searchTerm) ||
-    producto.stock_minimo.toString().includes(searchTerm) ||
-    producto.stock_maximo.toString().includes(searchTerm)
+    producto.id_producto.toString().includes(searchTerm) ||
+    producto.nombre_producto.toLowerCase().includes(searchTerm) ||
+    producto.descripcion_producto.toLowerCase().includes(searchTerm) ||
+    producto.codigo_barras.includes(searchTerm) ||
+    producto.nombre_proveedor.toLowerCase().includes(searchTerm) ||
+    producto.almacen_descripcion.toLowerCase().includes(searchTerm)
   );
 
   const handleEliminar = (idStock) => {
@@ -78,15 +76,28 @@ const Inventario = () => {
     <>
       <div className="table-container">
         <h2>Inventario de Productos</h2>
+        <TextField
+          label="Buscar"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          onChange={handleSearchChange}
+        />
 
         {/* Tabla de inventario */}
         <table id="tablaInventario" className="display">
           <thead>
             <tr>
               <th>ID Producto</th>
+              <th>Nombre Producto</th>
+              <th>Descripción</th>
+              <th>Código de Barras</th>
               <th>Stock Actual</th>
               <th>Stock Mínimo</th>
               <th>Stock Máximo</th>
+              <th>Proveedor</th>
+              <th>Almacén</th>
+              <th>Estante</th>
               <th>Estado</th>
               <th>Fecha Alta</th>
               <th>Acciones</th>
@@ -97,9 +108,15 @@ const Inventario = () => {
               filteredProductos.map((producto) => (
                 <tr key={producto.id_stock}>
                   <td>{producto.id_producto}</td>
+                  <td>{producto.nombre_producto}</td>
+                  <td>{producto.descripcion_producto}</td>
+                  <td>{producto.codigo_barras}</td>
                   <td>{producto.stock_actual}</td>
                   <td>{producto.stock_minimo}</td>
                   <td>{producto.stock_maximo || "N/A"}</td>
+                  <td>{producto.nombre_proveedor}</td>
+                  <td>{producto.almacen_descripcion}</td>
+                  <td>{producto.descripcion_estante}</td>
                   <td>{producto.estado ? "Activo" : "Inactivo"}</td>
                   <td>{new Date(producto.fecha_alta).toLocaleString()}</td>
                   <td>
@@ -120,7 +137,7 @@ const Inventario = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7">No hay productos en inventario.</td>
+                <td colSpan="13">No hay productos en inventario.</td>
               </tr>
             )}
           </tbody>

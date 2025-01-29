@@ -18,7 +18,7 @@ class Producto_request(BaseModel):
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
     precio: Optional[float] = None  
-    estado: Optional[str] = None
+    estado:Optional[bool] = True 
     codigo_barras: Optional[str] = None
     forceAdd: Optional[bool] = False  # Si el usuario desea agregar el producto aunque ya exista
     accion_stock: Optional[AccionStock] = None  # Opción de incremento/disminución de stock

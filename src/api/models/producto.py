@@ -120,9 +120,9 @@ class Producto(conexion.Conexion):
 
     
 #################################buscarPorCodigoDeBarras#######################################################
-    async def buscarPorCodigoDeBarras(self, codigo_barras):
+    async def buscarPorCodigoDeBarras(self, codigo_barras,estado):
        
-        return await self.repository.buscarPorCodigoDeBarras(codigo_barras)    
+        return await self.repository.buscarPorCodigoDeBarras(codigo_barras,estado)    
     
 
     

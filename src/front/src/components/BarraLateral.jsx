@@ -53,11 +53,11 @@ const BarraLateral = () => {
             </div>
             {activeItem === "stock" && isSidebarOpen && (
               <ul className="dropdown">
-                <li><NavLink to="/productos">Productos</NavLink></li>
-                <li><NavLink to="/config">Configuración de producto</NavLink></li>
                 <li><NavLink to="/inventario">Inventario</NavLink></li>
-                <li><NavLink to="/movimientos">Movimientos de stock</NavLink></li>
+                <li><NavLink to="/movimientos">Stock</NavLink></li>
+                <li><NavLink to="/config">Configuración de producto</NavLink></li>
                 <li><NavLink to="/abastecimiento">Abastecimiento</NavLink></li>
+                <li><NavLink to="/productos">Productos</NavLink></li>
                 <li><NavLink to="/panel">Panel</NavLink></li>
               </ul>
             )}

@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form,Query  # Im
 from fastapi.responses import JSONResponse, Response  # Importa JSONResponse para devolver respuestas JSON personalizadas.
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
 from typing import List,Optional,Dict, Any
+from datetime import date
+
 
 
 #importa las clases
@@ -15,24 +17,11 @@ from models.producto_marca import ProductoMarca # Importa Clase productocategori
 
 from models.stock import Stock
 
-
 from models.login import Login,create_jwt_token
 #importa los schemas
 from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response,Marca_request,MovimientoStock,Almacen_request,Estante_request,Stock_request,StockResponse,MovimientoStockResponse,FiltrosStock
 
-import logging
-import json
-import os
-import subprocess
-import calendar
-from datetime import datetime
-#from fastapi.responses import FileResponse
-
-  
-import psycopg2
-from psycopg2.extras import DictCursor
-import random
-import string
+import logging  
 
 
 
@@ -102,21 +91,57 @@ async def todosLosUsuarios(request: TodosLosUsuarios_request):
     except Exception as e:  # Maneja cualquier excepción ocurrida durante el proceso.
         raise HTTPException(status_code=500, detail=f"Error al procesar la solicitud: {str(e)}")  # Lanza una excepción con el mensaje de error. """
 
-################################################################################################
+#####################################productos###########################################################
+
+# Endpoint para ver productos según el estado
+@router.get("/productos")
+async def ver_todos_los_productos(
+    estado: bool = Query(..., description="Estado del producto (True: Activo, False: Inactivo)"),
+):
+    """
+    Endpoint para consultar productos por estado.
+    Proporcionar el parámetro `estado` para obtener productos activos o inactivos.
+    """
+    try:
+        # Ver todos los productos según el estado
+        producto = Producto()
+        response = await producto.verTodosLosProductos(estado)
+        return {"data": response}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+    # Endpoint para buscar productos por código de barras
+@router.get("/producto/codigo_barras")
+async def buscar_por_codigo_de_barras(
+    codigo_barras: str = Query(..., description="Código de barras del producto a buscar"),
+    estado: bool = Query(..., description="Estado del producto (True: Activo, False: Inactivo)"),
+):
+    """
+    Endpoint para buscar un producto por su código de barras.
+    Se puede proporcionar el parámetro `estado` para filtrar el producto por estado.
+    """
+    try:
+        producto = Producto()
+        response = await producto.buscarPorCodigoDeBarras(codigo_barras, estado)
+        
+        if not response:
+            raise HTTPException(
+                status_code=404, detail="Producto no encontrado con el código de barras proporcionado."
+            )
+        return {"data": response}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/producto")
 async def producto(request: Producto_request):
     """
     Endpoint para gestion productos.
     Soporta las acciones: 
-
-    - **verTodosLosProductos**: Ver todos los productos según su estado.
-      ```json
-      {
-          "accion": "verTodosLosProductos",
-          "estado": "Activo"
-      }
-      ```
 
     - **agregarProducto**: Agregar un nuevo producto.
         ```json
@@ -150,37 +175,9 @@ async def producto(request: Producto_request):
     - **buscarPorCodigoDeBarras**: Búsqueda rápida por código de barras.
 
     """
-    try:
+    try:       
         
-# Ver todos los productos
-        if request.accion == "verTodosLosProductos":
-            if request.estado is None:
-                raise HTTPException(
-                    status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
-                )
-            producto = Producto()
-            response = await producto.verTodosLosProductos(request.estado)
-            return {"data": response}
-        
-# Buscar producto por código de barras
-        elif request.accion == "buscarPorCodigoDeBarras":
-            if not request.codigo_barras:
-                raise HTTPException(
-                    status_code=400, detail="El parámetro 'codigo_barras' es requerido para esta acción."
-                )
-                
-           
-            producto = Producto()
-            response = await producto.buscarPorCodigoDeBarras(request.codigo_barras)
-            if not response:
-                raise HTTPException(
-                status_code=404, detail="Producto no encontrado con el código de barras proporcionado."
-                )
-            return {"data": response}
-
-# Agregar nuevo producto 
-        
-        elif request.accion == "agregarProducto":
+        if request.accion == "agregarProducto":
                 
             """
             Endpoint que maneja la solicitud de agregar un producto.
@@ -256,7 +253,7 @@ async def producto(request: Producto_request):
             # Acción no válida
             raise HTTPException(
                 status_code=400,
-                detail="Acción no válida. Las acciones soportadas son: 'verTodosLosProductos', 'agregarProducto', 'eliminarProducto'."
+                detail="Acción no válida. Las acciones soportadas son: 'agregarProducto', 'eliminarProducto'."
             )
 
     except Exception as e:
@@ -373,7 +370,23 @@ async def login(usuario: UsuarioLogin_request, response: Response):
 #         raise HTTPException(status_code=400, detail=str(e))
 ###############################gestion_proveedor############################################################################################
 
-
+# GET endpoint para ver todos los proveedores por estado
+@router.get("/proveedores")
+async def ver_todos_los_proveedores(
+    estado: bool = Query(..., description="Estado del proveedor (True: Activo, False: Inactivo)"),
+):
+    """
+    Endpoint para consultar todos los proveedores por estado.
+    Se proporciona el parámetro `estado` para obtener proveedores activos o inactivos.
+    """
+    try:
+        # Ver todos los proveedores según el estado
+        proveedor = Proveedor()
+        response = await proveedor.verTodosLosProveedores(estado)
+        return {"data": response}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/proveedor")
 async def gestion_proveedor(request: Proveedor_request):
@@ -381,19 +394,7 @@ async def gestion_proveedor(request: Proveedor_request):
     Endpoint para gestion provedores.
     Soporta las acciones: 
     - 'verTodosLosProveedores': 
-
-    ```Jsoon
-        {
-        "accion": "verTodosLosProveedores",
-        "estado": true
-        }
-
-
-         {
-        "accion": "verTodosLosProveedores",
-        "estado": false
-        }
-    ```
+   
 
     - 'cambiarEstado': Cambia de estado solo acepta true o false.
          ```Jsoon
@@ -441,18 +442,8 @@ async def gestion_proveedor(request: Proveedor_request):
 
     """
     try:
-# Ver todos los proveedores
-        if request.accion == "verTodosLosProveedores":
-            if request.estado is None:
-                raise HTTPException(
-                    status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
-                )            
-            proveedor = Proveedor()            
-            response = await proveedor.verTodosLosProveedores(request.estado)
-            return {"data": response}
-
 # Agregar nuevo proveedor
-        elif request.accion == "agregarProveedor":
+        if request.accion == "agregarProveedor":
             if not all([request.nombre, request.direccion,  request.telefono, request.correo_contacto]):
                 raise HTTPException(
                     status_code=400,
@@ -609,25 +600,31 @@ async def gestion_proveedor(request: Proveedor_request):
 
 ###############################producto_categoria############################################################################################
 
+# GET endpoint para ver todas las categorías
+@router.get("/categorias")
+async def ver_todas_las_categorias(
+    incluir_inactivas: bool = Query(..., description="Incluir categorías inactivas. True para incluir, False para solo activas."),
+):
+    """
+    Endpoint para consultar todas las categorías.
+    Se proporciona el parámetro `incluir_inactivas` para incluir categorías inactivas.
+    """
+    try:
+        categoria = ProductoCategoria()
+        resultado = await categoria.ver_todas_categorias(incluir_inactivas)
+        return {"status": "success", "data": resultado}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+
+#POST
+    
 @router.post("/producto_categoria")
 async def producto_categoria(request: Categoria_request):
     """
     Endpoint para gestion categorías de productos.
-    Soporta las acciones:
-    - 'verTodasLasCategorias': Listar todas las categorías.
-        ```json
-            {
-            "accion": "verTodasLasCategorias",
-            "incluir_inactivas": true
-            }
-        
-
-            {
-            "accion": "verTodasLasCategorias",
-            "incluir_inactivas": false
-            }
-        ```
+    Soporta las acciones:    
 
     - 'agregarCategoria': Agregar una nueva categoría.
         ```json
@@ -676,14 +673,9 @@ async def producto_categoria(request: Categoria_request):
     """
     try:
         categoria = ProductoCategoria()
-
-        # Listar todas las categorías
-        if request.accion == "verTodasLasCategorias":
-            resultado = await categoria.ver_todas_categorias(request.incluir_inactivas)
-            return {"status": "success", "data": resultado}
-
+        
         # Agregar una nueva categoría
-        elif request.accion == "agregarCategoria":
+        if request.accion == "agregarCategoria":
             if not request.descripcion:
                 raise HTTPException(status_code=400, detail="El campo 'descripcion' es requerido.")
             resultado = await categoria.agregar_categoria(request.descripcion, request.estado)
@@ -724,7 +716,24 @@ async def producto_categoria(request: Categoria_request):
 
     ####################################marca#####################################################################
 
-
+# GET endpoint para ver todas las marcas
+@router.get("/marcas")
+async def ver_todas_las_marcas(
+    incluir_inactivas: bool = Query(False, description="Incluir marcas inactivas. True para incluir, False para solo activas."),
+):
+    """
+    Endpoint para consultar todas las marcas.
+    Se proporciona el parámetro `incluir_inactivas` para incluir marcas inactivas.
+    """
+    try:
+        marca = ProductoMarca()
+        resultado = await marca.ver_todas_marcas(incluir_inactivas)
+        return {"status": "success", "data": resultado}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+#POST
 
 
 @router.post("/producto_marca")
@@ -732,19 +741,6 @@ async def producto_marca(request: Marca_request):
     """
     Endpoint para gestion marcas de productos.
     Soporta las acciones:
-    - 'verTodasLasMarcas': Listar todas las marcas.
-        ```json
-            {
-            "accion": "verTodasLasMarcas",
-            "incluir_inactivas": true
-            }
-        
-
-            {
-            "accion": "verTodasLasMarcas",
-            "incluir_inactivas": false
-            }
-        ```
 
     - 'agregarMarcas': Agregar una nueva marca.
         ```json
@@ -791,13 +787,9 @@ async def producto_marca(request: Marca_request):
     """
     try:
         marca = ProductoMarca()
-        # Listar todas las marcas
-        if request.accion == "verTodasLasMarcas":
-            resultado = await marca.ver_todas_marcas(request.incluir_inactivas)
-            return {"status": "success", "data": resultado}
-
+        
         # Agregar una nueva marca
-        elif request.accion == "agregarMarca":
+        if request.accion == "agregarMarca":
             if not request.descripcion:
                 raise HTTPException(status_code=400, detail="El campo 'descripcion' es requerido.")
             resultado = await marca.agregar_marca(request.descripcion, request.estado)
@@ -837,80 +829,50 @@ async def producto_marca(request: Marca_request):
 async def movimiento_stock(request: Stock_request):
     """
         Ejemplo de Payload de Entrada:
-
-            ```json
-                    {
-                "movimientos": [
-                {
-                "id_producto": 1,
-                "cantidad": 10,
-                "operacion": "incrementar",
-                "id_usuario": 123,
-                "observaciones": "Reabastecimiento",
-                "id_proveedor": 1,
-                "id_almacen": 1,
-                "id_estante": 1,
-                "descripcion": "primer producto en entrar"
-                },
-                {
-                "id_producto": 2,
-                "cantidad": 10,
-                "operacion": "incrementar",
-                "id_usuario": 123,
-                "observaciones": "Reabastecimiento",
-                "id_proveedor": 1,
-                "id_almacen": 1,
-                "id_estante": 1,
-                "descripcion": "segundo producto en entrar"
-                }
-            ]
-            }
-
-            ```    
+        ...
     """       
-        
 
+    resultados = []  # Resultados individuales para cada movimiento
+    stock = Stock()  # Instancia de la clase Stock
 
-    resultados = []  # Aquí guardaremos el resultado de cada movimiento
-    print("entra antes de instanciar el objeto")
-    stock = Stock()
+    # Generar el identificador de evento global antes de procesar los movimientos
+    identificador_evento_global = None
 
     for movimiento in request.movimientos:
         try:
-            if movimiento.operacion == "incrementar":
-                resultado = await stock.entradaStock(
-                    id_producto=movimiento.id_producto,
-                    cantidad=movimiento.cantidad,
-                    id_usuario=movimiento.id_usuario,                    
-                    id_proveedor=movimiento.id_proveedor,
-                    id_almacen=movimiento.id_almacen,
-                    id_estante=movimiento.id_estante,
-                    descripcion=movimiento.descripcion,
-                    operacion=movimiento.operacion
-                )
-            elif movimiento.operacion == "disminuir":
-                resultado = await stock.salidaStock(
-                    id_producto=movimiento.id_producto,
-                    cantidad=movimiento.cantidad,
-                    id_usuario=movimiento.id_usuario,                    
-                    id_proveedor=movimiento.id_proveedor,
-                    id_almacen=movimiento.id_almacen,
-                    id_estante=movimiento.id_estante,
-                    descripcion=movimiento.descripcion,
-                    operacion=movimiento.operacion
-                )
-            else:
+            if movimiento.operacion not in ["incrementar", "disminuir"]:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Operación no válida: {movimiento.operacion}"
                 )
 
-            # Agregar resultado al listado
+            # Crear un diccionario con los datos del producto
+            movimiento_data = {
+                "id_producto": movimiento.id_producto,
+                "cantidad": movimiento.cantidad
+            }
+
+            # Llamar a la función de ajuste de stock
+            resultado = await stock.entradaStock(
+                productos=[movimiento_data],  # Convertimos a lista
+                id_usuario=movimiento.id_usuario,
+                id_proveedor=movimiento.id_proveedor,
+                id_almacen=movimiento.id_almacen,
+                id_estante=movimiento.id_estante,
+                descripcion=movimiento.descripcion,
+                operacion=movimiento.operacion,
+                identificador_evento=identificador_evento_global  # Pasamos el mismo identificador
+            )
+
+            # Si el identificador de evento aún no ha sido asignado, lo asignamos
+            if identificador_evento_global is None:
+                identificador_evento_global = resultado["identificador_evento"]
+
             resultados.append({
                 "id_producto": movimiento.id_producto,
                 "status": "success",
-                "mensaje": f"Stock {movimiento.operacion} correctamente para el producto {movimiento.id_producto}.",
-                "stock_actualizado": resultado.get("stock_actualizado")  # Ajusta según la respuesta de tus métodos
+                "mensaje": resultado["mensaje"],
+                "identificador_evento": resultado["identificador_evento"]
             })
 
         except HTTPException as e:
@@ -1217,27 +1179,38 @@ async def gestion_almacen_estante(request: Estante_request):
 
 ############################stock#######################################################################
 ##@router.post("/tabla_stock", response_model=List[StockResponse])
-@router.post("/stock", response_model=List[Dict[str, Any]])
+@router.get("/stock", response_model=List[Dict[str, Any]])
 async def consultar_stock(
-    filtros: FiltrosStock  # Recibimos los filtros en el cuerpo de la solicitud
+    id_producto: int = Query(None, description="ID del producto a filtrar (opcional)"),
+    id_almacen: int = Query(None, description="ID del almacén a filtrar (opcional)"),
+    estado: str = Query(None, description="Estado del stock a filtrar (opcional)"),
+    codigo_barras: str = Query(None, description="Código de barras del producto (opcional)"),
+    nombre: str = Query(None, description="Nombre del producto o parte del nombre (opcional)"),
 ):
     """
-    Endpoint para consultar la tabla 'stock' con filtros en el cuerpo de la solicitud.
-        Endpoint para gestion estante.
-        Soporta las acciones: 
-        - 'verTodosLosEstantes': 
+    Endpoint para consultar la tabla 'stock'. Si no se pasan filtros, devuelve todos los registros.
+    
+    Parámetros de consulta:
+    - `id_producto`: ID del producto (opcional).
+    - `id_almacen`: ID del almacén (opcional).
+    - `estado`: Estado del stock (opcional).
+    - `codigo_barras`: Código de barras del producto (opcional).
+    - `nombre`: Parte del nombre del producto (opcional).
 
-    ```Json
-        {            
-        }
-     ```
+    Ejemplo:
+    - `/stock` -> Devuelve todo el stock.
+    - `/stock?id_producto=1` -> Filtra por producto.
+    - `/stock?codigo_barras=123456789` -> Filtra por código de barras.
+    - `/stock?nombre=zap` -> Busca productos cuyo nombre contenga "zap".
     """
     stock = Stock()  # Instancia de la clase Stock
     try:
-        resultados = await stock.obtener_stock(  # Usamos el método obtener_stock
-            id_producto=filtros.id_producto,
-            id_almacen=filtros.id_almacen,
-            estado=filtros.estado
+        resultados = await stock.obtener_stock(
+            id_producto=id_producto,
+            id_almacen=id_almacen,
+            estado=estado,
+            codigo_barras=codigo_barras,
+            nombre=nombre
         )
         return resultados
     except HTTPException as e:
@@ -1246,32 +1219,41 @@ async def consultar_stock(
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 
+
 ############################stock_movimientos_endpoints#######################################################################
 
 
-@router.post("/tabla_consulta_stock_movimientos")
+@router.get("/tabla_consulta_stock_movimientos", response_model=List[Dict[str, Any]])
 async def consultar_movimientos(
-    filtros: FiltrosStock  # Recibimos un objeto con los filtros en el cuerpo de la solicitud
+    id_producto: Optional[int] = Query(None, description="ID del producto a filtrar (opcional)"),
+    id_usuario: Optional[int] = Query(None, description="ID del usuario a filtrar (opcional)"),
+    fecha_inicio: Optional[date] = Query(None, description="Fecha de inicio para filtrar movimientos (opcional, formato: YYYY-MM-DD)"),
+    fecha_fin: Optional[date] = Query(None, description="Fecha de fin para filtrar movimientos (opcional, formato: YYYY-MM-DD)"),
+    id_tipo_movimiento: Optional[int] = Query(None, description="ID del tipo de movimiento a filtrar (opcional)"),
 ):
     """
-    Endpoint para consultar la tabla 'stock_movimientos' con filtros en el cuerpo de la solicitud.
-     ```Json
-        {            
-        }
-     ```
+    Endpoint para consultar la tabla 'stock_movimientos' con filtros opcionales.
+
+    Parámetros de consulta:
+    - `id_producto`: Filtrar por ID del producto.
+    - `id_usuario`: Filtrar por ID del usuario que realizó el movimiento.
+    - `fecha_inicio`: Filtrar movimientos desde esta fecha (inclusive).
+    - `fecha_fin`: Filtrar movimientos hasta esta fecha (inclusive).
+    - `id_tipo_movimiento`: Filtrar por ID del tipo de movimiento.
+
+    Si no se pasan filtros, devuelve todos los movimientos de stock.
     """
     stock = Stock()  # Instancia de la clase Stock
     try:
-        # Pasamos los parámetros desde el cuerpo de la solicitud
         resultados = await stock.obtener_movimientos(
-            id_producto=filtros.id_producto,
-            id_usuario=filtros.id_usuario,
-            fecha_inicio=filtros.fecha_inicio,
-            fecha_fin=filtros.fecha_fin
+            id_producto=id_producto,
+            id_usuario=id_usuario,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            id_tipo_movimiento=id_tipo_movimiento,
         )
-        return resultados  # Devuelve la respuesta directamente
+        return resultados
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-    
