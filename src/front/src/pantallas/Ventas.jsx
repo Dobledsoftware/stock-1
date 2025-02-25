@@ -86,7 +86,8 @@ export default function PanelVentas() {
             <th>ID</th>
             <th>Nombre</th>
             <th>Marca</th>
-            <th>Precio</th>
+            <th>Precio venta ARS</th>
+            <th>Precio venta USD</th>
             <th>Código de Barras</th>
             <th>Acciones</th>
           </tr>
@@ -97,7 +98,8 @@ export default function PanelVentas() {
               <td>{producto.producto_id}</td>
               <td>{producto.producto_nombre}</td>
               <td>{producto.producto_marca}</td>
-              <td>${producto.producto_precio}</td>
+              <td>${producto.precio_venta_ars}</td>
+              <td>${producto.precio_venta_usd}</td>
               <td>{producto.producto_codigo_barras}</td>
               <td>
                 <button onClick={() => agregarAlCarrito(producto)}>
@@ -116,7 +118,9 @@ export default function PanelVentas() {
               <tr>
                 <th>Nombre</th>
                 <th>Marca</th>
-                <th>Precio</th>
+                <th>Precio Venta ARS</th>
+                <th>Precio Venta USD</th>
+
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -125,7 +129,8 @@ export default function PanelVentas() {
                 <tr key={producto.producto_id}>
                   <td>{producto.producto_nombre}</td>
                   <td>{producto.producto_marca}</td>
-                  <td>${producto.producto_precio}</td>
+                  <td>${producto.precio_venta_ars}</td>
+                  <td>${producto.precio_venta_usd}</td>
                   <td>
                     <button onClick={() => quitarDelCarrito(producto.producto_id)}>
                       Quitar

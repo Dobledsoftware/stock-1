@@ -6,15 +6,33 @@ from datetime import datetime
 
 
 class Stock(conexion.Conexion):
-    async def entradaStock(self, productos, id_usuario, id_proveedor, id_almacen, id_estante, descripcion, operacion, identificador_evento):
+    async def obtener_estado_tipo_movimiento(self, id_tipo_movimiento):
         """
-        Ajusta el stock en la tabla 'stock' y registra el movimiento.
+        Verifica si el tipo de movimiento está activo.
+        """
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor(cursor_factory=DictCursor)
+            sql_verificar_estado = "SELECT estado FROM stock_tipo_movimiento WHERE id_tipo_movimiento = %s;"
+            cursor.execute(sql_verificar_estado, (id_tipo_movimiento,))
+            resultado = cursor.fetchone()
+            if not resultado or not resultado["estado"]:
+                raise HTTPException(status_code=400, detail="El tipo de movimiento no está activo o no existe.")
+            return True
+        finally:
+            conexion.close()
+
+    async def entrada_stock(self, productos, id_usuario, id_proveedor, id_almacen, id_estante,precio_costo_ars,precio_costo_usd, descripcion, identificador_evento):
+        """
+        Función para procesar una entrada de stock.
+
+        - Si el proveedor cambia, se crea un nuevo stock si es relevante para la gestión del inventario.
+        - Si solo cambia el almacén o estante, solo se registra un movimiento sin crear un nuevo stock.
         """
         conexion = self.conectar()
         try:
             cursor = conexion.cursor(cursor_factory=DictCursor)
 
-            # Si no se ha recibido un identificador de evento, lo generamos
             if identificador_evento is None:
                 sql_obtener_identificador_evento = """
                     SELECT COALESCE(MAX(identificador_evento), 0) + 1 AS nuevo_identificador_evento 
@@ -23,79 +41,135 @@ class Stock(conexion.Conexion):
                 cursor.execute(sql_obtener_identificador_evento)
                 identificador_evento = cursor.fetchone()["nuevo_identificador_evento"]
 
-            print(f"Identificador de evento global: {identificador_evento}")  # Debugging
-
             for producto in productos:
                 id_producto = producto["id_producto"]
                 cantidad = producto["cantidad"]
 
                 # Verificar si el producto existe
-                sql_verificar_producto = "SELECT id_producto FROM productos WHERE id_producto = %s;"
+                sql_verificar_producto = "SELECT id_producto FROM productos WHERE id_producto = %s AND estado = true;"
                 cursor.execute(sql_verificar_producto, (id_producto,))
                 if not cursor.fetchone():
-                    raise HTTPException(status_code=404, detail=f"Producto con ID {id_producto} no encontrado.")
+                    raise HTTPException(status_code=404, detail=f"Producto con ID {id_producto} no encontrado o desactivado.")
 
-                # Verificar si existe un registro de stock
-                sql_obtener_stock = "SELECT id_stock, stock_actual FROM stock WHERE id_producto = %s;"
-                cursor.execute(sql_obtener_stock, (id_producto,))
+                # Verificar si ya existe stock para este producto con el mismo proveedor, almacén y estante
+                sql_obtener_stock = """
+                    SELECT id_stock, stock_actual, id_proveedor, id_almacen, id_estante 
+                    FROM stock WHERE id_producto = %s AND id_proveedor = %s AND id_almacen = %s AND id_estante = %s;
+                """
+                cursor.execute(sql_obtener_stock, (id_producto, id_proveedor, id_almacen, id_estante))
                 stock_data = cursor.fetchone()
 
                 if stock_data:
+                    # Si el stock ya existe y el proveedor es el mismo, actualizamos el stock
                     id_stock = stock_data["id_stock"]
-                    stock_actual = stock_data["stock_actual"]
-
-                    # Determinar el nuevo stock
-                    if operacion == "incrementar":
-                        nuevo_stock = stock_actual + cantidad
-                    elif operacion == "disminuir":
-                        if stock_actual < cantidad:
-                            raise HTTPException(status_code=400, detail="Stock insuficiente.")
-                        nuevo_stock = stock_actual - cantidad
-                    else:
-                        raise HTTPException(status_code=400, detail="Operación no válida.")
-
-                    # Actualizar el stock
+                    nuevo_stock = stock_data["stock_actual"] + cantidad
                     sql_actualizar_stock = "UPDATE stock SET stock_actual = %s WHERE id_stock = %s;"
                     cursor.execute(sql_actualizar_stock, (nuevo_stock, id_stock))
                 else:
-                    # Crear el registro de stock
+                    # Si no existe stock, se crea un nuevo stock
                     sql_crear_stock = """
-                        INSERT INTO stock (
-                            id_producto, stock_actual, stock_minimo, stock_maximo, 
-                            id_almacen, id_proveedor, id_estante, estado, fecha_alta
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, true, NOW())
+                        INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo, 
+                            id_almacen, id_proveedor, id_estante,precio_costo_ars,precio_costo_usd, estado, fecha_ingreso)
+                        VALUES (%s, %s, %s, %s, %s, %s,%s, %s, %s, true, NOW())
                         RETURNING id_stock;
                     """
-                    cursor.execute(sql_crear_stock, (id_producto, cantidad, 0, 0, id_almacen, id_proveedor, id_estante))
+                    cursor.execute(sql_crear_stock, (id_producto, cantidad, 0, 0, id_almacen, id_proveedor, id_estante,precio_costo_ars,precio_costo_usd))
                     id_stock = cursor.fetchone()["id_stock"]
 
                 # Registrar el movimiento
                 sql_registrar_movimiento = """
-                    INSERT INTO stock_movimientos (
-                        id_stock, cantidad, fecha_movimiento, id_usuario, 
-                        id_proveedor, descripcion, id_tipo_movimiento, identificador_evento
-                    )
-                    VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s);
+                    INSERT INTO stock_movimientos (id_stock, cantidad, fecha_movimiento, id_usuario, 
+                        id_proveedor, descripcion, id_tipo_movimiento, identificador_evento)
+                    VALUES (%s, %s, NOW(), %s, %s, %s, 1, %s);
                 """
-                id_tipo_movimiento = 1 if operacion == "incrementar" else 2
-                cursor.execute(
-                    sql_registrar_movimiento,
-                    (id_stock, cantidad, id_usuario, id_proveedor, descripcion, id_tipo_movimiento, identificador_evento)
-                )
+                cursor.execute(sql_registrar_movimiento, (id_stock, cantidad, id_usuario, id_proveedor, descripcion, identificador_evento))
 
             conexion.commit()
-            return {"status": "success", "mensaje": "Operación completada.", "identificador_evento": identificador_evento}
+            return {"status": "success", "mensaje": "Entrada registrada correctamente.", "identificador_evento": identificador_evento}
 
         except Exception as e:
             conexion.rollback()
-            raise HTTPException(status_code=500, detail=f"Error al ajustar stock: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error en entrada de stock: {str(e)}")
         finally:
             conexion.close()
+
+    async def salida_por_venta(self, productos, id_usuario, id_proveedor, id_almacen, id_estante, descripcion, identificador_evento):
+        """
+        Función para procesar una salida por venta.
+        """
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor(cursor_factory=DictCursor)
+
+            if identificador_evento is None:
+                sql_obtener_identificador_evento = """
+                    SELECT COALESCE(MAX(identificador_evento), 0) + 1 AS nuevo_identificador_evento 
+                    FROM stock_movimientos;
+                """
+                cursor.execute(sql_obtener_identificador_evento)
+                identificador_evento = cursor.fetchone()["nuevo_identificador_evento"]
+
+            for producto in productos:
+                id_producto = producto["id_producto"]
+                cantidad = producto["cantidad"]
+
+                # Verificar stock actual considerando el proveedor
+                sql_obtener_stock = """
+                    SELECT id_stock, stock_actual FROM stock 
+                    WHERE id_producto = %s AND id_proveedor = %s;
+                """
+                cursor.execute(sql_obtener_stock, (id_producto, id_proveedor))
+                stock_data = cursor.fetchone()
+                
+                if not stock_data or stock_data["stock_actual"] < cantidad:
+                    raise HTTPException(status_code=400, detail=f"Stock insuficiente para el producto {id_producto}.")
+
+                id_stock = stock_data["id_stock"]
+                nuevo_stock = stock_data["stock_actual"] - cantidad
+                sql_actualizar_stock = "UPDATE stock SET stock_actual = %s WHERE id_stock = %s;"
+                cursor.execute(sql_actualizar_stock, (nuevo_stock, id_stock))
+
+                # Registrar el movimiento
+                sql_registrar_movimiento = """
+                    INSERT INTO stock_movimientos (id_stock, cantidad, fecha_movimiento, id_usuario, 
+                        id_proveedor, descripcion, id_tipo_movimiento, identificador_evento)
+                    VALUES (%s, %s, NOW(), %s, %s, %s, 2, %s);
+                """
+                cursor.execute(sql_registrar_movimiento, (id_stock, cantidad, id_usuario, id_proveedor, descripcion, identificador_evento))
+
+            conexion.commit()
+            return {"status": "success", "mensaje": "Salida por venta registrada.", "identificador_evento": identificador_evento}
+
+        except Exception as e:
+            conexion.rollback()
+            raise HTTPException(status_code=500, detail=f"Error en salida por venta: {str(e)}")
+        finally:
+            conexion.close()
+
+    async def procesar_movimiento_stock(self, productos, id_usuario, id_proveedor, id_almacen, id_estante,precio_costo_ars,precio_costo_usd, descripcion, id_tipo_movimiento, identificador_evento=None):
+        """
+        Función principal que delega según el tipo de movimiento.
+
+        - Si el proveedor cambia, se crea un nuevo stock si es relevante para la gestión del inventario.
+        - Si solo cambia el almacén o estante, solo se registra un movimiento sin crear un nuevo stock.
+        """
+        # Validar si el tipo de movimiento está activo
+        await self.obtener_estado_tipo_movimiento(id_tipo_movimiento)
+
+        # Delegar según el tipo de movimiento
+        if id_tipo_movimiento == 1:  # Entrada
+            return await self.entrada_stock(productos, id_usuario, id_proveedor, id_almacen, id_estante,precio_costo_ars,precio_costo_usd, descripcion, identificador_evento)
+        elif id_tipo_movimiento == 2:  # Salida
+            return await self.salida_por_venta(productos, id_usuario, id_proveedor, id_almacen, id_estante, descripcion, identificador_evento)
+        else:
+            raise HTTPException(status_code=400, detail="Tipo de movimiento no soportado.")
+
+ 
+
 ###############################obtener_movimientos########################################################
 
 
-    async def obtener_stock(
+    async def inventario(
         self, 
         id_producto=None, 
         id_almacen=None, 
@@ -117,6 +191,10 @@ class Stock(conexion.Conexion):
                 p.nombre AS nombre_producto,
                 p.descripcion AS descripcion_producto,
                 p.codigo_barras,
+                s.precio_costo_ars,
+                s.precio_costo_usd,
+                p.precio_venta_ars,
+                p.precio_venta_usd,
                 s.stock_actual,
                 s.stock_minimo,
                 s.stock_maximo,
@@ -125,7 +203,8 @@ class Stock(conexion.Conexion):
                 prov.nombre AS nombre_proveedor,
                 a.descripcion AS almacen_descripcion,
                 s.id_estante,
-                e.descripcion AS descripcion_estante  
+                e.descripcion AS descripcion_estante,
+                s.fecha_ingreso  
             FROM 
                 stock s
             LEFT JOIN 
@@ -252,62 +331,25 @@ class Stock(conexion.Conexion):
         finally:
             conexion.close()
 
-############################salidaStock####################################################################
 
-async def salidaStock(self, id_producto, cantidad, id_usuario, id_proveedor, descripcion):
-    """
-    Realiza la salida de stock y registra el movimiento correspondiente.
-    """
-    conexion = self.conectar()
-    try:
-        cursor = conexion.cursor(cursor_factory=DictCursor)
-        print("entra a la función salidaStock")
-        
-        # 1. Verificar si el producto existe
-        sql_verificar_producto = "SELECT id_producto FROM productos WHERE id_producto = %s;"
-        cursor.execute(sql_verificar_producto, (id_producto,))
-        if not cursor.fetchone():
-            raise HTTPException(status_code=404, detail=f"Producto con ID {id_producto} no encontrado.")
-        
-        # 2. Verificar si existe un registro de stock
-        sql_obtener_stock = "SELECT id_stock, stock_actual FROM stock WHERE id_producto = %s;"
-        cursor.execute(sql_obtener_stock, (id_producto,))
-        stock_data = cursor.fetchone()
-        
-        if not stock_data:
-            raise HTTPException(status_code=404, detail="No existe stock registrado para el producto.")
-        
-        # Si existe el stock, obtener los datos
-        id_stock = stock_data["id_stock"]
-        stock_actual = stock_data["stock_actual"]
-        
-        # 3. Verificar y calcular el nuevo stock
-        if stock_actual < cantidad:
-            raise HTTPException(status_code=400, detail="Stock insuficiente para realizar la salida.")
-        
-        nuevo_stock = stock_actual - cantidad
-        
-        # 4. Actualizar el stock
-        sql_actualizar_stock = "UPDATE stock SET stock_actual = %s WHERE id_stock = %s;"
-        cursor.execute(sql_actualizar_stock, (nuevo_stock, id_stock))
-        
-        # 5. Registrar el movimiento
-        sql_registrar_movimiento = """
-            INSERT INTO stock_movimientos (
-                id_stock, cantidad, fecha_movimiento, id_usuario, 
-                id_proveedor, descripcion, id_tipo_movimiento
-            )
-            VALUES (%s, %s, NOW(), %s, %s, %s, %s);
-        """
-        id_tipo_movimiento = 2  # 2: salida
-        cursor.execute(sql_registrar_movimiento, (id_stock, cantidad, id_usuario, id_proveedor, descripcion, id_tipo_movimiento))
-        
-        # Guardar los cambios
-        conexion.commit()
-        return {"id_producto": id_producto, "stock_actualizado": nuevo_stock}
 
-    except Exception as e:
-        conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al realizar salida de stock: {str(e)}")
-    finally:
-        conexion.close()
+            ###########################tipo_movimientos########################################3
+
+
+        
+
+    async def verTodosLosTiposMovimientos(self, estado):
+            """
+            Lista todos los tipos de movimientos activas o inactivas dependiendo del parámetro.
+            """
+            conexion = self.conectar()
+            try:
+                cursor = conexion.cursor(cursor_factory=DictCursor)            
+                sql = f"SELECT * FROM stock_tipo_movimiento WHERE estado = {str(estado).upper()} ORDER BY id_tipo_movimiento;"
+                cursor.execute(sql)
+                tipoMovimiento = cursor.fetchall()
+                return [dict(row) for row in tipoMovimiento]
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+            finally:
+                conexion.close()

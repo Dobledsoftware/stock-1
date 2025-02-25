@@ -13,14 +13,15 @@ const Marcas = ({ apiBaseUrl }) => {
     // Fetch inicial para listar marcas
     const fetchMarcas = async (incluirInactivas = true) => {
         try {
-            const response = await fetch(`${apiBaseUrl}/producto_marca`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodasLasMarcas',
-                    incluir_inactivas: incluirInactivas,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/producto_marcas?estado=true`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
             if (response.ok) {
                 const { data } = await response.json();

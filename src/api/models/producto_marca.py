@@ -121,21 +121,16 @@ class ProductoMarca(conexion.Conexion):
             conexion.close()
 
 ################################ VER TODAS LAS MARCAS #######################################################
-    async def ver_todas_marcas(self, incluir_inactivas=False):
+    async def ver_todas_marcas(self, estado):
         """
         Lista todas las marcas activas o inactivas dependiendo del parámetro.
         """
         conexion = self.conectar()
         try:
-            cursor = conexion.cursor(cursor_factory=DictCursor)
-            sql = "SELECT * FROM producto_marca"
-            if not incluir_inactivas:
-                sql += " WHERE estado = TRUE"
-            sql += " ORDER BY id_marca;"
-
+            cursor = conexion.cursor(cursor_factory=DictCursor)            
+            sql = f"SELECT * FROM producto_marca WHERE estado = {str(estado).upper()} ORDER BY id_marca;"
             cursor.execute(sql)
             marcas = cursor.fetchall()
-
             return [dict(marca) for marca in marcas]
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

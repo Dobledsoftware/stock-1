@@ -12,14 +12,17 @@ from models.proveedor import Proveedor # Importa Clase Proveedor
 from models.almacen import Almacen # Importa Clase Almacen
 from models.almacen_estante import Estante # Importa Clase Almacen
 
+
 from models.producto_categoria import ProductoCategoria # Importa Clase productocategoria
 from models.producto_marca import ProductoMarca # Importa Clase productocategoria
 
 from models.stock import Stock
 
-from models.login import Login,create_jwt_token
+from models.login import Login
+from models.usuario import Usuario
+
 #importa los schemas
-from schemas import TodosLosUsuarios_request, UsuarioLogin_request,Usuario_request,Producto_request,Proveedor_request,Categoria_request,Stock_request, Stock_response,Marca_request,MovimientoStock,Almacen_request,Estante_request,Stock_request,StockResponse,MovimientoStockResponse,FiltrosStock
+from schemas import  Producto_request,Proveedor_request,Categoria_request, Marca_request,movimientoStockRequest,Almacen_request,Estante_request,MovimientoStockResponse,FiltrosStock
 
 import logging  
 
@@ -28,73 +31,12 @@ import logging
 logger = logging.getLogger(__name__)
 # Crea un enrutador para agrupar las rutas relacionadas con recibos.
 router = APIRouter()
-################################################################################################
-
-""" # Ruta para obtener todos los recibos
-@router.post('/todosLosPecibos', response_model=TodosLosRecibos_response)
-async def todosLosRecibos(request: TodosLosRecibos_request):
-    cuil = request.cuil  # Obtiene el CUIL de la solicitud.    
-    if not cuil:  # Verifica si el CUIL está presente en la solicitud.
-        raise HTTPException(status_code=400, detail="Parámetros 'cuil' faltan.")  # Lanza una excepción si falta el CUIL.    
-    try:
-        recibos = Recibo()  # Crea una instancia de la clase TodosLosRecibos.
-        response = await recibos.todosLosRecibos(cuil)  # Llama al método para obtener todos los recibos.        
-        if response is None:  # Verifica si la respuesta es válida.
-            raise HTTPException(status_code=500, detail="Error al cargar los datos en la tabla de recibos.")  # Lanza una excepción si la carga falla.
-        if not response:  # Verifica si hay recibos disponibles para el CUIL proporcionado.
-            raise HTTPException(status_code=404, detail="No se encontraron recibos para el CUIL proporcionado.")  # Lanza una excepción si no se encuentran recibos.        
-        # Construye la respuesta JSON, formateando fechas adecuadamente.
-        descripciones = [{
-            "id_recibo": recibo["id_recibo"],
-            "periodo": recibo["periodo"],
-            "fecha_subida": recibo["fecha_subida"].strftime("%d/%m/%Y") if isinstance(recibo["fecha_subida"], datetime) else recibo["fecha_subida"],
-            "descripcion_archivo": recibo["descripcion_archivo"],
-            "estado": recibo["estado"]
-        } for recibo in response]        
-        # Devuelve una respuesta exitosa con la lista de objetos JSON.
-        return JSONResponse(content=descripciones)
-    except Exception as e:  # Maneja cualquier excepción ocurrida durante el proceso.
-        print(f"Error en todosLosRecibos: {e}")  # Imprime el error para depuración.
-        raise HTTPException(status_code=500, detail=f"Error al procesar la solicitud: {str(e)}")  # Lanza una excepción con el mensaje de error. """
-
-################################################################################################
-
-# Ruta para obtener todos los recibos
-""" @router.post('/todosLosUsuarios', response_model=TodosLosUsuarios_response)
-async def todosLosUsuarios(request: TodosLosUsuarios_request):
-    cuil = request.cuil  # Obtiene el CUIL de la solicitud.   
-    if not cuil:  # Verifica si el CUIL está presente en la solicitud.
-        raise HTTPException(status_code=400, detail="Parámetros 'cuil' faltan.")  # Lanza una excepción si falta el CUIL.
-    
-    try:
-        todosLosUsuarios = TodosLosUsuarios()  # Crea una instancia de la clase TodosLosRecibos.
-        response = await todosLosUsuarios.todosLosUsuarios(cuil)  # Llama al método para obtener todos los recibos.
-        if response is None:  # Verifica si la respuesta es válida.
-            raise HTTPException(status_code=500, detail="Error al cargar los datos en la tabla de recibos.")  # Lanza una excepción si la carga falla.
-        if not response:  # Verifica si hay recibos disponibles para el CUIL proporcionado.
-            raise HTTPException(status_code=404, detail="No se encontraron recibos para el CUIL proporcionado.")  # Lanza una excepción si no se encuentran recibos.
-        if response == "No tiene permisos":  # Verifica si hay recibos disponibles para el CUIL proporcionado.
-            raise HTTPException(status_code=404, detail="No tiene los permisos necesarios para ver esta informacion")  # Lanza una excepción si no se encuentran recibos.
-        # Construye la respuesta JSON, formateando fechas adecuadamente.
-        descripciones = [{
-            "id_usuario": usuario["id_usuario"],
-            "nombre": usuario["nombre"],
-            "apellido": usuario["apellido"],
-            "legajo": usuario["legajo"],
-            "email": usuario["email"],
-            "cuil": usuario["cuil"]
-        } for usuario in response]
-        
-        # Devuelve una respuesta exitosa con la lista de objetos JSON.
-        return JSONResponse(content=descripciones)
-
-    except Exception as e:  # Maneja cualquier excepción ocurrida durante el proceso.
-        raise HTTPException(status_code=500, detail=f"Error al procesar la solicitud: {str(e)}")  # Lanza una excepción con el mensaje de error. """
 
 #####################################productos###########################################################
 
+
 # Endpoint para ver productos según el estado
-@router.get("/productos")
+@router.get("/productos",tags=["Productos"])
 async def ver_todos_los_productos(
     estado: bool = Query(..., description="Estado del producto (True: Activo, False: Inactivo)"),
 ):
@@ -109,12 +51,11 @@ async def ver_todos_los_productos(
         return {"data": response}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
+        raise HTTPException(status_code=500, detail=str(e))    
 
 
     # Endpoint para buscar productos por código de barras
-@router.get("/producto/codigo_barras")
+@router.get("/producto/codigo_barras",tags=["Productos"])
 async def buscar_por_codigo_de_barras(
     codigo_barras: str = Query(..., description="Código de barras del producto a buscar"),
     estado: bool = Query(..., description="Estado del producto (True: Activo, False: Inactivo)"),
@@ -135,15 +76,85 @@ async def buscar_por_codigo_de_barras(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/producto")
-async def producto(request: Producto_request):
+    
+    
+    # Endpoint para buscar productos por código de barras
+@router.get("/producto/historial",tags=["Productos"])
+async def consultarHistorialProducto(
+    id_producto: int = Query(..., description="ID del producto a buscar"),
+):
     """
-    Endpoint para gestion productos.
-    Soporta las acciones: 
+    Endpoint para buscar un producto por su código de barras.
+    Se puede proporcionar el parámetro `estado` para filtrar el producto por estado.
+    """
+    try:
+        producto = Producto()
+        response = await producto.consultarHistorialProducto(id_producto)
+        
+        if not response:
+            raise HTTPException(
+                status_code=404, detail="historial de producto no encontrado."
+            )
+        return {"data": response}
 
-    - **agregarProducto**: Agregar un nuevo producto.
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/productos",tags=["Productos"])
+async def productos(request: Producto_request):
+    """
+        🛍️ **API de Gestión de Productos**  
+        📌 Este endpoint permite realizar operaciones CRUD en la gestión de productos.  
+
+        ---  
+
+        ## ✨ **Acciones Disponibles**  
+
+        📌 **Editar Producto** 🔄  
+        📌 **Agregar Producto** 🆕  
+        📌 **Eliminar Producto** 🗑️  
+        📌 **Buscar por Código de Barras** 🔍  
+
+
+     ### 📝 **Ejemplo de Payload para Editar un Producto** ✏️ 
+    ---  
+
+        
+        Utiliza este JSON para modificar un producto existente en la base de datos.  
+
+        🔹 Nota: Se requiere el ID del producto para poder editarlo correctamente.
+
+
+
+        ```json
+        {
+            "accion": "editarProducto",
+            "id_producto": 29,
+            "id_marca": 2,
+            "nombre": "Zapatillas Air Max 2025",
+            "descripcion": "Edición 2025 con nueva tecnología de amortiguación",
+            "precio_venta_ars": 160.99,
+            "precio_venta_usd": 199.99,
+            "codigo_barras": "1234567890123",
+            "id_categoria": 3,
+            "imagen_producto": "https://drive.google.com/uc?id=ID_NUEVA_IMAGEN",
+            "id_usuario": 123
+        }
+            ```
+    ---  
+
+    ### **🆕 Agregar nuevo Producto** 🛒.
+        -
+            Este payload permite registrar un nuevo producto en el sistema.
+
+
+        ✅ Importante:
+
+        forceAdd: Si es true, agrega el producto aunque el código de barras ya exista.
+        id_categoria: Debe ser un ID válido de una categoría existente.
+
         ```json
             
         
@@ -152,7 +163,8 @@ async def producto(request: Producto_request):
             "id_marca": 1,
             "nombre": "Zapatillas Air Max 2024",
             "descripcion": "Zapatillas deportivas de alta calidad, edición 2024",
-            "precio": 150.75,
+            "precio_venta_ars": 16.99,
+            "precio_venta_usd": 19.99,
             "codigo_barras": "1234567890123aaa",
             "id_categoria": 1,
             "imagen_producto": "https://drive.google.com/uc?id=ID_DE_TU_IMAGEN",
@@ -160,8 +172,10 @@ async def producto(request: Producto_request):
             }
         
         ```
+    ---
 
-    - **eliminarProducto**: Eliminar un producto por ID.
+    ### **🗑️ Eliminar Producto 🚫**
+
     
         ```json
             
@@ -169,11 +183,8 @@ async def producto(request: Producto_request):
         "accion": "eliminarProducto",
         "id_producto": 29
         }
+        ```    
         ```
-    
-
-    - **buscarPorCodigoDeBarras**: Búsqueda rápida por código de barras.
-
     """
     try:       
         
@@ -184,10 +195,10 @@ async def producto(request: Producto_request):
             Verifica si ya existe un producto con el mismo código de barras y maneja el caso de forceAdd.
             """
                     # Verificar parámetros requeridos
-            if not all([request.id_marca, request.nombre, request.descripcion, request.precio, request.codigo_barras,request.id_categoria]):
+            if not all([request.id_marca, request.nombre, request.descripcion, request.precio_venta_ars,request.precio_venta_usd, request.codigo_barras,request.id_categoria]):
                 raise HTTPException(
                     status_code=400,
-                    detail="Los parámetros 'id_marca', 'nombre', 'descripcion', 'precio', 'codigo_barras' y  'id_categoria'son requeridos."
+                    detail="Los parámetros 'id_marca', 'nombre', 'descripcion', 'precio_venta_ars','precio_venta_usd', 'codigo_barras' y  'id_categoria'son requeridos."
                 )
             # Crear instancia de Producto
             producto = Producto()
@@ -196,7 +207,8 @@ async def producto(request: Producto_request):
                 id_marca=request.id_marca,
                 nombre=request.nombre,
                 descripcion=request.descripcion,
-                precio=request.precio,
+                precio_venta_ars=request.precio_venta_ars,
+                precio_venta_usd=request.precio_venta_usd,
                 codigo_barras=request.codigo_barras,
                 id_categoria=request.id_categoria,
                 imagen_producto=request.imagen_producto,                
@@ -213,20 +225,21 @@ async def producto(request: Producto_request):
             Endpoint que maneja la solicitud de editar un producto.
             """
                     # Verificar parámetros requeridos
-            if not all([request.id_marca, request.nombre, request.descripcion, request.precio, request.codigo_barras,request.id_categoria]):
+            if not all([request.id_producto,request.id_marca, request.nombre, request.descripcion, request.precio_venta_ars,request.precio_venta_usd, request.codigo_barras,request.id_categoria]):
                 raise HTTPException(
                     status_code=400,
-                    detail="Los parámetros 'id_marca', 'nombre', 'descripcion', 'precio', 'codigo_barras' y  'id_categoria'son requeridos."
+                    detail="Los parámetros 'id_producto','id_marca', 'nombre', 'descripcion', 'precio_venta_ars', 'precio_venta_usd','codigo_barras' y  'id_categoria'son requeridos."
                 )
             # Crear instancia de Producto
             producto = Producto()
-            # Llamar al método agregar_producto
+            # Llamar al método editarProducto
             response = await producto.editarProducto(
                 request.id_producto,
                 request.id_marca,
                 request.nombre, 
                 request.descripcion, 
-                request.precio, 
+                request.precio_venta_ars, 
+                request.precio_venta_usd, 
                 request.codigo_barras,
                 request.id_categoria, 
                 request.id_usuario,
@@ -234,7 +247,6 @@ async def producto(request: Producto_request):
             )
 
             return response
-
 
 
 
@@ -261,117 +273,12 @@ async def producto(request: Producto_request):
         raise HTTPException(status_code=500, detail=str(e))
     
     
-    
-######################/login##########################################################
 
-@router.post("/login")        
-async def login(usuario: UsuarioLogin_request, response: Response):
-    """
-    Endpoint login
-    ```json
-        {
-        "cuil": "string",
-        "password": "string"
-        }
-    ```
 
-    """
-    resultado = await Login.login_usuario(usuario.cuil, usuario.password)    
-    # Verificamos si el resultado es un diccionario
-    if isinstance(resultado, dict):
-        # Manejo de los distintos casos devueltos
-        if "code" in resultado:
-            if resultado["code"] == 0:
-                raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
-            elif resultado["code"] == 50:
-                raise HTTPException(status_code=403, detail="Usuario deshabilitado")        
-        # Autenticación exitosa
-        id_usuario = resultado["id_usuario"]
-        cuil = resultado["cuil"]  # Asegúrate de que el CUIL se esté retornando correctamente
-        rol = resultado["rol"]        
-        nombre = resultado["nombre"]
-        apellido = resultado["apellido"]
-        email = resultado["email"]                           
-        auth_token = create_jwt_token(id_usuario, rol, cuil)  # Genera el token con el ID, rol y CUIL del usuario
-        # Establece el token en la cabecera Set-Cookie
-        response.set_cookie(key="auth_token", value=auth_token, httponly=True)  # Cambia httponly=True según tus necesidades
-        # Devuelve la respuesta con el CUIL y el auth_token
-        return {
-            "cuil": cuil,
-            "rol": rol,
-            "auth_token": auth_token,
-            "nombre": nombre,
-            "apellido":apellido,
-            "email":email
-        }    
-    # Si el resultado no es un diccionario, lanza un error de servidor
-    raise HTTPException(status_code=500, detail="Error en la respuesta del servidor, no se pudo autenticar.")
-
-################################################################################################
-
-# @router.post("/usuarios", response_model=dict)
-# async def gestionar_usuario(usuario_data: Usuario_request):
-#     print("entro a usuario")
-#     try:
-#         if usuario_data.accion == "insert":
-#             # Acción para crear un nuevo usuario
-#             usuario = Usuario()  # Crear la instancia de Usuario
-#             response = await usuario.insert(
-#                 nombre=usuario_data.nombre,
-#                 apellido=usuario_data.apellido,
-#                 cuil=usuario_data.cuil,
-#                 legajo=usuario_data.legajo,
-#                 email=usuario_data.email,
-#                 habilitado=usuario_data.habilitado if usuario_data.habilitado is not None else 1  # Activado por defecto
-#             )
-#             return {
-#                 "data": response  # Aquí asignas una clave "data" al valor correspondiente
-#             }
-        
-#         elif usuario_data.accion == "update":
-#             # Acción para modificar un usuario existente
-#             if not usuario_data.id_usuario:
-#                 raise HTTPException(status_code=400, detail="Se requiere el ID del usuario para actualizar.")
-#             usuario = Usuario(id_usuario=usuario_data.id_usuario)  # Cargar la instancia del usuario con su ID
-#             response = await usuario.update(
-#                 nombre=usuario_data.nombre,
-#                 apellido=usuario_data.apellido,
-#                 cuil=usuario_data.cuil,
-#                 legajo=usuario_data.legajo,
-#                 email=usuario_data.email
-#             )
-#             return {
-#                 "data": response  # Aquí asignas una clave "data" al valor correspondiente
-#             }
-#         elif usuario_data.accion == "resetPassword":
-#             # Acción para modificar un usuario existente
-#             if not usuario_data.id_usuario:
-#                 raise HTTPException(status_code=400, detail="Se requiere el ID del usuario para reestablecer la contraseña.")
-#             usuario = Usuario(id_usuario=usuario_data.id_usuario)  # Cargar la instancia del usuario con su ID
-#             response = await usuario.resetPassword()
-#             return {
-#                 "data": response  # Aquí asignas una clave "data" al valor correspondiente
-#             }
-#         elif usuario_data.accion == "newPassword":
-#             print("entro a newPassword")
-#             # Acción para modificar un usuario existente
-#             if not usuario_data.id_usuario:
-#                 raise HTTPException(status_code=400, detail="Se requiere el ID del usuario para reestablecer la contraseña.")
-#             password = usuario_data.password
-#             password1 = usuario_data.password1
-#             usuario = Usuario(id_usuario=usuario_data.id_usuario)  # Cargar la instancia del usuario con su ID
-#             response = await usuario.newPassword(password, password1)
-#             return {
-#                 "data": response  # Aquí asignas una clave "data" al valor correspondiente
-#             }
-#         else:
-#             raise HTTPException(status_code=400, detail="Acción no válida. Las acciones permitidas son: 'insert', 'update', 'activar', 'desactivar'.")
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
 ###############################gestion_proveedor############################################################################################
 
 # GET endpoint para ver todos los proveedores por estado
-@router.get("/proveedores")
+@router.get("/proveedores",tags=["Proveedores"])
 async def ver_todos_los_proveedores(
     estado: bool = Query(..., description="Estado del proveedor (True: Activo, False: Inactivo)"),
 ):
@@ -388,7 +295,7 @@ async def ver_todos_los_proveedores(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/proveedor")
+@router.post("/proveedor",tags=["Proveedores"])
 async def gestion_proveedor(request: Proveedor_request):
     """
     Endpoint para gestion provedores.
@@ -495,10 +402,7 @@ async def gestion_proveedor(request: Proveedor_request):
             )
             return response
         
-
-
-
-        # Cambiar estado del proveedor
+                # Cambiar estado del proveedor
         elif request.accion == "cambiarEstado":
             if request.id_proveedor is None or request.estado is None:
                 raise HTTPException(
@@ -522,96 +426,20 @@ async def gestion_proveedor(request: Proveedor_request):
     
 
 
-
-# ########################script automatico###############################################
-# @router.post("/insertar-registros")
-# async def insertar_registros():
-#         """Endpoint para insertar 50,000 registros en la base de datos."""
-#         resultado = insertar_registros()
-#         return resultado    
-#         # Configuración de conexión a la base de datos
-# DB_CONFIG = {
-#             "user": "postgres",
-#             "password": "DarioDavid-bd-UBU-1",
-#             "host": "92.112.176.191",
-#             "port": 5432,
-#             "database": "stock_TEST"
-#         }
-
-# def generar_codigo_barras():
-#             """Genera un código de barras aleatorio de 9 dígitos."""
-#             return ''.join(random.choices(string.digits, k=9))
-
-# def insertar_registros():
-#     """Inserta 50,000 registros en la tabla de productos."""
-#     conexion = None  # Inicializar la variable fuera del bloque try
-#     try:
-#         # Conexión a la base de datos
-#         conexion = psycopg2.connect(**DB_CONFIG)
-#         cursor = conexion.cursor(cursor_factory=DictCursor)
-
-#         # Consulta SQL para insertar productos
-#         sql_producto = """
-#         INSERT INTO productos (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado, fecha_creacion)
-#         VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-#         RETURNING id_producto;
-#         """
-
-#         # Consulta SQL para insertar stock
-#         sql_stock = """
-#         INSERT INTO stock (id_producto, stock_actual, stock_minimo, stock_maximo)
-#         VALUES (%s, %s, %s, %s);
-#         """
-
-#         # Generar e insertar 50,000 registros
-#         for _ in range(50000):
-#             marca = "Marca_" + random.choice(string.ascii_uppercase)
-#             nombre = "Producto_" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-#             descripcion = "Descripcion del producto " + nombre
-#             precio = round(random.uniform(10, 500), 2)
-#             stock_actual = random.randint(0, 100)
-#             stock_minimo = random.randint(0, 10)
-#             stock_maximo = stock_actual + random.randint(10, 50)
-#             id_proveedor = random.choice([1, 2, 3])
-#             codigo_barras = generar_codigo_barras()
-#             estado = 'activo'
-
-#             # Insertar producto y obtener id_producto
-#             cursor.execute(sql_producto, (marca, nombre, descripcion, precio, codigo_barras, id_proveedor, estado))
-#             id_producto = cursor.fetchone()[0]
-
-#             # Insertar stock para el producto
-#             cursor.execute(sql_stock, (id_producto, stock_actual, stock_minimo, stock_maximo))
-
-#         # Confirmar los cambios en la base de datos
-#         conexion.commit()
-#         print("Se han insertado 50,000 registros exitosamente.")
-
-#     except Exception as e:
-#         print(f"Error al insertar registros: {e}")
-#         if conexion:  # Verificar si la conexión existe antes de usarla
-#             conexion.rollback()
-
-#     finally:
-#         # Cerrar la conexión
-#         if conexion:  # Verificar si la conexión existe antes de usarla
-#             cursor.close()
-#             conexion.close()
-
 ###############################producto_categoria############################################################################################
 
 # GET endpoint para ver todas las categorías
-@router.get("/categorias")
+@router.get("/productos_categorias",tags=["Producto Categoria"])
 async def ver_todas_las_categorias(
-    incluir_inactivas: bool = Query(..., description="Incluir categorías inactivas. True para incluir, False para solo activas."),
+    estado: bool = Query(..., description="Estado de categorías inactivas.TRUE = activas FALSE = inactiva"),
 ):
     """
     Endpoint para consultar todas las categorías.
-    Se proporciona el parámetro `incluir_inactivas` para incluir categorías inactivas.
+    Se proporciona el parámetro `estado` para incluir categorías activas o inactivas.
     """
     try:
         categoria = ProductoCategoria()
-        resultado = await categoria.ver_todas_categorias(incluir_inactivas)
+        resultado = await categoria.ver_todas_categorias(estado)
         return {"status": "success", "data": resultado}
     
     except Exception as e:
@@ -620,7 +448,7 @@ async def ver_todas_las_categorias(
 
 #POST
     
-@router.post("/producto_categoria")
+@router.post("/producto_categoria",tags=["Producto Categoria"])
 async def producto_categoria(request: Categoria_request):
     """
     Endpoint para gestion categorías de productos.
@@ -717,17 +545,17 @@ async def producto_categoria(request: Categoria_request):
     ####################################marca#####################################################################
 
 # GET endpoint para ver todas las marcas
-@router.get("/marcas")
+@router.get("/producto_marcas",tags=["Producto Marca"])
 async def ver_todas_las_marcas(
-    incluir_inactivas: bool = Query(False, description="Incluir marcas inactivas. True para incluir, False para solo activas."),
+    estado: bool = Query(..., description="TRUE = activa FALSE = inactivas"),
 ):
     """
     Endpoint para consultar todas las marcas.
-    Se proporciona el parámetro `incluir_inactivas` para incluir marcas inactivas.
+    Se proporciona el parámetro `estado` TRUE = activa FALSE = inactivas.
     """
     try:
         marca = ProductoMarca()
-        resultado = await marca.ver_todas_marcas(incluir_inactivas)
+        resultado = await marca.ver_todas_marcas(estado)
         return {"status": "success", "data": resultado}
     
     except Exception as e:
@@ -736,7 +564,7 @@ async def ver_todas_las_marcas(
 #POST
 
 
-@router.post("/producto_marca")
+@router.post("/producto_marca",tags=["Producto Marca"])
 async def producto_marca(request: Marca_request):
     """
     Endpoint para gestion marcas de productos.
@@ -824,47 +652,106 @@ async def producto_marca(request: Marca_request):
 
 
 ############################Movimiento_stock#######################################################################
+# Definir operaciones válidas al inicio del archivo
+OPERACIONES_VALIDAS = [
+    "Entrada",
+    "Salida por venta",
+    "Salida por devolución",
+    "Salida por producto dañado o vencido"
+]
 
-@router.post("/movimiento_stock")
-async def movimiento_stock(request: Stock_request):
+@router.post("/movimiento_stock",tags=["Movimiento de stock y Tipo de Movimiento para el stock"])
+async def movimiento_stock(request: movimientoStockRequest):
     """
-        Ejemplo de Payload de Entrada:
-        ...
-    """       
+    Procesa múltiples movimientos de stock en una sola transacción.
 
-    resultados = []  # Resultados individuales para cada movimiento
-    stock = Stock()  # Instancia de la clase Stock
+    ### Ejemplo de Payload de Entrada:
+    ```json
+    {
+        "movimientos": [
+            {
+                "id_producto": 1,
+                "cantidad": 10,
+                "id_tipo_movimiento": 1,
+                "id_usuario": 123,
+                "id_proveedor": 5,
+                "id_almacen": 2,
+                "id_estante": 1,
+                "precio_costo_ars":110,
+                "precio_costo_usd":10,
+                "descripcion": "Recepción de mercancía"
+            },
+            {
+                "id_producto": 2,
+                "cantidad": 5,
+                "id_tipo_movimiento": 2,
+                "id_usuario": 123,
+                "id_proveedor": 5,
+                "id_almacen": 2,
+                "id_estante": 1,
+                "descripcion": "Venta de producto"
+            }
+        ]
+    }
 
-    # Generar el identificador de evento global antes de procesar los movimientos
+        {
+        "movimientos": [
+            {
+                "id_producto": 1,
+                "cantidad": 10,
+                "id_tipo_movimiento": 2,
+                "id_usuario": 123,
+                "id_proveedor": 10,
+                "id_almacen": 2,
+                "id_estante": 1,
+                "descripcion": "Venta de 10 unidades del producto 1"
+            }
+        ]
+    }
+    ```
+
+    ### Consideraciones:
+    - Si el proveedor cambia, se crea un nuevo stock si es relevante para la gestión del inventario.
+    - Si el almacén o el estante cambia, solo se registra un movimiento sin crear un nuevo stock, ya que solo se está cambiando la ubicación del producto.
+
+    Args:
+    - productos: Lista de productos involucrados en el movimiento.
+    - id_usuario: ID del usuario que realiza el movimiento.
+    - id_proveedor: ID del proveedor (puede cambiar).
+    - id_almacen: ID del almacén (puede cambiar).
+    - id_estante: ID del estante (puede cambiar).
+    - descripcion: Descripción del movimiento (por ejemplo, "Recepción de mercancía").
+    - id_tipo_movimiento: ID del tipo de movimiento (por ejemplo, entrada o salida).
+    - identificador_evento: Identificador global del evento, si es proporcionado.
+
+    Returns:
+    - Respuesta con el resultado del movimiento.
+    """
+    resultados = []
+    stock = Stock()
     identificador_evento_global = None
 
     for movimiento in request.movimientos:
         try:
-            if movimiento.operacion not in ["incrementar", "disminuir"]:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Operación no válida: {movimiento.operacion}"
-                )
+            # Validar que el id_tipo_movimiento esté activo antes de procesar
+            await stock.obtener_estado_tipo_movimiento(movimiento.id_tipo_movimiento)
 
-            # Crear un diccionario con los datos del producto
-            movimiento_data = {
-                "id_producto": movimiento.id_producto,
-                "cantidad": movimiento.cantidad
-            }
-
-            # Llamar a la función de ajuste de stock
-            resultado = await stock.entradaStock(
-                productos=[movimiento_data],  # Convertimos a lista
+            # Ejecutar el procedimiento adecuado según el tipo de movimiento
+            resultado = await stock.procesar_movimiento_stock(
+                productos=[{"id_producto": movimiento.id_producto, "cantidad": movimiento.cantidad}],
                 id_usuario=movimiento.id_usuario,
                 id_proveedor=movimiento.id_proveedor,
                 id_almacen=movimiento.id_almacen,
                 id_estante=movimiento.id_estante,
+                precio_costo_ars=movimiento.precio_costo_ars,
+                precio_costo_usd=movimiento.precio_costo_usd,
+
                 descripcion=movimiento.descripcion,
-                operacion=movimiento.operacion,
-                identificador_evento=identificador_evento_global  # Pasamos el mismo identificador
+                id_tipo_movimiento=movimiento.id_tipo_movimiento,
+                identificador_evento=identificador_evento_global
             )
 
-            # Si el identificador de evento aún no ha sido asignado, lo asignamos
+            # Si es el primer movimiento, establecemos el identificador global
             if identificador_evento_global is None:
                 identificador_evento_global = resultado["identificador_evento"]
 
@@ -890,28 +777,54 @@ async def movimiento_stock(request: Stock_request):
 
     return {"resultados": resultados}
 
+# ----------------------------- Tipo de Movimiento ----------------------------- #
+
+# GET endpoint para ver todos los tipos de movimientos de stock 
+@router.get("/tipo_movimiento_stock",tags=["Movimiento de stock y Tipo de Movimiento para el stock"])
+async def ver_tipo_movimiento_stock(
+    estado: bool = Query(..., description="Estado de tipo de movimientos .TRUE = activas FALSE = inactiva"),
+):
+    """
+    Endpoint para consultar todas los estantes de un almacen especifico.
+    Se proporciona el parámetro `estado` para incluir categorías activas o inactivas.
+    """
+    try:
+        sotck = Stock()
+        resultado = await sotck.verTodosLosTiposMovimientos(estado)
+        
+        return {"status": "success", "data": resultado}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 ###########################Almacen#################################################
 
+# GET endpoint para ver todas los almacenes
+@router.get("/almacen",tags=["Almacenes y Estantes"])
+async def ver_todas_las_categorias(
+    estado: bool = Query(..., description="Estado de almacen.TRUE = activas FALSE = inactiva"),
+):
+    """
+    Endpoint para consultar todas las categorías.
+    Se proporciona el parámetro `estado` para incluir categorías activas o inactivas.
+    """
+    try:
+        almacen = Almacen()
+        resultado = await almacen.verTodosLosAlmacenes(estado)
+        
+        return {"status": "success", "data": resultado}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/almacen")
+#post
+
+@router.post("/almacen",tags=["Almacenes y Estantes"])
 async def gestion_almacen(request: Almacen_request):
     """
     Endpoint para gestion almacen.
     Soporta las acciones: 
-    - 'verTodosLosAlmacenes': 
-
-    ```Jsoon
-        {
-        "accion": "verTodosLosAlmacenes",
-        "estado": true
-        }
-
-
-         {
-        "accion": "verTodosLosAlmacenes",
-        "estado": false
-        }
-    ```
+    
 
     - 'cambiarEstado': Cambia de estado solo acepta true o false.
          ```Jsoon
@@ -954,18 +867,8 @@ async def gestion_almacen(request: Almacen_request):
 
     """
     try:
-# Ver todos los almacenes
-        if request.accion == "verTodosLosAlmacenes":
-            if request.estado is None:
-                raise HTTPException(
-                    status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
-                )            
-            almacen = Almacen()            
-            response = await almacen.verTodosLosAlmacenes(request.estado)
-            return {"data": response}
-
 # Agregar nuevo almacen
-        elif request.accion == "agregarAlmacen":
+        if request.accion == "agregarAlmacen":
             if not all([request.descripcion]):
                 raise HTTPException(
                     status_code=400,
@@ -1034,28 +937,34 @@ async def gestion_almacen(request: Almacen_request):
 
 ###################################almacen_estante###################################
 
+# GET endpoint para ver todas los estantes que tienen los almacenes
+@router.get("/almacen_estante",tags=["Almacenes y Estantes"])
+async def ver_todas_las_categorias(
+    id_almacen: int = Query(..., id_almacen="Estado de almacen_estante .TRUE = activas FALSE = inactiva"),
+    estado: bool = Query(..., description="Estado de almacen_estante .TRUE = activas FALSE = inactiva"),
+):
+    """
+    Endpoint para consultar todas los estantes de un almacen especifico.
+    Se proporciona el parámetro `estado` para incluir categorías activas o inactivas.
+    """
+    try:
+        estante = Estante()
+        resultado = await estante.verTodosLosestantes(id_almacen,estado)
+        
+        return {"status": "success", "data": resultado}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/almacen_estante")
+
+
+
+@router.post("/almacen_estante",tags=["Almacenes y Estantes"])
 async def gestion_almacen_estante(request: Estante_request):
     """
     Endpoint para gestion estante.
     Soporta las acciones: 
-    - 'verTodosLosEstantes': 
-
-    ```Jsoon
-        {
-        "accion": "verTodosLosEstantes",
-        "id_almacen": 1,
-        "estado": true
-        }
-
-
-         {
-        "accion": "verTodosLosEstantes",
-        "estado": false
-        }
-    ```
-
+    
     - 'cambiarEstado': Cambia de estado solo acepta true o false.
          ```Jsoon
 
@@ -1098,18 +1007,9 @@ async def gestion_almacen_estante(request: Estante_request):
 
     """
     try:
-# Ver todos los estantes
-        if request.accion == "verTodosLosEstantes":
-            if request.estado is None:
-                raise HTTPException(
-                    status_code=400, detail="El parámetro 'estado' es requerido para esta acción."
-                )            
-            estante = Estante()            
-            response = await estante.verTodosLosestantes(request.id_almacen,request.estado)
-            return {"data": response}
 
 # Agregar nuevo estante
-        elif request.accion == "agregarEstante":
+        if request.accion == "agregarEstante":
             if not all([request.descripcion]):
                 raise HTTPException(
                     status_code=400,
@@ -1179,8 +1079,8 @@ async def gestion_almacen_estante(request: Estante_request):
 
 ############################stock#######################################################################
 ##@router.post("/tabla_stock", response_model=List[StockResponse])
-@router.get("/stock", response_model=List[Dict[str, Any]])
-async def consultar_stock(
+@router.get("/inventario", response_model=List[Dict[str, Any]],tags=["Inventario"])
+async def inventario(
     id_producto: int = Query(None, description="ID del producto a filtrar (opcional)"),
     id_almacen: int = Query(None, description="ID del almacén a filtrar (opcional)"),
     estado: str = Query(None, description="Estado del stock a filtrar (opcional)"),
@@ -1198,14 +1098,14 @@ async def consultar_stock(
     - `nombre`: Parte del nombre del producto (opcional).
 
     Ejemplo:
-    - `/stock` -> Devuelve todo el stock.
-    - `/stock?id_producto=1` -> Filtra por producto.
-    - `/stock?codigo_barras=123456789` -> Filtra por código de barras.
-    - `/stock?nombre=zap` -> Busca productos cuyo nombre contenga "zap".
+    - `/inventario` -> Devuelve todo el stock.
+    - `/inventario?id_producto=1` -> Filtra por producto.
+    - `/inventario?codigo_barras=123456789` -> Filtra por código de barras.
+    - `/inventario?nombre=zap` -> Busca productos cuyo nombre contenga "zap".
     """
     stock = Stock()  # Instancia de la clase Stock
     try:
-        resultados = await stock.obtener_stock(
+        resultados = await stock.inventario(
             id_producto=id_producto,
             id_almacen=id_almacen,
             estado=estado,
@@ -1223,7 +1123,7 @@ async def consultar_stock(
 ############################stock_movimientos_endpoints#######################################################################
 
 
-@router.get("/tabla_consulta_stock_movimientos", response_model=List[Dict[str, Any]])
+@router.get("/tabla_consulta_stock_movimientos", response_model=List[Dict[str, Any]],tags=["Tabla de movimientos de stock/inventario"])
 async def consultar_movimientos(
     id_producto: Optional[int] = Query(None, description="ID del producto a filtrar (opcional)"),
     id_usuario: Optional[int] = Query(None, description="ID del usuario a filtrar (opcional)"),
@@ -1257,3 +1157,45 @@ async def consultar_movimientos(
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+
+
+
+@router.get("/configuracion/precios",tags=["Panel configuracion precios"])
+async def obtener_configuracion():
+    producto=Producto()
+    """Devuelve la configuración actual de precios."""
+    resultado = await producto.obtener_configuracion()
+    return resultado
+
+@router.post("/configuracion/precios", tags=["Panel configuración precios"])
+async def actualizar_configuracion(
+    permitir_precio_menor_costo_ars: bool,
+    permitir_precio_menor_costo_usd: bool,
+    ajuste_precio_porcentaje_ars: float,
+    ajuste_precio_porcentaje_usd: float,
+    valor_dolar: float
+):
+    """Actualiza la configuración de precios."""
+    producto = Producto()
+    resultado = await producto.actualizar_configuracion(
+        permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
+        ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar
+    )
+    return resultado
+
+
+@router.post("/configuracion/ajustar_precios")
+async def ajustar_precios():
+    producto=Producto()
+    """Ajusta los precios de los productos en base al porcentaje configurado."""
+    resultado = await producto.ajustar_precios_masivos()
+    return resultado
+
+@router.post("/configuracion/convertir_dolares")
+async def convertir_dolares():
+    producto=Producto()
+    """Convierte los precios de productos en dólares a pesos según el valor del dólar."""
+    resultado = await producto.convertir_precios_dolares()
+    return resultado
+

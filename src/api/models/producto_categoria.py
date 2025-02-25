@@ -120,18 +120,15 @@ class ProductoCategoria(conexion.Conexion):
             conexion.close()
 
 ################################ VER TODAS LAS CATEGORIAS #######################################################
-    async def ver_todas_categorias(self, incluir_inactivas=False):
+    async def ver_todas_categorias(self, estado=True):
         """
         Lista todas las categorías activas o inactivas dependiendo del parámetro.
         """
         conexion = self.conectar()
         try:
             cursor = conexion.cursor(cursor_factory=DictCursor)
-            sql = "SELECT * FROM producto_categoria"
-            if not incluir_inactivas:
-                sql += " WHERE estado = TRUE"
-            sql += " ORDER BY id_categoria;"
-
+            #upper convierte str a mayuscula para hacer TRUE o FALSE en postgreSQL
+            sql = f"SELECT * FROM producto_categoria WHERE estado = {str(estado).upper()} ORDER BY id_categoria;"
             cursor.execute(sql)
             categorias = cursor.fetchall()
 

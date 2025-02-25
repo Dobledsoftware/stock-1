@@ -14,14 +14,15 @@ const Almacenes = ({ apiBaseUrl }) => {
     // Fetch inicial para listar almacenes
     const fetchAlmacenes = async (estado = true) => {
         try {
-            const response = await fetch(`${apiBaseUrl}/almacen`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodosLosAlmacenes',
-                    estado,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/almacen?estado=true`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
  
             if (response.ok) {
                 const { data } = await response.json();
@@ -80,7 +81,7 @@ const Almacenes = ({ apiBaseUrl }) => {
               };
 
         try {
-            const response = await fetch(`${apiBaseUrl}/almacen`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/almacen`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),

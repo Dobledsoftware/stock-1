@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import $ from 'jquery'; // Necesario para DataTables
 
@@ -13,17 +13,18 @@ const Proveedores = ({ apiBaseUrl, onClose }) => {
     const [editandoProveedor, setEditandoProveedor] = useState(null);
     const [modalAbierto, setModalAbierto] = useState(false); // Estado para controlar la visibilidad del modal
 
-    // Fetch inicial para listar proveedores
+    // Fetch inicial para listar proveedores (cambiado a GET)
     const fetchProveedores = async () => {
         try {
-            const response = await fetch(`${apiBaseUrl}/proveedor`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodosLosProveedores',
-                    estado: true,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/proveedores?estado=true`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
             if (response.ok) {
                 const { data } = await response.json();
@@ -154,7 +155,7 @@ const Proveedores = ({ apiBaseUrl, onClose }) => {
                                 <td>{proveedor.correo_contacto}</td>
                                 <td>
                                     <button onClick={() => handleEditar(proveedor)}>
-                                    <i className="fa fa-pencil"></i> Editar
+                                        <i className="fa fa-pencil"></i> Editar
                                     </button>
                                 </td>
                             </tr>

@@ -85,16 +85,8 @@ class Almacen(conexion.Conexion):
         try:
             # Usa DictCursor para resultados como diccionario
             cursor = conexion.cursor(cursor_factory=DictCursor)
-            sql = """
-            SELECT 
-                *
-            FROM 
-                almacen a           
-            WHERE 
-                a.estado = %s
-            ORDER BY 
-                a.descripcion ASC;
-            """
+            sql = f"SELECT * FROM almacen WHERE estado = {str(estado).upper()} ORDER BY id_almacen ASC;"
+
             # Ejecutar la consulta
             cursor.execute(sql, (estado,))
             data = cursor.fetchall()

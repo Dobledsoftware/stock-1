@@ -14,14 +14,15 @@ const Categorias = ({ apiBaseUrl }) => {
     // Fetch inicial para listar categorías
     const fetchCategorias = async (incluirInactivas = true) => {
         try {
-            const response = await fetch(`${apiBaseUrl}/producto_categoria`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodasLasCategorias',
-                    incluir_inactivas: incluirInactivas,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/productos_categorias?estado=true`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
             if (response.ok) {
                 const { data } = await response.json();

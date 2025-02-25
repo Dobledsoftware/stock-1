@@ -15,7 +15,9 @@ class Producto(conexion.Conexion):
         self._marca = None
         # Otros atributos que pueden inicializarse
         self._descripcion = None
-        self._precio = None
+        self._precio_venta_ars = None
+        self._precio_venta_usd = None
+
         self.repository = ProductoRepository()
 
     # Propiedades
@@ -86,29 +88,21 @@ class Producto(conexion.Conexion):
             conexion.close()
 
 
-
 ########################verTodosLosProductos########################################################################
-            
-
-
-
+ 
 
     async def verTodosLosProductos(self, estado):
         """Lista productos según su estado."""
         return await self.repository.verTodosLosProductos(estado)      
 
-
-    
-
 ##########################agregar_producto#########################################################################
     
-    async def agregar_producto(self, id_marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto=None, force_add=False,):
+    async def agregar_producto(self, id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria, imagen_producto=None, force_add=False,):
         """
         Agrega un producto (variante) a la base de datos, verificando si ya existe un producto con el mismo código de barras.
         Si force_add es True, permite duplicar el producto aunque tenga el mismo código de barras.
         """
-        return await self.repository.agregar_producto(id_marca, nombre, descripcion, precio, codigo_barras,id_categoria, imagen_producto, force_add)
-
+        return await self.repository.agregar_producto(id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria, imagen_producto, force_add)
 
     
 ###############################eliminar_producto#######################################################################
@@ -127,7 +121,28 @@ class Producto(conexion.Conexion):
 
     
 #################################editarProducto#######################################################
-    async def editarProducto(self,id_producto, id_marca, nombre, descripcion, precio, codigo_barras,id_categoria,id_usuario, imagen_producto=None):
+    async def editarProducto(self,id_producto, id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria,id_usuario, imagen_producto=None):
         
-        return await self.repository.editarProducto(id_producto,id_marca, nombre, descripcion, precio, codigo_barras,id_categoria,id_usuario,imagen_producto)
+        return await self.repository.editarProducto(id_producto,id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria,id_usuario,imagen_producto)
 
+#################################editarProducto#######################################################
+    async def consultarHistorialProducto(self,id_producto):        
+        return await self.repository.consultarHistorialProducto(id_producto)
+
+#######################################################################################################
+    async def obtener_configuracion(self):        
+        return await self.repository.obtener_configuracion()
+
+    
+    async def actualizar_configuracion(self,permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
+        ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar):        
+        return await self.repository.actualizar_configuracion(permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
+        ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar)
+
+    
+    async def convertir_precios_dolares(self):        
+        return await self.repository.convertir_precios_dolares()
+   
+
+
+    

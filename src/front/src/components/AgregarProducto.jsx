@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/AgregarProducto.module.css';
 import { toast } from 'react-toastify'; // Importamos toast
-import Swal from 'sweetalert2';  // Importamos SweetAlert2
+import Swal from 'sweetalert2'; // Importamos SweetAlert2
 
 const AgregarProducto = ({ onProductoAgregado, onClose }) => {
     const [formData, setFormData] = useState({
         nombre: '',
         descripcion: '',
-        precio: '',
+        precio_venta_ars: '',
+        precio_venta_usd: '',
         id_marca: '',
         id_categoria: '',
         codigo_barras: '',
+        estado: 'Activo', // El estado puede ser 'Activo' o 'Inactivo'
     });
     const [categorias, setCategorias] = useState([]);
     const [marcas, setMarcas] = useState([]);
@@ -21,38 +23,35 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const fetchData = async (url, setState, body) => {
+    // Función para realizar las peticiones fetch
+    const fetchData = async (url, setState, params = {}) => {
         try {
             const response = await fetch(url, {
-                method: 'POST',
+                method: 'GET', // Cambiado a GET ya que se usa un endpoint GET para categorías y marcas
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
+                params: params,
             });
 
-            if (response.ok) {
-                const { data } = await response.json();
-                setState(data);
-            } else {
-                throw new Error('Error al obtener datos del servidor.');
+            if (!response.ok) {
+                throw new Error('Error al obtener datos del servidor');
             }
+
+            const { data } = await response.json();
+            setState(data);
         } catch (err) {
-            toast.error(`Error: ${err.message}`);  // Usamos Toastify para mostrar error
+            toast.error(`Error: ${err.message}`);
         }
     };
 
     useEffect(() => {
-        fetchData(
-            `${import.meta.env.VITE_API_BASE_URL}/producto_categoria`,
-            setCategorias,
-            { accion: 'verTodasLasCategorias', incluir_inactivas: true }
-        );
-        fetchData(
-            `${import.meta.env.VITE_API_BASE_URL}/producto_marca`,
-            setMarcas,
-            { accion: 'verTodasLasMarcas', incluir_inactivas: true }
-        );
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+        // Realizar las peticiones de categorías y marcas
+        fetchData(`${baseUrl}/productos_categorias?estado=true`, setCategorias);
+        fetchData(`${baseUrl}/producto_marcas?estado=true`, setMarcas);
     }, []);
 
+    // Enviar los datos al servidor para agregar el producto
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -60,10 +59,12 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
             accion: 'agregarProducto',
             nombre: formData.nombre,
             descripcion: formData.descripcion,
-            precio: parseFloat(formData.precio),
+            precio_venta_ars: parseFloat(formData.precio_venta_ars),
+            precio_venta_usd: parseFloat(formData.precio_venta_usd),
             codigo_barras: formData.codigo_barras,
             id_marca: formData.id_marca ? parseInt(formData.id_marca, 10) : null,
             id_categoria: formData.id_categoria ? parseInt(formData.id_categoria, 10) : null,
+            estado: formData.estado === 'Activo', // Transformamos a booleano
             forceAdd: false,
         };
 
@@ -74,50 +75,46 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            if (response.ok) {
-                const { status, message, productos_repetidos } = await response.json();
-                
-                // Si el status es warning, mostramos una alerta con los productos repetidos
-                if (status === 'warning' && productos_repetidos.length > 0) {
-                    const productos = productos_repetidos.map(
-                        (prod) => `- ${prod.nombre} (Código: ${prod.codigo_barras})`
-                    ).join('\n');
+            const { status, message, productos_repetidos } = await response.json();
 
-                    Swal.fire({
-                        title: '¡Advertencia!',
-                        text: `Ya existen productos con el código de barras:\n${productos}\n¿Desea agregar el producto de todos modos?`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Sí, agregar',
-                        cancelButtonText: 'No, cancelar',
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            producto.forceAdd = true;
-                            agregarProductoConConfirmacion(producto);
-                        }
-                    });
-                } else {
-                    // Si la respuesta es exitosa y no hay productos repetidos
-                    Swal.fire({
-                        title: '¡Éxito!',
-                        text: message,
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar',
-                    });
+            if (status === 'warning' && productos_repetidos.length > 0) {
+                // Mostrar una alerta si hay productos repetidos
+                const productos = productos_repetidos.map(
+                    (prod) => `- ${prod.nombre} (Código: ${prod.codigo_barras})`
+                ).join('\n');
 
-                    onProductoAgregado(); // Llamamos la función para actualizar la lista de productos
-                    onClose(); // Cerramos el modal
-                    resetForm();
-                }
+                Swal.fire({
+                    title: '¡Advertencia!',
+                    text: `Ya existen productos con el código de barras:\n${productos}\n¿Desea agregar el producto de todos modos?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, agregar',
+                    cancelButtonText: 'No, cancelar',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        producto.forceAdd = true;
+                        agregarProductoConConfirmacion(producto);
+                    }
+                });
             } else {
-                const { message } = await response.json();
-                toast.error(`Error: ${message || 'Error al agregar el producto'}`);
+                // Si no hay productos repetidos, mostrar el mensaje de éxito
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: message,
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                });
+
+                onProductoAgregado(); // Actualizar lista de productos
+                onClose(); // Cerrar el modal
+                resetForm();
             }
         } catch (err) {
             toast.error(`Error: ${err.message}`);
         }
     };
 
+    // Confirmación para agregar el producto con un código de barras repetido
     const agregarProductoConConfirmacion = async (producto) => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
@@ -151,10 +148,12 @@ const AgregarProducto = ({ onProductoAgregado, onClose }) => {
         setFormData({
             nombre: '',
             descripcion: '',
-            precio: '',
+            precio_venta_ars: '',
+            precio_venta_usd: '',
             id_marca: '',
             id_categoria: '',
             codigo_barras: '',
+            estado: 'Activo', // Restablecer estado a 'Activo'
         });
     };
 

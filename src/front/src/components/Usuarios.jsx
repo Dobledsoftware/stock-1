@@ -1,21 +1,18 @@
-import { useEffect, useState, useRef } from 'react';
-import $ from 'jquery';
-import 'datatables.net';
-import 'datatables.net-dt/css/dataTables.dataTables.min.css';
-import '../styles/Usuarios.css';
-import Modal from './Modal'; // Componente del modal
-import { useSnackbar } from 'notistack'; // Importar Notistack
+import React, { useEffect, useState } from 'react';
+import { DataGrid } from '@mui/x-data-grid';
+import { Box, Button, Typography, CircularProgress } from '@mui/material';
+import Modal from './Modal'; // Componente Modal para editar/inserción de usuarios
+import { useSnackbar } from 'notistack';
 
 const Usuarios = () => {
-  const { enqueueSnackbar } = useSnackbar(); // Hook de Notistack para notificaciones
+  const { enqueueSnackbar } = useSnackbar();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [accion, setAccion] = useState(''); // 'insert' o 'update'
-  const tableRef = useRef(null); // Referencia a la tabla
 
-  // Fetch de usuarios
+  // Efecto para obtener usuarios
   useEffect(() => {
     const cuil = localStorage.getItem('cuil');
     if (!cuil) {
@@ -49,47 +46,7 @@ const Usuarios = () => {
     fetchUsuarios();
   }, []);
 
-  // Inicialización de DataTables
-  useEffect(() => {
-    if (usuarios.length > 0 && tableRef.current) {
-      const dataTable = $(tableRef.current).DataTable({
-        scrollY: '400px',  // Ajusta la altura del scroll según tus necesidades
-        scrollCollapse: true,
-        paging: true,
-        destroy: true,
-        responsive: true,  // Hace la tabla adaptable
-        language: {
-          search: "Buscar:",
-          lengthMenu: "Mostrar _MENU_ registros por página",
-          zeroRecords: "No se encontraron resultados",
-          info: "Mostrando página _PAGE_ de _PAGES_",
-          infoEmpty: "No hay registros disponibles",
-          infoFiltered: "(filtrado de _MAX_ registros en total)",
-          paginate: {
-            first: "Primero",
-            last: "Último",
-            next: "Siguiente",
-            previous: "Anterior",
-          },
-        },
-        columnDefs: [
-          { width: "40%", targets: 0 },
-          { width: "5%", targets: 1 },
-          { width: "25%", targets: 2 },
-          { width: "15%", targets: 3 },
-          { width: "15%", targets: 4 },
-        ],
-        autoWidth: false,
-      });
-
-      // Limpiar el DataTable al desmontar el componente
-      return () => {
-        dataTable.destroy(true);
-      };
-    }
-  }, [usuarios]);
-
-  // Abrir modal de edición
+  // Función para editar usuario
   const handleEdit = (usuario) => {
     if (!usuario.id_usuario) return;
     setSelectedUser(usuario);
@@ -97,40 +54,33 @@ const Usuarios = () => {
     setModalOpen(true);
   };
 
-  // Función para resetear la contraseña
+  // Función para resetear contraseña
   const handleResetPassword = async (usuario) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/usuarios`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          accion: 'resetPassword',
-          id_usuario: String(usuario.id_usuario), // Convertir a string
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'resetPassword', id_usuario: String(usuario.id_usuario) }),
       });
-  
       const result = await response.json();
       if (result.data.status === 'success') {
         enqueueSnackbar(result.data.message, { variant: 'success' });
       } else {
         enqueueSnackbar('Error al intentar restablecer la contraseña.', { variant: 'error' });
       }
-    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       enqueueSnackbar('Hubo un problema al procesar el reseteo de contraseña.', { variant: 'error' });
     }
   };
-  
-  // Abrir modal de agregar
+
+  // Abrir modal para agregar nuevo usuario
   const handleAddUser = () => {
     setSelectedUser({ nombre: '', apellido: '', legajo: '', email: '', cuil: '' });
     setAccion('insert');
     setModalOpen(true);
   };
 
-  // Guardar cambios (insert o update)
+  // Guardar cambios de usuario (insert o update)
   const handleSave = async (updatedUser) => {
     try {
       const payload = { ...updatedUser, accion };
@@ -150,7 +100,7 @@ const Usuarios = () => {
         return;
       }
 
-      // Actualiza la lista de usuarios según la acción (insert o update)
+      // Actualizar el estado según la acción
       if (accion === 'update') {
         setUsuarios((prev) =>
           prev.map((user) =>
@@ -160,7 +110,6 @@ const Usuarios = () => {
       } else {
         setUsuarios((prev) => [...prev, result]);
       }
-    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       enqueueSnackbar('Hubo un problema al procesar el usuario.', { variant: 'error' });
     } finally {
@@ -168,45 +117,86 @@ const Usuarios = () => {
     }
   };
 
-  // Mostrar mientras carga o si no hay usuarios
-  if (loading) return <h1>Cargando listado de usuarios...</h1>;
-  if (usuarios.length === 0) return <p>No se encontraron usuarios.</p>;
+  // Definir columnas para el DataGrid
+  const columns = [
+    {
+      field: 'nombreApellido',
+      headerName: 'Nombre y Apellido',
+      flex: 1,
+      valueGetter: (params) => `${params.row.nombre || ''} ${params.row.apellido || ''}`,
+    },
+    { field: 'legajo', headerName: 'Legajo', flex: 0.5 },
+    { field: 'email', headerName: 'Email', flex: 1 },
+    { field: 'cuil', headerName: 'CUIL', flex: 0.5 },
+    {
+      field: 'acciones',
+      headerName: 'Acciones',
+      flex: 0.7,
+      sortable: false,
+      renderCell: (params) => (
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={() => handleEdit(params.row)}
+            sx={{ mr: 1 }}
+          >
+            Editar
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={() => handleResetPassword(params.row)}
+          >
+            Resetear
+          </Button>
+        </>
+      ),
+    },
+  ];
+
+  // Preparar las filas para el DataGrid
+  const rows = usuarios.map((user) => ({
+    id: user.id_usuario,
+    ...user,
+  }));
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (usuarios.length === 0) {
+    return <Typography>No se encontraron usuarios.</Typography>;
+  }
 
   return (
-    <div className="usuarios-container">
-      <div className="header-container">
-        <div className="logo-container">
-          <img src="/public/img/LOGO_POSADAS_sin_fondo_COLOR_HORIZONTAL.png" alt="Logo2" className="logo2" />
-        </div>
-        <button onClick={handleAddUser} className="btn agregar-usuario">Agregar Usuario</button>
-      </div>
-      <table ref={tableRef} id="usuariosTable" className="display">
-        <thead>
-          <tr>
-            <th>Nombre y Apellido</th>
-            <th>Legajo</th>
-            <th>Email</th>
-            <th>CUIL</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((usuario) => (
-            <tr key={usuario.id_usuario}>
-              <td>{usuario.nombre} {usuario.apellido}</td>
-              <td>{usuario.legajo}</td>
-              <td>{usuario.email}</td>
-              <td>{usuario.cuil}</td>
-              <td>
-                <button onClick={() => handleEdit(usuario)} className="btn">Editar</button>
-                <button onClick={() => handleResetPassword(usuario)} className="btn">Resetear</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Modal */}
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box
+          component="img"
+          src="/img/LOGO_POSADAS_sin_fondo_COLOR_HORIZONTAL.png"
+          alt="Logo"
+          sx={{ height: 50 }}
+        />
+        <Button variant="contained" color="primary" onClick={handleAddUser}>
+          Agregar Usuario
+        </Button>
+      </Box>
+      <Box sx={{ height: 500, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+        />
+      </Box>
       {modalOpen && (
         <Modal
           isOpen={modalOpen}
@@ -215,7 +205,7 @@ const Usuarios = () => {
           onSave={handleSave}
         />
       )}
-    </div>
+    </Box>
   );
 };
 

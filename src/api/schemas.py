@@ -6,31 +6,52 @@ from datetime import datetime
 
 
 #valido datos de entrada*****************************************************************
-class AccionStock(str, Enum):
-    incrementar = "incrementar"
-    disminuir = "disminuir"
-
-
 class Producto_request(BaseModel):
     accion: str
     id_producto: Optional[int] = None
     id_marca: Optional[int] = None
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
-    precio: Optional[float] = None  
+    precio_venta_ars: Optional[float] = None  
+    precio_venta_usd: Optional[float] = None 
     estado:Optional[bool] = True 
     codigo_barras: Optional[str] = None
     forceAdd: Optional[bool] = False  # Si el usuario desea agregar el producto aunque ya exista
-    accion_stock: Optional[AccionStock] = None  # Opción de incremento/disminución de stock
     imagen_producto: Optional[str] = None  # URL de la imagen del producto
     id_categoria: Optional[int] = None
     id_usuario: Optional[int] = None
 
+    
+class TodosLosRecibos_response(BaseModel):
+    id_recibo:str
+    periodo:str  
+    fecha_subida:str
+    descripcion_archivo:str
+    estado:str
+class TodosLosRecibos_request(BaseModel):
+    cuil: str
+    
+
+class GetRol_request(BaseModel):
+    token: str    
+class Download_Request(BaseModel):
+    id_recibo: str
+class Recibo_request(BaseModel):
+    accion: str
+    id_recibo: str
 
 
+
+class Download_response(BaseModel):
+    id_recibo:str
+    path: str
+    filename: str
+    media_type: str
     # Definir un Enum para limitar las opciones válidas
 
-
+class validateTockenApi(BaseModel):
+    token:str
+    id_usuario:str
 
 
 class Proveedor_request(BaseModel):
@@ -83,11 +104,11 @@ class Marca_request(BaseModel):
 
     
 class UsuarioLogin_request(BaseModel):
-    cuil: str
+    usuario: str
     password: str
 
 class TodosLosUsuarios_request(BaseModel):
-    cuil: str
+    usuario: str
 
 class Usuario_request(BaseModel):
     accion: str = Field(..., description="Acción a realizar", pattern='^(new|update|insert|habilitar|deshabilitar|resetPassword|newPassword)$')
@@ -132,31 +153,23 @@ class Usuario_request(BaseModel):
                     raise ValueError("El email es obligatorio para esta acción.")
         return values  
     
-
-
-class MovimientoStock(BaseModel):
-    id_stock: Optional[int] = None
+# Definir el modelo para el movimiento de stock
+class Movimiento(BaseModel):
     id_producto: int
     cantidad: int
-    operacion: str  # Puede ser "incrementar" o "disminuir"
-    id_usuario: Optional[int]
-    observaciones: Optional[str] = None    
+    id_tipo_movimiento: int  # Ahora aceptamos el ID del tipo de movimiento
+    id_usuario: int
     id_proveedor: int
     id_almacen: int
     id_estante: int
-    descripcion: Optional[str]
-    stock_actual: Optional[int] = None
-    stock_minimo: Optional[int] = None
-    stock_maximo: Optional[int] = None
-    id_stock_movimiento: Optional[int] = None
-    id_tipo_movimiento: Optional[int] = None
-    
-    
-    
-    
+    precio_costo_ars: float
+    precio_costo_usd: float
+    descripcion: str
 
-class Stock_request(BaseModel):
-    movimientos: List[MovimientoStock]
+# Modelo de la solicitud
+class movimientoStockRequest(BaseModel):
+    movimientos: List[Movimiento]
+
 
     
 #valido datos de salida*********************************************************************
@@ -245,3 +258,31 @@ class FiltrosStock(BaseModel):
     id_usuario: Optional[int] = None
     fecha_inicio: Optional[datetime] = None
     fecha_fin: Optional[datetime] = None
+# Modelo para modificar usuario
+
+class UsuarioEditRequest(BaseModel):
+    nombre: str
+    apellido: str
+    email: EmailStr
+    usuario: str
+
+# Modelo para deshabilitar usuario
+class UsuarioDeshabilitarRequest(BaseModel):
+    id_usuario: int
+
+
+class PerfilRequest(BaseModel):
+    nombre: str
+    descripcion: str
+
+class UsuarioResponse(BaseModel):
+    id_usuario: Optional[str] = None
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    cuil: Optional[str] = None
+    email: Optional[str] = None
+    fecha_creacion: Optional[datetime] = None  # Cambié esto a datetime
+    estado: Optional[str] = None
+
+    class Config:
+        orm_mode = True

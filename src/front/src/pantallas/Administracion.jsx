@@ -1,92 +1,144 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  Button,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem
+} from "@mui/material";
 
-const Administracion = () => {
-  const [usuarios, setUsuarios] = useState([
-    { id: 1, nombre: "Juan Pérez", rol: "Administrador" },
-    { id: 2, nombre: "Ana García", rol: "Vendedor" },
-    { id: 3, nombre: "Carlos López", rol: "Vendedor" },
-  ]);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const [nuevoUsuario, setNuevoUsuario] = useState({ nombre: "", rol: "Vendedor" });
+export default function Administracion() {
+  const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editedUser, setEditedUser] = useState({});
+  const [nuevoUsuario, setNuevoUsuario] = useState({ nombre: "", apellido: "", email: "", usuario: "", rol: "Vendedor" });
 
-  const handleAddUser = () => {
-    if (nuevoUsuario.nombre.trim() === "") {
-      alert("Por favor, ingrese un nombre.");
-      return;
+  useEffect(() => {
+    fetchUsuarios();
+  }, []);
+
+  const fetchUsuarios = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/usuarios?estado=true`);
+      setUsuarios(response.data);
+    } catch (error) {
+      console.error("Error al obtener usuarios", error);
+    } finally {
+      setLoading(false);
     }
-    setUsuarios([...usuarios, { id: usuarios.length + 1, nombre: nuevoUsuario.nombre, rol: nuevoUsuario.rol }]);
-    setNuevoUsuario({ nombre: "", rol: "Vendedor" });
+  };
+
+  const handleEdit = (usuario) => {
+    setSelectedUser(usuario);
+    setEditedUser(usuario);
+    setModal(true);
+  };
+
+  const handleInactivate = async (id_usuario) => {
+    if (window.confirm("¿Estás seguro de que deseas inactivar este usuario?")) {
+      try {
+        await axios.put(`${API_BASE_URL}/usuarios/${id_usuario}/estado?estado=false`);
+        fetchUsuarios();
+        alert("Usuario inactivado exitosamente");
+      } catch (error) {
+        console.error("Error al inactivar usuario", error);
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (window.confirm("¿Confirmas los cambios en este usuario?")) {
+      try {
+        await axios.put(`${API_BASE_URL}/usuarios/${selectedUser.id_usuario}`, editedUser);
+        setModal(false);
+        fetchUsuarios();
+        alert("Usuario actualizado exitosamente");
+      } catch (error) {
+        console.error("Error al actualizar usuario", error);
+      }
+    }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Administración de la Aplicación</h1>
-
-      <div style={{ marginBottom: "20px" }}>
-        <h2>Agregar Usuario</h2>
-        <div>
-          <label htmlFor="nombre">Nombre: </label>
-          <input
-            type="text"
-            id="nombre"
-            value={nuevoUsuario.nombre}
-            onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })}
-            placeholder="Nombre del usuario"
-          />
-        </div>
-        <div style={{ marginTop: "10px" }}>
-          <label htmlFor="rol">Rol: </label>
-          <select
-            id="rol"
-            value={nuevoUsuario.rol}
-            onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, rol: e.target.value })}
-          >
-            <option value="Vendedor">Vendedor</option>
-            <option value="Administrador">Administrador</option>
-            {/* Agrega más roles según sea necesario */}
-          </select>
-        </div>
-        <button onClick={handleAddUser} style={{ marginTop: "10px" }}>
-          Agregar Usuario
-        </button>
-      </div>
-
-      <div>
-        <h2>Lista de Usuarios</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>ID</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>Nombre</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>Rol</th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
+    <div>
+      <h1 className="text-xl font-bold mb-4">Administración de la Aplicación</h1>
+      <h2 className="mt-4">Lista de Usuarios</h2>
+      {loading ? (
+        <p>Cargando...</p>
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Apellido</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Usuario</TableCell>
+              <TableCell>Rol</TableCell>
+              <TableCell>Acciones</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {usuarios.map((usuario) => (
-              <tr key={usuario.id}>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{usuario.id}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{usuario.nombre}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>{usuario.rol}</td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                  <button onClick={() => alert(`Editar usuario ${usuario.id}`)}>Editar</button>
-                  <button
-                    onClick={() => {
-                      setUsuarios(usuarios.filter((u) => u.id !== usuario.id));
-                      alert(`Usuario ${usuario.id} eliminado`);
-                    }}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
+              <TableRow key={usuario.id_usuario}>
+                <TableCell>{usuario.id_usuario}</TableCell>
+                <TableCell>{usuario.nombre}</TableCell>
+                <TableCell>{usuario.apellido}</TableCell>
+                <TableCell>{usuario.email}</TableCell>
+                <TableCell>{usuario.usuario}</TableCell>
+                <TableCell>{usuario.rol}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleEdit(usuario)}>Editar</Button>
+                  <Button onClick={() => handleInactivate(usuario.id_usuario)} color="error">Inactivar</Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      )}
+      <Dialog open={modal} onClose={() => setModal(false)}>
+        <DialogTitle>Editar Usuario</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Nombre"
+            value={editedUser.nombre}
+            onChange={(e) => setEditedUser({ ...editedUser, nombre: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Apellido"
+            value={editedUser.apellido}
+            onChange={(e) => setEditedUser({ ...editedUser, apellido: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Email"
+            value={editedUser.email}
+            onChange={(e) => setEditedUser({ ...editedUser, email: e.target.value })}
+            fullWidth
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModal(false)}>Cancelar</Button>
+          <Button onClick={handleSave} color="primary">Guardar</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
-};
-
-export default Administracion;
+}

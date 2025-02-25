@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BuscarProductos from '../components/BuscarProductos';
 import ProductosSeleccionados from '../components/ProductosSeleccionados';
+import { toast } from 'react-toastify';
 
 const Abastecimiento = () => {
     const [productosSeleccionados, setProductosSeleccionados] = useState([]);
@@ -10,166 +11,142 @@ const Abastecimiento = () => {
     const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
     const [almacenSeleccionado, setAlmacenSeleccionado] = useState(null);
     const [estanteSeleccionado, setEstanteSeleccionado] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [mostrarModal, setMostrarModal] = useState(false);
 
-    // Cargar listas desplegables al montar
     useEffect(() => {
-        const fetchProveedores = async () => {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/proveedor`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ accion: 'verTodosLosProveedores', estado: true }),
-            });
-            const data = await response.json();
-            setProveedores(data.data || []);
-        };
-
-        const fetchAlmacenes = async () => {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/almacen`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ accion: 'verTodosLosAlmacenes', estado: true }),
-            });
-            const data = await response.json();
-            setAlmacenes(data.data || []);
-        };
-
-        fetchProveedores();
-        fetchAlmacenes();
+        cargarDatosIniciales();
     }, []);
 
-    // Cargar estantes cuando se selecciona un almacén
     useEffect(() => {
-        const fetchEstantes = async () => {
-            if (almacenSeleccionado) {
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/estante`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        accion: 'verTodosLosEstantes',
-                        id_almacen: almacenSeleccionado,
-                        estado: true,
-                    }),
-                });
-                const data = await response.json();
-                setEstantes(data.data || []);
-            }
-        };
-
-        fetchEstantes();
+        if (almacenSeleccionado) cargarEstantes(almacenSeleccionado);
     }, [almacenSeleccionado]);
 
-    // Agregar un producto a la lista de movimientos
-    const agregarProducto = (producto) => {
-        if (!productosSeleccionados.find((p) => p.id_producto === producto.producto_id)) {
-            setProductosSeleccionados([
-                ...productosSeleccionados,
-                {
-                    id_producto: producto.producto_id,
-                    producto_nombre: producto.producto_nombre,
-                    cantidad: 0,
-                    descripcion: '',
-                },
+    const cargarDatosIniciales = async () => {
+        setLoading(true);
+        try {
+            const [proveedoresData, almacenesData] = await Promise.all([
+                fetchData('/proveedores', { estado: true }),
+                fetchData('/almacen', { estado: true })
             ]);
+            setProveedores(proveedoresData);
+            setAlmacenes(almacenesData);
+        } catch (error) {
+            toast.error('Error al cargar proveedores y almacenes.');
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Eliminar un producto de la lista de movimientos
-    const eliminarProducto = (idProducto) => {
-        setProductosSeleccionados(productosSeleccionados.filter((p) => p.id_producto !== idProducto));
+    const cargarEstantes = async (idAlmacen) => {
+        setLoading(true);
+        try {
+            const data = await fetchData('/estante', { id_almacen: idAlmacen, estado: true });
+            setEstantes(data);
+        } catch (error) {
+            toast.error('Error al cargar estantes.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Manejar el cambio de valores (cantidad y descripción) en la lista
-    const actualizarProducto = (idProducto, campo, valor) => {
-        setProductosSeleccionados(
-            productosSeleccionados.map((p) =>
-                p.id_producto === idProducto ? { ...p, [campo]: valor } : p
-            )
-        );
+    const fetchData = async (endpoint, params = {}) => {
+        try {
+            const queryString = new URLSearchParams(params).toString();
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}?${queryString}`);
+            if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+            const data = await response.json();
+            return data.data || [];
+        } catch (error) {
+            console.error('Error en la solicitud:', error);
+            toast.error(`Error en la solicitud a ${endpoint}`);
+            return [];
+        }
     };
 
-    // Enviar el JSON al backend
     const procesarMovimiento = async () => {
+        console.log("Procesando movimiento", productosSeleccionados);
+        if (!productosSeleccionados.length) {
+            toast.warning('Debe seleccionar al menos un producto.');
+            return;
+        }
         if (!proveedorSeleccionado || !almacenSeleccionado || !estanteSeleccionado) {
-            alert('Debes seleccionar un proveedor, almacén y estante.');
+            toast.warning('Debe seleccionar proveedor, almacén y estante.');
             return;
         }
 
-        const movimientos = productosSeleccionados.map((p) => ({
+        if (!window.confirm('¿Está seguro de procesar el movimiento?')) {
+            return;
+        }
+
+        const movimientos = productosSeleccionados.map(p => ({
             id_producto: p.id_producto,
             cantidad: p.cantidad,
-            operacion: 'incrementar',
-            id_usuario: 123, // Aquí se debe reemplazar con el usuario real
-            observaciones: 'Reabastecimiento',
+            id_tipo_movimiento: 1, 
+            id_usuario: 1, 
             id_proveedor: proveedorSeleccionado,
             id_almacen: almacenSeleccionado,
             id_estante: estanteSeleccionado,
-            descripcion: p.descripcion,
+            descripcion: p.descripcion || ""
         }));
 
-        const payload = { movimientos };
-
+        setLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/movimientos`, {
+            fetch(`${import.meta.env.VITE_API_BASE_URL}/movimiento_stock`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al procesar el movimiento');
-            }
-
-            alert('Movimiento procesado con éxito');
-            setProductosSeleccionados([]); // Limpiar la lista
+                body: JSON.stringify({ movimientos })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => { throw new Error(errorData.message || 'Error al procesar el movimiento de stock'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Respuesta del servidor:", data);
+                toast.success('Movimiento procesado exitosamente');
+                setProductosSeleccionados([]);
+            })
+            .catch(error => {
+                console.error('Error en el procesamiento:', error);
+                toast.error('Hubo un problema al enviar los datos. Verifique los valores.');
+            })
+            .finally(() => setLoading(false));
         } catch (error) {
-            console.error('Error al enviar el movimiento:', error);
-            alert('Hubo un problema al procesar el movimiento.');
+            console.error('Error inesperado:', error);
+            toast.error('Error inesperado en la solicitud.');
+            setLoading(false);
         }
     };
 
     return (
-        <div>
+        <div className="container">
             <h1>Abastecimiento de Stock</h1>
+            <button className="btn-primary" onClick={() => setMostrarModal(true)}>Buscar Productos</button>
 
-            {/* Buscador */}
-            <BuscarProductos onAgregarProducto={agregarProducto} />
+            {mostrarModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <button className="close-btn" onClick={() => setMostrarModal(false)}>×</button>
+                        <div className="modal-body">
+                            <BuscarProductos onAgregarProducto={(producto) => setProductosSeleccionados([...productosSeleccionados, producto])} />
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            {/* Listas desplegables */}
-            <div>
-                <select onChange={(e) => setProveedorSeleccionado(e.target.value)} value={proveedorSeleccionado || ''}>
-                    <option value="">Selecciona un proveedor</option>
-                    {proveedores.map((p) => (
-                        <option key={p.id_proveedor} value={p.id_proveedor}>
-                            {p.nombre}
-                        </option>
-                    ))}
-                </select>
-
-                <select onChange={(e) => setAlmacenSeleccionado(e.target.value)} value={almacenSeleccionado || ''}>
-                    <option value="">Selecciona un almacén</option>
-                    {almacenes.map((a) => (
-                        <option key={a.id_almacen} value={a.id_almacen}>
-                            {a.nombre}
-                        </option>
-                    ))}
-                </select>
-
-                <select onChange={(e) => setEstanteSeleccionado(e.target.value)} value={estanteSeleccionado || ''}>
-                    <option value="">Selecciona un estante</option>
-                    {estantes.map((e) => (
-                        <option key={e.id_estante} value={e.id_estante}>
-                            {e.nombre}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Productos seleccionados */}
             <ProductosSeleccionados
                 productos={productosSeleccionados}
-                onEliminarProducto={eliminarProducto}
-                onProcesarPaquete={procesarMovimiento}
+                onEliminarProducto={(id) => setProductosSeleccionados(productosSeleccionados.filter(p => p.id_producto !== id))}
+                onActualizarProducto={(id, campo, valor) => setProductosSeleccionados(productosSeleccionados.map(p => p.id_producto === id ? { ...p, [campo]: valor } : p))}
             />
+
+            <button className="btn-success" onClick={procesarMovimiento} disabled={loading}>
+                {loading ? 'Procesando...' : 'Procesar Movimiento'}
+            </button>
+
+            {loading && <p>Cargando...</p>}
         </div>
     );
 };

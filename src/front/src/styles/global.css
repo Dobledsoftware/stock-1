@@ -9,6 +9,14 @@
   --color-boton-hover: #1c60e0;
   --color-error: #e53935;
   --color-border: #ddd;
+  --color-fondo-tabla: #ffffff;
+  --color-header: #4caf50;
+  --color-header-text: #ffffff;
+  --color-header-border: #3e8e41;
+  --color-row-even: #f9f9f9;
+  --color-row-hover: #f5f5f5;
+  --box-shadow-tabla: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --border-radius-tabla: 8px;
 }
 
 /* Reset global */
@@ -142,56 +150,70 @@ button.large, .MuiButton-large {
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 /* Estilos modernos para las tablas */
+.table-container {
+  margin: 20px;
+  overflow-x: auto;
+  border-radius: var(--border-radius-tabla);
+  box-shadow: var(--box-shadow-tabla);
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--color-fondo-tabla);
+}
+
 table {
   width: 100%;
-  border-collapse: collapse; /* Eliminar espacios entre las celdas */
+  border-collapse: collapse; /* Eliminar espacios entre celdas */
   font-family: 'Poppins', sans-serif; /* Fuente moderna */
-  background-color: #ffffff; /* Fondo blanco para la tabla */
+  background-color: #ffffff; /* Fondo blanco */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
   border-radius: 8px; /* Bordes redondeados */
   margin-top: 20px;
-  table-layout: fixed; /* Fija el ancho de las columnas */
-  border-collapse: collapse; /* Elimina los bordes dobles */
+  table-layout: auto; /* Permite que las columnas se ajusten */
 }
 
-
-/* Ajustar celdas */
-table td {
-  height: 0px; /* Establece una altura fija */
-  padding: 0px; /* Relleno de celdas */
-  vertical-align: middle; /* Alineación vertical */
-  
-  border: 1px solid #ddd; /* Borde sutil */
-  font-family: 'Poppins', sans-serif; /* Fuente moderna */
-}
-
-/* Ajustes adicionales si se necesita un alto mínimo */
-table td {
-  min-height: 20px; /* Altura mínima */
-  line-height: 20px; /* Controla la altura del texto */
-}
-
-/* Estilos para las celdas de la tabla */
-th{
-  padding: 10px 15px; /* Espaciado más pequeño para las celdas */
-  text-align: left; /* Alinear texto a la izquierda */
-  font-size: 0.9rem; /* Tamaño de fuente más pequeño */
-  color: #444444; /* Color de texto gris oscuro */
-  border-bottom: 1px solid #f0f0f0; /* Línea suave entre filas */
-}
-
-/* Estilos de las celdas de encabezado */
+/* Encabezados */
 th {
+  padding: 7px 10px;
+  text-align: left;
+  font-size: 0.7rem;
+  color: white;
+  background-color: #4caf50;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   font-weight: bold;
-  background-color: #4caf50; /* Color de fondo de los encabezados */
-  color: white; /* Color blanco para el texto */
-  text-transform: uppercase; /* Texto en mayúsculas */
-  letter-spacing: 1px; /* Espaciado entre letras */
-  font-size: 1rem; /* Tamaño ligeramente más grande */
-  border-top-left-radius: 8px; /* Bordes redondeados solo en la parte superior */
-  border-top-right-radius: 8px; /* Bordes redondeados solo en la parte superior */
+  border-bottom: 2px solid #3e8e41;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+
 }
+
+/* Celdas */
+td {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  vertical-align: middle;
+  font-size: 0.7rem;
+  overflow: hidden; /* Evita que el contenido desborde */
+  word-wrap: break-word; /* Rompe palabras largas */
+  resize: horizontal; /* Permite redimensionar las columnas */
+  min-width: auto; /* Establece un ancho mínimo */
+  max-width: auto; /* Opcional: establece un ancho máximo */
+}
+
+
+/* Responsive: Permite scroll horizontal si la tabla es muy ancha */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
 
 /* Estilo al pasar el cursor por encima de las filas */
 tr:hover {
@@ -277,4 +299,86 @@ input[type="Buscar"] {
 /* Paginación (si decides implementarla en las tablas) */
 .dataTables_wrapper .dataTables_paginate {
   margin-top: 10px;
+}
+/* Estilos generales del modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Contenedor del contenido del modal */
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh; /* Limitar la altura para evitar desbordamiento */
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor con desplazamiento para evitar que la tabla desborde */
+.modal-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 60vh; /* Ajuste para que la tabla no desborde */
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Botón de cierre del modal */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
+}
+
+.close-btn:hover {
+  color: #d9534f;
+}
+
+/* Botón primario */
+.btn-primary {
+  background: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: scale(0.95);
+  }
+  to {
+      opacity: 1;
+      transform: scale(1);
+  }
 }

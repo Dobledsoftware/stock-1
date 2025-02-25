@@ -7,7 +7,6 @@ SECRET_KEY = "Recibos"  # Cambia esto por una clave secreta segura
 class token:
     @staticmethod    
     def create_jwt_token(id_usuario,rol,cuil):
-        print("ENTRA A AUTH")
         payload = {
             "user_id": id_usuario,
             "rol": rol,

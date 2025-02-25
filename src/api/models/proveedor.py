@@ -96,9 +96,7 @@ class Proveedor(conexion.Conexion):
 
     async def verTodosLosProveedores(self, estado):##FUNCIONA OK
         """Obtiene todos los proveedors según su estado."""
-        print("ENTRA A PROVEEDORES")
         conexion = self.conectar()
-
         try:
             # Usa DictCursor para resultados como diccionario
             cursor = conexion.cursor(cursor_factory=DictCursor)

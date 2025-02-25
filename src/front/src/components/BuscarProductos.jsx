@@ -16,14 +16,15 @@ const BuscarProductos = ({ onAgregarProducto }) => {
         setMostrarAlerta(false);
         setCargando(true); // Mostrar indicador de carga
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/producto`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodosLosProductos',
-                    estado: 'Activo',
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/productos?estado=true`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
             if (!response.ok) {
                 throw new Error(`Error en la respuesta del servidor: ${response.status} ${response.statusText}`);

@@ -10,15 +10,15 @@ const Estantes = ({ apiBaseUrl, id_almacen, estado }) => {
     // Fetch inicial para listar estantes del almacén con estado
     const fetchEstantes = async () => {
         try {
-            const response = await fetch(`${apiBaseUrl}/almacen_estante`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'verTodosLosEstantes',
-                    id_almacen,
-                    estado,  // Ahora se pasa el estado al hacer la consulta
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/almacen?estado=true`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
             if (response.ok) {
                 const { data } = await response.json();
