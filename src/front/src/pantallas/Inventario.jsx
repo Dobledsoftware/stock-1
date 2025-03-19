@@ -179,6 +179,8 @@ const Inventario = () => {
               <th>Nombre Producto</th>
               <th>Descripción</th>
               <th>Código de Barras</th>
+              <th>Precio ARS</th>
+              <th>Precio USD</th>
               <th>Stock Actual</th>
               <th>Almacén</th>
               <th>Estante</th>
@@ -193,6 +195,8 @@ const Inventario = () => {
                   <td>{producto.nombre_producto}</td>
                   <td>{producto.descripcion_producto}</td>
                   <td>{producto.codigo_barras}</td>
+                  <td>{producto.precio_costo_ars}</td>
+                  <td>{producto.precio_costo_usd}</td>
                   <td>{producto.stock_actual}</td>
                   <td>{producto.almacen_descripcion}</td>
                   <td>{producto.descripcion_estante}</td>

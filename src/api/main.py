@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from routers import stockEndPoint
 from routers import usuariosEP
+from routers import ventasEP
+
 
 from fastapi.middleware.cors import CORSMiddleware #libreria para mejorar seguridad CORS
 app = FastAPI()
 app.include_router(stockEndPoint.router)
 app.include_router(usuariosEP.router)
+app.include_router(ventasEP.router)
+
 
 #app.include_router(recibos.router)
 #app.include_router(recibos.router)

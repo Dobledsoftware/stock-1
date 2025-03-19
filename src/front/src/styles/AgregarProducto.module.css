@@ -54,4 +54,22 @@
   .modal button:hover {
     background-color: #035bff;
   }
-  
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.checkbox-label input {
+    width: 16px;
+    height: 16px;
+}

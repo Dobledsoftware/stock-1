@@ -1,3 +1,4 @@
+import bcrypt
 from routers import conexion
 import jwt
 import datetime
@@ -5,16 +6,22 @@ from fastapi import HTTPException
 from .validateTokenApi import Token
 from collections import namedtuple
 
-
 SECRET_KEY = "STOCK"
 
 class Login(conexion.Conexion):
     @staticmethod
     async def login_usuario(usuario: str, password: str):
+        """Autentica al usuario comparando la contraseña encriptada con `bcrypt`."""
         conexion = Login().conectar()
         try:
             cursor = conexion.cursor()
-            sql = "SELECT id_usuario, nombre, apellido, email, usuario, password, estado FROM usuarios WHERE usuario = %s"
+
+            # Buscar el usuario en la base de datos
+            sql = """
+                SELECT id_usuario, nombre, apellido, email, usuario, password, estado 
+                FROM usuarios 
+                WHERE usuario = %s
+            """
             cursor.execute(sql, (usuario,))
             row = cursor.fetchone()
 
@@ -22,7 +29,8 @@ class Login(conexion.Conexion):
                 Usuario = namedtuple("Usuario", ["id_usuario", "nombre", "apellido", "email", "usuario", "password", "estado"])
                 user = Usuario._make(row)
 
-                if password == user.password and user.estado:
+                # **Comparar la contraseña encriptada con `bcrypt`**
+                if bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")) and user.estado:
                     token = Token()
 
                     # Obtener el perfil del usuario y su nombre
@@ -53,7 +61,8 @@ class Login(conexion.Conexion):
                             "lectura": row[1],
                             "escritura": row[2]
                         }
-                        for row in cursor.fetchall()]
+                        for row in cursor.fetchall()
+                    ]
 
                     auth_token = await token.crearTokenLocal(user.id_usuario, funciones)
 
@@ -72,38 +81,6 @@ class Login(conexion.Conexion):
                 else:
                     return {"message": "Usuario o contraseña incorrectos", "code": 0}
 
-        finally:
-            cursor.close()
-            conexion.close()
-
-##############################guardarLogLogin##################################################################
-
-
-    @staticmethod
-    async def guardarLogLogin(id_usuario: int, exito: bool, motivo_fallo: str = None):
-        conexion = Login().conectar()
-        if not conexion:
-            print("No se pudo establecer la conexión a la base de datos.")
-            return {"message": "Error de conexión a la base de datos", "code": 500}
-
-        try:
-            cursor = conexion.cursor()
-            ip_origen = "sin ip por el momento"  # Aquí puedes obtener la IP real si es necesario
-
-            query = """
-                INSERT INTO logs_logins (id_usuario, fecha_logins, ip_origen, exito, motivo_fallo)
-                VALUES (%s, NOW(), %s, %s, %s)
-            """
-            values = (id_usuario, ip_origen, exito, motivo_fallo)
-
-            cursor.execute(query, values)
-            conexion.commit()
-            print(f"Log registrado para el usuario con ID {id_usuario}. Exito: {exito}, Motivo fallo: {motivo_fallo}")
-
-            return {"message": "Log registrado exitosamente", "code": 200}
-        except Exception as err:
-            print(f"Error al guardar el log: {err}")
-            return {"message": f"Error al guardar el log: {err}", "code": 500}
         finally:
             cursor.close()
             conexion.close()

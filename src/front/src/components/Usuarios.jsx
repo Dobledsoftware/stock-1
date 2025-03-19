@@ -75,7 +75,7 @@ const Usuarios = () => {
 
   // Abrir modal para agregar nuevo usuario
   const handleAddUser = () => {
-    setSelectedUser({ nombre: '', apellido: '', legajo: '', email: '', cuil: '' });
+    setSelectedUser({ nombre: '', apellido: '', email: '', usuario: '', password: '' });
     setAccion('insert');
     setModalOpen(true);
   };
@@ -83,8 +83,23 @@ const Usuarios = () => {
   // Guardar cambios de usuario (insert o update)
   const handleSave = async (updatedUser) => {
     try {
-      const payload = { ...updatedUser, accion };
-      if (accion === 'update') payload.id_usuario = updatedUser.id_usuario;
+      // Validar campos obligatorios antes de enviar la petición
+      if (accion === 'insert' && (!updatedUser.nombre || !updatedUser.apellido || !updatedUser.email || !updatedUser.usuario || !updatedUser.password)) {
+        enqueueSnackbar('Todos los campos son obligatorios', { variant: 'error' });
+        return;
+      }
+
+      const payload = {
+        nombre: updatedUser.nombre,
+        apellido: updatedUser.apellido,
+        email: updatedUser.email,
+        usuario: updatedUser.usuario,
+        password: updatedUser.password,
+      };
+
+      if (accion === 'update') {
+        payload.id_usuario = updatedUser.id_usuario;
+      }
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/usuarios`, {
         method: 'POST',
@@ -92,26 +107,19 @@ const Usuarios = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Error en la solicitud');
-
       const result = await response.json();
-      if (result.data.status === 'error') {
-        enqueueSnackbar(result.data.message, { variant: 'error' });
-        return;
-      }
 
-      // Actualizar el estado según la acción
-      if (accion === 'update') {
-        setUsuarios((prev) =>
-          prev.map((user) =>
-            user.id_usuario === updatedUser.id_usuario ? updatedUser : user
-          )
-        );
+      if (response.status === 201) {
+        enqueueSnackbar('Usuario agregado correctamente', { variant: 'success' });
+
+        setUsuarios((prev) => [...prev, { ...updatedUser, id_usuario: result.id_usuario }]);
+      } else if (response.status === 409) {
+        enqueueSnackbar(result.message, { variant: 'error' });
       } else {
-        setUsuarios((prev) => [...prev, result]);
+        enqueueSnackbar('Error al procesar la solicitud', { variant: 'error' });
       }
     } catch (error) {
-      enqueueSnackbar('Hubo un problema al procesar el usuario.', { variant: 'error' });
+      enqueueSnackbar('Hubo un problema al procesar la solicitud', { variant: 'error' });
     } finally {
       setModalOpen(false);
     }

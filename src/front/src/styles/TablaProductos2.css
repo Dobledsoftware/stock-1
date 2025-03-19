@@ -1,0 +1,133 @@
+/* Contenedor de la tabla */
+.table-container {
+    width: 100%;
+    margin: 20px auto;
+    overflow-x: auto;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Estilos para la tabla */
+
+
+/* Estilos del modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 110%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 10px;
+    width: 50%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    max-height: 100vh; /* Para hacer scroll si el contenido es muy grande */
+}
+
+.modal-body {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Formulario dentro del modal */
+.form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1px; /* Reduce la separación entre el label y el input */
+    margin-bottom: 4px; /* Reduce la separación entre los campos */
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+}
+/* Estilos para los labels */
+.form-group label {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+
+    margin-bottom: 1px; /* Espaciado más corto entre label e input */
+}
+/* Estilos para los inputs y select */
+.input-field, .select-field {
+    width: 100%;
+    font-size: 12px; /* Tamaño de texto más compacto */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.submit-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.submit-button:hover {
+    background-color: #45a049;
+}
+
+.cancel-button {
+    background-color: #d9534f;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.cancel-button:hover {
+    background-color: #c9302c;
+}
+
+/* Estilos para los checkboxes */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.checkbox-label input {
+    width: 16px;
+    height: 16px;
+}
+
+/* Ajuste responsivo */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 90%;
+    }
+}

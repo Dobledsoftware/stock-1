@@ -107,42 +107,51 @@ class Producto(conexion.Conexion):
     
 ###############################eliminar_producto#######################################################################
             
-    async def eliminarProducto(self, producto_id):
-       
-        return await self.repository.eliminarProducto(producto_id)      
-
+    async def eliminarProducto(self, producto_id):       
+        return await self.repository.eliminarProducto(producto_id) 
 
     
 #################################buscarPorCodigoDeBarras#######################################################
-    async def buscarPorCodigoDeBarras(self, codigo_barras,estado):
-       
-        return await self.repository.buscarPorCodigoDeBarras(codigo_barras,estado)    
-    
 
+    async def buscarPorCodigoDeBarras(self, codigo_barras,estado):
+               return await self.repository.buscarPorCodigoDeBarras(codigo_barras,estado)    
+    
     
 #################################editarProducto#######################################################
+
     async def editarProducto(self,id_producto, id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria,id_usuario, imagen_producto=None):
-        
         return await self.repository.editarProducto(id_producto,id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria,id_usuario,imagen_producto)
 
 #################################editarProducto#######################################################
+
     async def consultarHistorialProducto(self,id_producto):        
         return await self.repository.consultarHistorialProducto(id_producto)
 
-#######################################################################################################
+####################################obtener_configuracion###################################################################
+
     async def obtener_configuracion(self):        
         return await self.repository.obtener_configuracion()
-
     
-    async def actualizar_configuracion(self,permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
-        ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar):        
-        return await self.repository.actualizar_configuracion(permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
-        ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar)
+####################################obtener_configuracion###################################################################
 
+    async def actualizar_configuracion_ars(self,permitir_precio_menor_costo_ars,ajuste_precio_porcentaje_ars):        
+        return await self.repository.actualizar_configuracion_ars(permitir_precio_menor_costo_ars,ajuste_precio_porcentaje_ars)
     
-    async def convertir_precios_dolares(self):        
-        return await self.repository.convertir_precios_dolares()
-   
+######################################actualizar_configuracion_usd#################################################################
 
-
+    async def actualizar_configuracion_usd(self, permitir_precio_menor_costo_usd,ajuste_precio_porcentaje_usd):        
+        return await self.repository.actualizar_configuracion_usd( permitir_precio_menor_costo_usd,ajuste_precio_porcentaje_usd)
     
+    
+
+
+    async def ajustar_precios_ars(self,):
+        return await self.repository.ajustar_precios_ars()
+
+
+    async def ajustar_precios_usd(self,):
+        return await self.repository.ajustar_precios_usd()
+    
+
+    async def convertir_precios_dolares(self, valor_dolar: float): 
+        return await self.repository.convertir_precios_dolares(valor_dolar)

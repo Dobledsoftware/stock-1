@@ -82,7 +82,10 @@ class ProductoRepository(conexion.Conexion):
                 p.fecha_alta AS producto_alta,
                 p.fecha_ultima_modificacion AS producto_fecha_modificacion,
                 p.estado AS producto_estado,
-                p.codigo_barras AS producto_codigo_barras                
+                p.codigo_barras AS producto_codigo_barras,
+                p.aplicar_incremento_automatico_ars,
+                p.aplicar_incremento_automatico_usd,
+                p.es_dolar               
             FROM 
                 productos p
             LEFT JOIN producto_marca as pm ON pm.id_marca = p.id_marca                
@@ -159,7 +162,7 @@ class ProductoRepository(conexion.Conexion):
 
 
 ######################################################################################################
-    async def agregar_producto(self, id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras,id_categoria, imagen_producto=None, force_add=False):
+    async def agregar_producto(self, id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, aplicar_incremento_automatico_ars,aplicar_incremento_automatico_usd,es_dolar,codigo_barras,id_categoria, imagen_producto=None, force_add=False):
         """
         Agrega un producto (variante) a la base de datos, verificando si ya existe un producto con el mismo código de barras.
         Si force_add es True, permite duplicar el producto aunque tenga el mismo código de barras.
@@ -201,13 +204,13 @@ class ProductoRepository(conexion.Conexion):
             
             # Insertar el nuevo producto (aunque ya exista uno con el mismo código de barras, si force_add es True)
             sql_producto = """
-            INSERT INTO productos (id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras, estado, fecha_alta, imagen_producto,id_categoria)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s,%s)
+            INSERT INTO productos (id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, aplicar_incremento_automatico_ars,aplicar_incremento_automatico_usd,es_dolar, codigo_barras, estado, fecha_alta, imagen_producto,id_categoria)
+            VALUES (%s, %s, %s, %s, %s, %s,%s, %s, %s, %s, NOW(), %s,%s)
             RETURNING id_producto;
             """
             cursor.execute(
                 sql_producto,
-                (id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd, codigo_barras, estado, imagen_producto,id_categoria),
+                (id_marca, nombre, descripcion, precio_venta_ars,precio_venta_usd,aplicar_incremento_automatico_ars,aplicar_incremento_automatico_usd,es_dolar, codigo_barras, estado, imagen_producto,id_categoria),
             )
             id_producto = cursor.fetchone()[0]
             conexion.commit()
@@ -536,10 +539,9 @@ class ProductoRepository(conexion.Conexion):
             conexion.close()
 
 
-############################actualizar_configuracion#####################################################
+############################actualizar_configuracion_ars#####################################################
 
-    async def actualizar_configuracion(self, permitir_precio_menor_costo_ars: bool, permitir_precio_menor_costo_usd: bool,
-                                   ajuste_precio_porcentaje_ars: float, ajuste_precio_porcentaje_usd: float, valor_dolar: float):
+    async def actualizar_configuracion_ars(self, permitir_precio_menor_costo_ars: bool,ajuste_precio_porcentaje_ars: float):
         """Actualiza la configuración de precios en la base de datos."""
         conexion = self.conectar()
         try:
@@ -547,14 +549,10 @@ class ProductoRepository(conexion.Conexion):
             sql = """
             UPDATE configuracion_precios
             SET permitir_precio_menor_costo_ars = %s,
-                permitir_precio_menor_costo_usd = %s,
-                ajuste_precio_porcentaje_ars = %s,
-                ajuste_precio_porcentaje_usd = %s,
-                valor_dolar = %s
+                ajuste_precio_porcentaje_ars = %s
             WHERE id_configuracion_precios = 1;
             """
-            cursor.execute(sql, (permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
-                                ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar))
+            cursor.execute(sql, (permitir_precio_menor_costo_ars, ajuste_precio_porcentaje_ars))
             conexion.commit()
             return {"status": "success", "message": "Configuración actualizada correctamente."}
         except Exception as e:
@@ -563,26 +561,153 @@ class ProductoRepository(conexion.Conexion):
         finally:
             conexion.close()
 
-############################convertir_precios_dolares#####################################################
+############################actualizar_configuracion_usd#####################################################
 
-    async def convertir_precios_dolares(self):
-        """Convierte los productos en dólares a pesos según el tipo de cambio configurado."""
+    async def actualizar_configuracion_usd(self,permitir_precio_menor_costo_usd: bool,ajuste_precio_porcentaje_usd: float):
+        """Actualiza la configuración de precios en la base de datos."""
         conexion = self.conectar()
         try:
             cursor = conexion.cursor()
-            # Obtener el valor del dólar desde la configuración
-            cursor.execute("SELECT valor_dolar FROM configuracion_precios WHERE id_configuracion_precios = 1;")
-            valor_dolar = cursor.fetchone()[0]
             sql = """
-            UPDATE productos
-            SET precio_venta_ars = precio_venta_ars * %s
-            WHERE es_dolar = TRUE;
+            UPDATE configuracion_precios
+            SET permitir_precio_menor_costo_usd = %s,
+                ajuste_precio_porcentaje_usd = %s
+            WHERE id_configuracion_precios = 1;
             """
-            cursor.execute(sql, (valor_dolar,))
+            cursor.execute(sql, (permitir_precio_menor_costo_usd,ajuste_precio_porcentaje_usd))
             conexion.commit()
-            return {"status": "success", "message": "Precios con costos en dólares convertidos a pesos."}
+            return {"status": "success", "message": "Configuración actualizada correctamente."}
         except Exception as e:
             conexion.rollback()
             return {"status": "error", "message": str(e)}
         finally:
             conexion.close()
+
+############################ajustar_precios_ars#####################################################
+
+    async def ajustar_precios_ars(self):
+        """Ajusta los precios de venta en ARS según el costo en stock y los ajustes configurados, evitando productos sin costo."""
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor()
+
+            # Obtener configuración
+            cursor.execute("""
+                SELECT permitir_precio_menor_costo_ars, ajuste_precio_porcentaje_ars
+                FROM configuracion_precios WHERE id_configuracion_precios = 1;
+            """)
+            config = cursor.fetchone()
+            permitir_ars = config[0]
+            porcentaje_ars = config[1] / 100
+
+            # Aplicar ajustes en ARS solo si `precio_costo_ars > 0`
+            sql_ars = """
+            UPDATE productos p
+            SET precio_venta_ars = GREATEST(
+                (SELECT s.precio_costo_ars FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_ars > 0 ORDER BY s.fecha_ingreso DESC LIMIT 1),
+                (SELECT s.precio_costo_ars FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_ars > 0 ORDER BY s.fecha_ingreso DESC LIMIT 1) * (1 + %s)
+            )
+            WHERE p.aplicar_incremento_automatico_ars = TRUE 
+            AND EXISTS (SELECT 1 FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_ars > 0);
+            """ if not permitir_ars else """
+            UPDATE productos p
+            SET precio_venta_ars = (SELECT s.precio_costo_ars FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_ars > 0 ORDER BY s.fecha_ingreso DESC LIMIT 1) * (1 + %s)
+            WHERE p.aplicar_incremento_automatico_ars = TRUE
+            AND EXISTS (SELECT 1 FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_ars > 0);
+            """
+
+            cursor.execute(sql_ars, (porcentaje_ars,))
+            conexion.commit()
+
+            return {"status": "success", "message": "Precios en ARS ajustados correctamente, excluyendo productos sin costo."}
+        except Exception as e:
+            conexion.rollback()
+            return {"status": "error", "message": str(e)}
+        finally:
+            conexion.close()
+
+            
+
+
+############################ajustar_precios_usd#####################################################
+
+    async def ajustar_precios_usd(self):
+        """Ajusta los precios de venta en USD según el costo en stock y los ajustes configurados, evitando productos sin costo."""
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor()
+
+            # Obtener configuración
+            cursor.execute("""
+                SELECT permitir_precio_menor_costo_usd, ajuste_precio_porcentaje_usd
+                FROM configuracion_precios WHERE id_configuracion_precios = 1;
+            """)
+            config = cursor.fetchone()
+            permitir_usd = config[0]
+            porcentaje_usd = config[1] / 100
+
+            # Aplicar ajustes en USD solo si `precio_costo_usd > 0`
+            sql_usd = """
+            UPDATE productos p
+            SET precio_venta_usd = GREATEST(
+                (SELECT s.precio_costo_usd FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_usd > 0 ORDER BY s.fecha_ingreso DESC LIMIT 1),
+                (SELECT s.precio_costo_usd FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_usd > 0 ORDER BY s.fecha_ingreso DESC LIMIT 1) * (1 + %s)
+            )
+            WHERE p.aplicar_incremento_automatico_usd = TRUE
+            AND EXISTS (SELECT 1 FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_usd > 0);
+            """ if not permitir_usd else """
+            UPDATE productos p
+            SET precio_venta_usd = (SELECT s.precio_costo_usd FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_usd > 0 ORDER BY s.fecha_ingreso DESC LIMIT 1) * (1 + %s)
+            WHERE p.aplicar_incremento_automatico_usd = TRUE
+            AND EXISTS (SELECT 1 FROM stock s WHERE s.id_producto = p.id_producto AND s.precio_costo_usd > 0);
+            """
+
+            cursor.execute(sql_usd, (porcentaje_usd,))
+            conexion.commit()
+
+            return {"status": "success", "message": "Precios en USD ajustados correctamente, excluyendo productos sin costo."}
+        except Exception as e:
+            conexion.rollback()
+            return {"status": "error", "message": str(e)}
+        finally:
+            conexion.close()
+
+
+
+
+    async def convertir_precios_dolares(self, valor_dolar: float):
+        """Convierte los precios de los productos en dólares a pesos según el valor del dólar y guarda el historial."""
+        conexion = self.conectar()
+        try:
+            cursor = conexion.cursor()
+
+            # Obtener productos en dólares
+            cursor.execute("""
+                SELECT p.id_producto, 
+                    (SELECT s.precio_costo_usd FROM stock s 
+                        WHERE s.id_producto = p.id_producto 
+                        ORDER BY s.fecha_ingreso DESC LIMIT 1) AS precio_costo_usd,
+                    p.precio_venta_ars AS precio_venta_ars_anterior
+                FROM productos p
+                WHERE p.es_dolar = TRUE AND s.precio_costo_usd >0;
+            """)
+            productos = cursor.fetchall()
+
+            # Actualizar precios en ARS
+            sql_update = """
+            UPDATE productos p
+            SET precio_venta_ars = (
+                SELECT s.precio_costo_usd FROM stock s 
+                WHERE s.id_producto = p.id_producto 
+                ORDER BY s.fecha_ingreso DESC LIMIT 1
+            ) * %s
+            WHERE p.es_dolar = TRUE;
+            """
+            cursor.execute(sql_update, (valor_dolar,))  
+            return {"status": "success", "message": "Precios en dólares convertidos a pesos correctamente."}
+        except Exception as e:
+            conexion.rollback()
+            return {"status": "error", "message": str(e)}
+        finally:
+            conexion.close()
+

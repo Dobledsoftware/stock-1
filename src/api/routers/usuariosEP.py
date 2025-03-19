@@ -6,15 +6,16 @@ from models.todosLosUsuarios import TodosLosUsuarios
 from models.usuario import Usuario  # Importar tu clase Usuario
 #from .usuario import Usuario # Importa Clase Recibo
 from models.login import Login # Importa Clase Recibo
+from models.logout import Logout  # ✅ Importamos la clase Logout
 from models.getRol import GetRol  # Importa la clase 
 from models.validateTokenApi import Token
 from models.perfil import Perfil
 
 from models.rol import validar_token_con_roles
-from typing import List
+from typing import List,Optional
 
 #importa los schemas
-from schemas import   PerfilRequest,UsuarioEditRequest,UsuarioLogin_request,GetRol_request,TodosLosRecibos_request,TodosLosRecibos_response,Usuario_request,Download_Request,Download_response,validateTockenApi
+from schemas import   UsuarioResponse,UsuarioCreate,PerfilRequest,UsuarioEditRequest,UsuarioLogin_request,GetRol_request,TodosLosRecibos_request,TodosLosRecibos_response,Usuario_request,Download_Request,Download_response,validateTockenApi
 import logging
 import json
 import os
@@ -29,8 +30,75 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-########################################################################
 router = APIRouter(tags=["Usuarios, Perfiles, Logins y Tokens"])
+
+
+@router.post("/usuarios")
+async def agregar_usuario(usuario_data: UsuarioCreate):
+    """
+    ✅ **Crear un nuevo usuario en el sistema**  
+
+    📌 **Descripción:**  
+    Este endpoint permite registrar un nuevo usuario en la base de datos.  
+    Se valida que el email y el nombre de usuario sean únicos antes de crearlo.  
+
+    📌 **Parámetros:**  
+    - `usuario_data` (JSON, requerido): Datos del usuario a registrar.
+      - `nombre` (str, requerido)
+      - `apellido` (str, requerido)
+      - `email` (EmailStr, requerido, debe ser único)
+      - `usuario` (str, requerido, debe ser único)
+      - `password` (str, requerido, mínimo 6 caracteres)
+
+    📌 **Ejemplo de solicitud (`POST /usuarios`)**  
+    ```json
+    {
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "email": "juan.perez@example.com",
+        "usuario": "juanperez",
+        "password": "segura123"
+    }
+    ```
+
+    📌 **Ejemplo de Respuesta (`201 Created`)**  
+    ```json
+    {
+        "message": "Usuario agregado correctamente",
+        "id_usuario": 10,
+        "code": 201
+    }
+    ```
+    """
+    logger.info(f"Intentando registrar usuario: {usuario_data.usuario} - Email: {usuario_data.email}")
+
+    # Validación de la longitud de la contraseña
+    if len(usuario_data.password) < 6:
+        logger.warning(f"Contraseña demasiado corta para el usuario {usuario_data.usuario}")
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres.")
+
+    # Llamada al servicio de usuarios para insertar el nuevo usuario en la BD
+    resultado = await Usuario.agregar_usuario(
+        usuario_data.nombre,
+        usuario_data.apellido,
+        usuario_data.email,
+        usuario_data.usuario,
+        usuario_data.password
+    )
+
+    # Manejo de respuestas
+    if resultado["code"] == 409:
+        logger.warning(f"Conflicto al registrar usuario: {usuario_data.usuario} - {resultado['message']}")
+        raise HTTPException(status_code=409, detail=resultado["message"])
+
+    if resultado["code"] == 500:
+        logger.error(f"Error interno al registrar usuario: {usuario_data.usuario}")
+        raise HTTPException(status_code=500, detail=resultado["message"])
+
+    logger.info(f"Usuario {usuario_data.usuario} registrado correctamente con ID {resultado['id_usuario']}")
+    return JSONResponse(content=resultado, status_code=201)
+
+########################################################################
 
 
 @router.get("/usuarios", response_model=List[dict])
@@ -121,6 +189,22 @@ async def login(usuario: UsuarioLogin_request, response: Response):
         raise HTTPException(status_code=500, detail="Error interno del servidor al procesar la autenticación.")
 
 
+
+
+###########################logout#####################################################################
+
+@router.post("/logout")
+async def logout(response: Response, usuario: validateTockenApi):
+    """
+    🔐 **Cerrar sesión eliminando el token de `tokens_activos`.**
+    
+    📌 Verifica si el token existe antes de eliminarlo.  
+    📌 Si el token no está en la BD, devuelve un error `401 Unauthorized`.  
+    📌 Si el token es válido, lo elimina y cierra sesión correctamente.  
+    """
+    return await Logout.cerrar_sesion(response, usuario.token)
+
+
 ###########################validateToken#####################################################################
 
 @router.post("/validateTokenApi")
@@ -172,6 +256,7 @@ async def cambiar_estado_usuario(id_usuario: int, estado: bool):
     return resultado
 
 
+############################editar_usuario####################################################################
 
 @router.put("/usuarios/{id_usuario}")
 async def editar_usuario(id_usuario: int, request: UsuarioEditRequest):
@@ -269,8 +354,150 @@ async def editar_usuario(id_usuario: int, request: UsuarioEditRequest):
         raise HTTPException(status_code=500, detail=resultado["message"])
 
     return resultado
+#############################    🔐 **Cambiar contraseña (autogestionado por el usuario)**  #########################################
+class CambiarPasswordRequest(BaseModel):
+    password_actual: str
+    password_nuevo: str
+class CambiarPasswordRequest(BaseModel):
+    password_actual: str
+    password_nuevo: str
 
+@router.put("/usuarios/{id_usuario}/cambiar-password")
+async def cambiar_password_usuario(id_usuario: int, request: CambiarPasswordRequest):
+    """
+    🔐 **Cambiar contraseña (autogestionado por el usuario)**  
+    📌 Permite a un usuario cambiar su propia contraseña verificando la actual antes de actualizarla.  
 
+    ---
+    
+    🔹 **Parámetros:**  
+    - `id_usuario` (int): ID del usuario que cambiará su contraseña.  
+    - `request` (JSON):  
+      - `password_actual` (str): Contraseña actual del usuario.  
+      - `password_nuevo` (str): Nueva contraseña que se establecerá.  
+
+    ---
+    
+    🔹 **Ejemplo de solicitud (Request Body):**  
+    ```json
+    {
+        "password_actual": "MiContraseñaVieja123",
+        "password_nuevo": "MiNuevaContraseña456"
+    }
+    ```
+
+    ---
+    
+    🔹 **Códigos de Respuesta:**  
+    ✅ **200 OK** → Contraseña cambiada con éxito.  
+    ❌ **401 Unauthorized** → Contraseña actual incorrecta.  
+    ❌ **404 Not Found** → Usuario no encontrado.  
+    ❌ **500 Internal Server Error** → Error interno en el servidor.  
+
+    ---
+    
+    🔹 **Ejemplo de Respuestas:**  
+
+    **✅ Contraseña cambiada (200 OK):**  
+    ```json
+    {
+        "message": "Contraseña actualizada correctamente",
+        "code": 200
+    }
+    ```
+
+    **🚫 Contraseña incorrecta (401 Unauthorized):**  
+    ```json
+    {
+        "message": "La contraseña actual es incorrecta",
+        "code": 401
+    }
+    ```
+
+    **🚫 Usuario no encontrado (404 Not Found):**  
+    ```json
+    {
+        "message": "Usuario no encontrado",
+        "code": 404
+    }
+    ```
+
+    **❌ Error interno (500 Internal Server Error):**  
+    ```json
+    {
+        "message": "Error interno al cambiar la contraseña",
+        "code": 500
+    }
+    ```
+    """
+
+    resultado = await Usuario.cambiar_password_usuario(id_usuario, request.password_actual, request.password_nuevo)
+
+    if resultado["code"] == 404:
+        raise HTTPException(status_code=404, detail=resultado["message"])
+    if resultado["code"] == 401:
+        raise HTTPException(status_code=401, detail=resultado["message"])
+    if resultado["code"] == 500:
+        raise HTTPException(status_code=500, detail=resultado["message"])
+
+    return resultado
+##########################    🔐 **Resetear la contraseña de un usuario (solo admin)** ############################################
+
+@router.put("/usuarios/{id_usuario}/resetear-password")
+async def resetear_password_admin(id_usuario: int):
+    """
+    🔐 **Resetear la contraseña de un usuario (solo admin)**  
+    📌 Permite a un administrador generar una nueva contraseña aleatoria para un usuario y enviarla a su correo.  
+
+    ---
+    
+    🔹 **Parámetros:**  
+    - `id_usuario` (int): ID del usuario cuya contraseña será reseteada.  
+
+    ---
+    
+    🔹 **Códigos de Respuesta:**  
+    ✅ **200 OK** → Contraseña reseteada y enviada por correo.  
+    ❌ **404 Not Found** → Usuario no encontrado.  
+    ❌ **500 Internal Server Error** → Error interno en el servidor.  
+
+    ---
+    
+    🔹 **Ejemplo de Respuestas:**  
+
+    **✅ Contraseña reseteada (200 OK):**  
+    ```json
+    {
+        "message": "Contraseña reseteada y enviada por correo",
+        "code": 200
+    }
+    ```
+
+    **🚫 Usuario no encontrado (404 Not Found):**  
+    ```json
+    {
+        "message": "Usuario no encontrado",
+        "code": 404
+    }
+    ```
+
+    **❌ Error interno (500 Internal Server Error):**  
+    ```json
+    {
+        "message": "Error interno al resetear la contraseña",
+        "code": 500
+    }
+    ```
+    """
+
+    resultado = await Usuario.resetear_password_admin(id_usuario)
+
+    if resultado["code"] == 404:
+        raise HTTPException(status_code=404, detail=resultado["message"])
+    if resultado["code"] == 500:
+        raise HTTPException(status_code=500, detail=resultado["message"])
+
+    return resultado
 ######################################################################
 
 @router.get("/usuarios/{id_usuario}/historial_logins")
@@ -772,6 +999,8 @@ async def listar_funciones():
         raise HTTPException(status_code=500, detail=resultado["message"])
 
     return resultado
+
+
 
 
 

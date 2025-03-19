@@ -14,6 +14,9 @@ class Producto_request(BaseModel):
     descripcion: Optional[str] = None
     precio_venta_ars: Optional[float] = None  
     precio_venta_usd: Optional[float] = None 
+    aplicar_incremento_automatico_ars: Optional[bool] = False 
+    aplicar_incremento_automatico_usd: Optional[bool] = False 
+    es_dolar: Optional[bool] = False 
     estado:Optional[bool] = True 
     codigo_barras: Optional[str] = None
     forceAdd: Optional[bool] = False  # Si el usuario desea agregar el producto aunque ya exista
@@ -286,3 +289,18 @@ class UsuarioResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+
+
+class UsuarioCreate(BaseModel):
+    nombre: str
+    apellido: str
+    email: EmailStr
+    usuario: str
+    password: str
+
+class UsuarioResponse(BaseModel):
+    message: str
+    id_usuario: int
+    code: int       

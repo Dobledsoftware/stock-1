@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from psycopg2.extras import DictCursor
 from typing import Optional
 from datetime import datetime
+import aiohttp
 
 
 class Stock(conexion.Conexion):
@@ -353,3 +354,11 @@ class Stock(conexion.Conexion):
                 raise HTTPException(status_code=500, detail=str(e))
             finally:
                 conexion.close()
+
+
+
+
+
+
+
+

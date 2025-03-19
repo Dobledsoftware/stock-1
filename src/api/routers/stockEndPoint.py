@@ -137,6 +137,9 @@ async def productos(request: Producto_request):
             "descripcion": "Edición 2025 con nueva tecnología de amortiguación",
             "precio_venta_ars": 160.99,
             "precio_venta_usd": 199.99,
+            "aplicar_incremento_automatico_ars": false,
+            "aplicar_incremento_automatico_usd": false,
+            "es_dolar": false,
             "codigo_barras": "1234567890123",
             "id_categoria": 3,
             "imagen_producto": "https://drive.google.com/uc?id=ID_NUEVA_IMAGEN",
@@ -165,6 +168,9 @@ async def productos(request: Producto_request):
             "descripcion": "Zapatillas deportivas de alta calidad, edición 2024",
             "precio_venta_ars": 16.99,
             "precio_venta_usd": 19.99,
+            "aplicar_incremento_automatico_ars": false,
+            "aplicar_incremento_automatico_usd": false,
+            "es_dolar": false,
             "codigo_barras": "1234567890123aaa",
             "id_categoria": 1,
             "imagen_producto": "https://drive.google.com/uc?id=ID_DE_TU_IMAGEN",
@@ -209,6 +215,9 @@ async def productos(request: Producto_request):
                 descripcion=request.descripcion,
                 precio_venta_ars=request.precio_venta_ars,
                 precio_venta_usd=request.precio_venta_usd,
+                aplicar_incremento_automatico_ars=request.aplicar_incremento_automatico_ars,
+                aplicar_incremento_automatico_usd=request.aplicar_incremento_automatico_usd,
+                es_dolar=request.es_dolar,
                 codigo_barras=request.codigo_barras,
                 id_categoria=request.id_categoria,
                 imagen_producto=request.imagen_producto,                
@@ -1159,6 +1168,7 @@ async def consultar_movimientos(
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 
+############################Panel de configuracionde precios#######################################################################
 
 
 @router.get("/configuracion/precios",tags=["Panel configuracion precios"])
@@ -1168,34 +1178,50 @@ async def obtener_configuracion():
     resultado = await producto.obtener_configuracion()
     return resultado
 
-@router.post("/configuracion/precios", tags=["Panel configuración precios"])
-async def actualizar_configuracion(
-    permitir_precio_menor_costo_ars: bool,
-    permitir_precio_menor_costo_usd: bool,
-    ajuste_precio_porcentaje_ars: float,
-    ajuste_precio_porcentaje_usd: float,
-    valor_dolar: float
-):
+
+@router.post("/configuracion/precios_ars", tags=["Panel configuración precios"])
+async def actualizar_configuracion_ars(permitir_precio_menor_costo_ars: bool,
+    ajuste_precio_porcentaje_ars: float,):
     """Actualiza la configuración de precios."""
     producto = Producto()
-    resultado = await producto.actualizar_configuracion(
-        permitir_precio_menor_costo_ars, permitir_precio_menor_costo_usd,
-        ajuste_precio_porcentaje_ars, ajuste_precio_porcentaje_usd, valor_dolar
-    )
+    resultado = await producto.actualizar_configuracion_ars(
+        permitir_precio_menor_costo_ars,
+        ajuste_precio_porcentaje_ars)
     return resultado
 
 
-@router.post("/configuracion/ajustar_precios")
-async def ajustar_precios():
-    producto=Producto()
-    """Ajusta los precios de los productos en base al porcentaje configurado."""
-    resultado = await producto.ajustar_precios_masivos()
+@router.post("/configuracion/precios_usd", tags=["Panel configuración precios"])
+async def actualizar_configuracion_usd(permitir_precio_menor_costo_usd: bool,
+    ajuste_precio_porcentaje_usd: float):
+    """Actualiza la configuración de precios."""
+    producto = Producto()
+    resultado = await producto.actualizar_configuracion_usd(
+         permitir_precio_menor_costo_usd,
+         ajuste_precio_porcentaje_usd)
     return resultado
 
-@router.post("/configuracion/convertir_dolares")
-async def convertir_dolares():
-    producto=Producto()
-    """Convierte los precios de productos en dólares a pesos según el valor del dólar."""
-    resultado = await producto.convertir_precios_dolares()
+
+@router.post("/configuracion/aplicar_precios_ars", tags=["Panel configuración precios"])
+async def aplicar_precios_ars():
+    """Aplica los cambios de precios en ARS según la configuración."""
+    producto = Producto()
+    resultado = await producto.ajustar_precios_ars()
     return resultado
 
+
+@router.post("/configuracion/aplicar_precios_usd", tags=["Panel configuración precios"])
+async def aplicar_precios_usd():
+    """Aplica los cambios de precios en USD según la configuración."""
+    producto = Producto()
+    resultado = await producto.ajustar_precios_usd()
+    return resultado
+
+
+@router.post("/configuracion/convertir_precios", tags=["Conversión de precios"])
+async def convertir_precios_dolares(valor_dolar: float):
+    """Convierte los precios de los productos en dólares a pesos argentinos según el valor del dólar."""
+    producto = Producto()
+    resultado = await producto.convertir_precios_dolares(valor_dolar)
+    return resultado
+
+    

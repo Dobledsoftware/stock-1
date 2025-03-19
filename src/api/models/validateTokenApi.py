@@ -110,38 +110,18 @@ class Token(conexion.Conexion):
 
     @staticmethod
     async def checkTokenGeneral(token: str) -> dict:
-        """
-        Valida un token usando:
-        1. Validación contra un servicio externo (LDAP).
-        2. Validación local si la validación LDAP indica que el token es inválido.
-        Si ninguna validación es exitosa, retorna un error.
-        """
-        ldap_url = "http://10.5.0.124:8000/check/validatetoken"  # URL del servicio LDAP
-        headers = {'Authorization': f'Bearer {token}'}
-# Validación contra LDAP
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(ldap_url, headers=headers) as response:
-                    if response.status == 200:
-                        ldap_data = await response.json()
-                        if "samaccountname" in ldap_data and ldap_data["samaccountname"]:                            
-                            return ldap_data
-                    else:
-                        token_local = await Token.validateLocalToken(token)                        
-                        return token_local
-        except aiohttp.ClientError as e:
-            print(f"Error al conectar con LDAP: {str(e)}")
-            # Continúa con la validación local
-
-        # Validación local
+        """Valida un token verificándolo en la base de datos `tokens_activos`."""
+        
+        # Validación local en la base de datos
         local_validation = await Token.validateLocalToken(token)
+        
         if local_validation["validate"]:
             return {"validate": True, "source": "Local", "data": local_validation["data"]}
 
-        # Si ninguna validación es exitosa
-        return {"validate": False, "error": "Token inválido en ambas validaciones (LDAP y local)."}
-    
-#########################eliminarTokensExpirados#########################################3
+        # Si la validación falla, el token no es válido
+        return {"validate": False, "error": "Token inválido o expirado."}
+        
+    #########################eliminarTokensExpirados#########################################3
       
     async def eliminarTokensExpirados(self):
         """

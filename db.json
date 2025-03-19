@@ -1,8 +1,0 @@
-{
-  "products": [
-    { "id": 1, "name": "Producto A", "barcode": "12345", "stock": 15 },
-    { "id": 2, "name": "Producto B", "barcode": "67890", "stock": 5 },
-    { "id": 3, "name": "Producto C", "barcode": "11121", "stock": 8 }
-  ]
-}
-
