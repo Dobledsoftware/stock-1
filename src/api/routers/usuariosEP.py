@@ -174,6 +174,7 @@ async def login(usuario: UsuarioLogin_request, response: Response):
         apellido = resultado["apellido"]
         email = resultado["email"]
         auth_token = resultado["auth_token"]
+        funciones=resultado["funciones"]
         # Configurar cookie segura para el token (opcional)
         response.set_cookie(key="auth_token", value=auth_token, httponly=True, samesite="Lax")
         return {
@@ -182,7 +183,8 @@ async def login(usuario: UsuarioLogin_request, response: Response):
             "auth_token": auth_token,
             "nombre": nombre,
             "apellido": apellido,
-            "email": email
+            "email": email,
+            "funciones": funciones
         }
     except Exception as e:
         print(f"Error inesperado en login: {e}")

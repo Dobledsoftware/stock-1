@@ -1,50 +1,36 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';  // Importa useNavigate
+import { useNavigate } from 'react-router-dom';
+import { Snackbar, Alert } from '@mui/material';
 import '../styles/Login.css';
 
 const Login = ({ onLogin }) => {
-    const [cuil, setCuil] = useState('');
+    const [usuario, setUsuario] = useState('');
     const [password, setPassword] = useState('');
-    const [cuilError, setCuilError] = useState(false);
-    const [isDisabled, setIsDisabled] = useState(true);
     const [error, setError] = useState('');
-    const navigate = useNavigate();  // Hook de navegación
+    const [successSnackbar, setSuccessSnackbar] = useState(false);
+    const [errorSnackbar, setErrorSnackbar] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate();
 
-    const validateCuil = (value) => {
-        const cuilPattern = /^[0-9]{11}$/;
-        setCuilError(!cuilPattern.test(value));
-        setCuil(value);
-        checkFormValidity(value, password);
-    };
-
-    const checkFormValidity = (cuil, password) => {
-        if (cuil.length === 11 && password.length > 0) {
-            setIsDisabled(false);
-        } else {
-            setIsDisabled(true);
-        }
+    const handleUsuarioChange = (e) => {
+        setUsuario(e.target.value);
     };
 
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
-        checkFormValidity(cuil, e.target.value);
-    };
-
-    const storeUserData = (data) => {
-        localStorage.setItem('auth_token', data.auth_token);
-        localStorage.setItem('nombre', data.nombre || '');
-        localStorage.setItem('apellido', data.apellido || '');
-        localStorage.setItem('cuil', data.cuil || '');
-        localStorage.setItem('email', data.email || '');
-        localStorage.setItem('rol', data.rol || '');
-       
-        onLogin(data.auth_token);
     };
 
     const loginUsuario = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!usuario || !password) {
+            setError('Usuario y contraseña son obligatorios.');
+            setErrorMessage('Usuario y contraseña son obligatorios.');
+            setErrorSnackbar(true);
+            return;
+        }
 
         try {
             const apiResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
@@ -52,25 +38,33 @@ const Login = ({ onLogin }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    cuil: cuil,
-                    password: password,
-                }),
+                body: JSON.stringify({ usuario, password }),
             });
 
             const apiData = await apiResponse.json();
+            console.log("Datos obtenidos de la API", apiData);
 
-            if (apiResponse.ok) {
-                storeUserData(apiData);
-                // Redirige al usuario después de login
-                navigate('/dashboard');  // Aquí va la ruta después del login
-            } else {
-                setError('Error en el login. Verifique sus credenciales.');
-                console.error("Error en autenticación API", apiData);
+            if (!apiResponse.ok || typeof apiData.auth_token !== 'string') {
+                setError(apiData.message || 'Error en el login. Verifique sus credenciales.');
+                setErrorMessage(apiData.message || 'Error en el login.');
+                setErrorSnackbar(true);
+                return;
             }
+
+            if (apiData.auth_token.startsWith("Sesión ya iniciada")) {
+                setErrorMessage("Sesión ya iniciada, tiempo de expiración actualizado.");
+                setErrorSnackbar(true);
+                return;
+            }
+
+            setSuccessSnackbar(true);
+            setTimeout(() => {
+                onLogin(apiData.auth_token, apiData);
+            }, 1500);
         } catch (error) {
-            setError('Error de red o en el servidor.');
-            console.error("Error de red o servidor", error);
+            console.error("Error en la conexión con la API", error);
+            setErrorMessage('Error de red o en el servidor.');
+            setErrorSnackbar(true);
         }
     };
 
@@ -84,18 +78,13 @@ const Login = ({ onLogin }) => {
                 </div>
 
                 <form onSubmit={loginUsuario}>
-                    <div>
-                        <input
-                            type="text"
-                            value={cuil}
-                            onChange={(e) => validateCuil(e.target.value)}
-                            placeholder="CUIL"
-                            required
-                            maxLength="11"
-                        />
-                        {cuilError && <span className="error-text">El CUIL debe ser un número de 11 dígitos</span>}
-                    </div>
-
+                    <input
+                        type="text"
+                        value={usuario}
+                        onChange={handleUsuarioChange}
+                        placeholder="Usuario"
+                        required
+                    />
                     <input
                         type="password"
                         value={password}
@@ -103,15 +92,23 @@ const Login = ({ onLogin }) => {
                         placeholder="Contraseña"
                         required
                     />
-
                     {error && <span className="error-text">{error}</span>}
-
-                    <input type="submit" value="Ingresar" disabled={isDisabled} />
+                    <input type="submit" value="Ingresar" />
                 </form>
 
                 <p>V 0.1.24</p>
                 <p className="footer-text">Desarrollado por: DDSOFTWARE 2025</p>
             </div>
+            <Snackbar open={successSnackbar} autoHideDuration={3000} onClose={() => setSuccessSnackbar(false)}>
+                <Alert onClose={() => setSuccessSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+                    ¡Inicio de sesión exitoso!
+                </Alert>
+            </Snackbar>
+            <Snackbar open={errorSnackbar} autoHideDuration={3000} onClose={() => setErrorSnackbar(false)}>
+                <Alert onClose={() => setErrorSnackbar(false)} severity="error" sx={{ width: '100%' }}>
+                    {errorMessage}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };

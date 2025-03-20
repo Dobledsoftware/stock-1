@@ -60,8 +60,8 @@ class Ventas(conexion.Conexion):
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error al validar stock desde /inventario: {str(e)}")
-
-
+        
+######################################registrar_venta################################################################################
 
     async def registrar_venta(self, id_usuario: int, productos: List[Dict]):
         """ ✅ **Registra una venta solo si hay stock disponible y el usuario existe.** """
@@ -78,7 +78,9 @@ class Ventas(conexion.Conexion):
 
             total_venta = 0
 
-            print("entra", productos)  # Log para depuración
+            # **Obtener identificador de evento para el movimiento de stock**
+            cursor.execute("SELECT COALESCE(MAX(identificador_evento), 0) + 1 AS nuevo_identificador_evento FROM stock_movimientos;")
+            identificador_evento = cursor.fetchone()[0]
 
             # **Validar stock antes de registrar la venta**
             for producto in productos:
@@ -97,7 +99,7 @@ class Ventas(conexion.Conexion):
 
                 stock_valido = await self.validar_stock(
                     id_producto=id_producto,
-                    codigo_barras=None,  # Ya obtenemos id_producto, así que no usamos código de barras en stock
+                    codigo_barras=None,  
                     cantidad=cantidad,
                     id_proveedor=None,
                     id_almacen=None
@@ -128,7 +130,8 @@ class Ventas(conexion.Conexion):
 
                 # **Buscar stock solo por id_producto**
                 cursor.execute("""
-                    SELECT id_stock, precio_costo_ars FROM stock
+                    SELECT id_stock, precio_costo_ars, id_proveedor 
+                    FROM stock
                     WHERE id_producto = %s AND stock_actual > 0
                     ORDER BY fecha_ingreso ASC LIMIT 1;
                 """, (id_producto,))
@@ -137,9 +140,12 @@ class Ventas(conexion.Conexion):
                 if not stock_data:
                     raise HTTPException(status_code=400, detail=f"Stock insuficiente para producto {id_producto or codigo_barras}")
 
-                id_stock, precio_costo = stock_data
+                id_stock, precio_costo, id_proveedor = stock_data
+
+                # **Actualizar stock**
                 cursor.execute("UPDATE stock SET stock_actual = stock_actual - %s WHERE id_stock = %s;", (cantidad, id_stock))
 
+                # **Registrar en ventas_detalles**
                 sql_insert_detalle = """
                     INSERT INTO ventas_detalles (id_venta, id_stock, cantidad, precio_unitario)
                     VALUES (%s, %s, %s, %s);
@@ -147,10 +153,19 @@ class Ventas(conexion.Conexion):
                 cursor.execute(sql_insert_detalle, (id_venta, id_stock, cantidad, precio_costo))
                 total_venta += precio_costo * cantidad
 
+                # **Registrar movimiento de stock**
+                sql_insert_movimiento = """
+                    INSERT INTO stock_movimientos (id_stock, cantidad, fecha_movimiento, id_usuario, 
+                        id_proveedor, id_tipo_movimiento, identificador_evento)
+                    VALUES (%s, %s, NOW(), %s, %s, 2, %s);
+                """
+                cursor.execute(sql_insert_movimiento, (id_stock, cantidad, id_usuario, id_proveedor, identificador_evento))
+
+            # **Actualizar total de la venta**
             cursor.execute("UPDATE ventas SET total_venta = %s WHERE id_venta = %s;", (total_venta, id_venta))
             conexion.commit()
 
-            return {"status": "success", "message": "Venta registrada con éxito", "id_venta": id_venta}
+            return {"status": "success", "message": "Venta registrada con éxito", "id_venta": id_venta, "identificador_evento": identificador_evento}
 
         except Exception as e:
             conexion.rollback()
@@ -159,3 +174,4 @@ class Ventas(conexion.Conexion):
         finally:
             cursor.close()
             conexion.close()
+

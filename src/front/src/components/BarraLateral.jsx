@@ -11,8 +11,6 @@ import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-
-// Íconos de Material UI para cada sección
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ArchiveIcon from '@mui/icons-material/Archive';
@@ -40,7 +38,7 @@ const closedMixin = (theme) => ({
     duration: theme.transitions.duration.leavingScreen,
   }),
   overflowX: 'hidden',
-  width: '70px', // Ancho cuando la barra está "cerrada"
+  width: '70px',
   [theme.breakpoints.up('sm')]: {
     width: '70px',
   },
@@ -54,7 +52,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   ...theme.mixins.toolbar,
 }));
 
-// Configuración del Drawer para manejar los estados abierto/cerrado
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== 'open',
 })(({ theme, open }) => ({
@@ -72,140 +69,56 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-const BarraLateral = () => {
+const menuItems = [
+  { id: 1, label: 'Productos', path: '/productos', icon: <ArchiveIcon /> },
+  { id: 2, label: 'Ventas', path: '/ventas', icon: <ShoppingCartIcon /> },
+  { id: 3, label: 'Administración', path: '/administracion', icon: <SettingsIcon /> },
+  { id: 4, label: 'Panel', path: '/panel', icon: <PersonIcon /> },
+  { id: 5, label: 'Abastecimiento', path: '/abastecimiento', icon: <ArchiveIcon /> },
+  { id: 6, label: 'Cierre de Caja', path: '/cierre', icon: <ShoppingCartIcon /> },
+  { id: 7, label: 'Configuración', path: '/configuracion', icon: <SettingsIcon /> },
+  { id: 8, label: 'Config Stock', path: '/config', icon: <ArchiveIcon /> },
+  { id: 9, label: 'Movimientos Stock', path: '/movimientos', icon: <ArchiveIcon /> },
+  { id: 10, label: 'Inventario', path: '/inventario', icon: <ArchiveIcon /> },
+];
+
+const BarraLateral = ({ permisosUsuario }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
-  const [activeItem, setActiveItem] = useState('');
 
-  // Alterna el estado del Drawer (abierto/cerrado)
   const toggleDrawer = () => {
     setOpen(!open);
-  };
-
-  // Alterna el submenú activo y, si está cerrado, abre la barra
-  const handleActiveItem = (item) => {
-    setActiveItem(activeItem === item ? '' : item);
-    if (!open) {
-      setOpen(true);
-    }
   };
 
   return (
     <Drawer variant="permanent" open={open}>
       <Toolbar>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          {/* Logo con función para alternar el Drawer */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
           <img
             src="/img/imagen.jpg"
             alt="logo"
-            style={{
-              maxWidth: open ? '180px' : '50px',
-              cursor: 'pointer',
-              transition: 'max-width 0.3s ease',
-            }}
+            style={{ maxWidth: open ? '180px' : '50px', cursor: 'pointer', transition: 'max-width 0.3s ease' }}
             onClick={toggleDrawer}
           />
         </Box>
       </Toolbar>
       <Divider />
       <List>
-        {/* Menú Stock */}
-        <ListItemButton onClick={() => handleActiveItem('stock')}>
-          <ListItemIcon>
-            <ArchiveIcon />
-          </ListItemIcon>
-          {open && <ListItemText primary="Stock" />}
-          {open && (activeItem === 'stock' ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-        <Collapse in={activeItem === 'stock' && open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/inventario">
-              <ListItemText primary="Inventario" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/movimientos">
-              <ListItemText primary="Stock" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/config">
-              <ListItemText primary="Panel de configuración stock" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/abastecimiento">
-              <ListItemText primary="Abastecimiento" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/panel">
-              <ListItemText primary="Panel" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-
-        {/* Menú Ventas */}
-        <ListItemButton onClick={() => handleActiveItem('ventas')}>
-          <ListItemIcon>
-            <ShoppingCartIcon />
-          </ListItemIcon>
-          {open && <ListItemText primary="Ventas" />}
-          {open && (activeItem === 'ventas' ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-        <Collapse in={activeItem === 'ventas' && open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/ventas">
-              <ListItemText primary="Nueva Venta" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/cierre">
-              <ListItemText primary="Cierre de Caja" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-
-        {/* Menú Administración */}
-        <ListItemButton onClick={() => handleActiveItem('administracion')}>
-          <ListItemIcon>
-            <SettingsIcon />
-          </ListItemIcon>
-          {open && <ListItemText primary="Administración" />}
-          {open && (activeItem === 'administracion' ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-        <Collapse in={activeItem === 'administracion' && open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/administracion">
-              <ListItemText primary="Usuarios" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/configuracion">
-              <ListItemText primary="Configuración" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-
-        {/* Menú Perfil */}
-        <ListItemButton onClick={() => handleActiveItem('perfil')}>
-          <ListItemIcon>
-            <PersonIcon />
-          </ListItemIcon>
-          {open && <ListItemText primary="Perfil" />}
-          {open && (activeItem === 'perfil' ? <ExpandLess /> : <ExpandMore />)}
-        </ListItemButton>
-        <Collapse in={activeItem === 'perfil' && open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/editar-perfil">
-              <ListItemText primary="Editar Perfil" />
-            </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} component={NavLink} to="/cambiar-contrasena">
-              <ListItemText primary="Cambiar Contraseña" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-
-        {/* Opción Salir */}
-        <ListItemButton>
-          <ListItemIcon>
-            <ExitToAppIcon />
-          </ListItemIcon>
+        {menuItems.filter(item => permisosUsuario.includes(item.id)).map(({ id, label, path, icon }) => (
+          <ListItemButton key={id} component={NavLink} to={path}>
+            <ListItemIcon>{icon}</ListItemIcon>
+            {open && <ListItemText primary={label} />}
+          </ListItemButton>
+        ))}
+      </List>
+      <Divider />
+      <List>
+        <ListItemButton onClick={() => {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('usuario');
+          window.location.href = "/"; // Redirigir sin recargar toda la app
+        }}>
+          <ListItemIcon><ExitToAppIcon /></ListItemIcon>
           {open && <ListItemText primary="Salir" />}
         </ListItemButton>
       </List>
