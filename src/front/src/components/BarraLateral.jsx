@@ -6,20 +6,15 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import IconButton from '@mui/material/IconButton';
-import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import { Snackbar, Alert } from '@mui/material';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
 
 const drawerWidth = 240;
 
@@ -43,14 +38,6 @@ const closedMixin = (theme) => ({
     width: '70px',
   },
 });
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-}));
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== 'open',
@@ -85,9 +72,58 @@ const menuItems = [
 const BarraLateral = ({ permisosUsuario }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
+  const [logoutSnackbar, setLogoutSnackbar] = useState(false);
+  const [errorSnackbar, setErrorSnackbar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const toggleDrawer = () => {
     setOpen(!open);
+  };
+
+  const handleLogout = async () => {
+    const authToken = localStorage.getItem('auth_token');
+
+    if (!authToken) {
+      console.error("Error: No hay token de autenticación para cerrar sesión");
+      setErrorMessage("No hay token de autenticación");
+      setErrorSnackbar(true);
+      return;
+    }
+
+    console.log("Enviando solicitud de logout con token:", authToken);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({})
+      });
+
+      const responseData = await response.json();
+      console.log("Respuesta del servidor en logout:", response.status, responseData);
+
+      if (!response.ok) {
+        console.error("Error al cerrar sesión", response.status, responseData);
+        setErrorMessage(responseData.detail || "Error al cerrar sesión");
+        setErrorSnackbar(true);
+        return;
+      }
+
+      console.log("Logout exitoso. Eliminando datos de sesión...");
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('usuario');
+      setLogoutSnackbar(true);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    } catch (error) {
+      console.error("Error en la solicitud de logout", error);
+      setErrorMessage("Error de conexión con el servidor");
+      setErrorSnackbar(true);
+    }
   };
 
   return (
@@ -113,15 +149,16 @@ const BarraLateral = ({ permisosUsuario }) => {
       </List>
       <Divider />
       <List>
-        <ListItemButton onClick={() => {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('usuario');
-          window.location.href = "/"; // Redirigir sin recargar toda la app
-        }}>
+        <ListItemButton onClick={handleLogout}>
           <ListItemIcon><ExitToAppIcon /></ListItemIcon>
           {open && <ListItemText primary="Salir" />}
         </ListItemButton>
       </List>
+      <Snackbar open={logoutSnackbar} autoHideDuration={2000} onClose={() => setLogoutSnackbar(false)}>
+        <Alert onClose={() => setLogoutSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+          ¡Sesión cerrada con éxito!
+        </Alert>
+      </Snackbar>
     </Drawer>
   );
 };

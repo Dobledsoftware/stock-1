@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query  # Importa APIRouter para crear grupos de rutas y HTTPException para manejar errores.
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query, Header,Depends # Importa APIRouter para crear grupos de rutas y HTTPException para manejar errores.
 from fastapi.responses import JSONResponse, Response  # Importa JSONResponse para devolver respuestas JSON personalizadas.
 from pydantic import BaseModel  # Importa BaseModel para definir esquemas de solicitudes y respuestas.
 #importa las clases
@@ -196,15 +196,18 @@ async def login(usuario: UsuarioLogin_request, response: Response):
 ###########################logout#####################################################################
 
 @router.post("/logout")
-async def logout(response: Response, usuario: validateTockenApi):
+async def logout(response: Response, authorization: str = Header(...)):
     """
     🔐 **Cerrar sesión eliminando el token de `tokens_activos`.**
-    
-    📌 Verifica si el token existe antes de eliminarlo.  
-    📌 Si el token no está en la BD, devuelve un error `401 Unauthorized`.  
-    📌 Si el token es válido, lo elimina y cierra sesión correctamente.  
     """
-    return await Logout.cerrar_sesion(response, usuario.token)
+    # Verifica si el encabezado Authorization tiene formato correcto
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token inválido o ausente en el encabezado")
+
+    token = authorization.split("Bearer ")[1]  # Extraer solo el token
+    print(f"Token recibido en backend: {token}")  # 🔍 Debug    
+    
+    return await Logout.cerrar_sesion(response, token)
 
 
 ###########################validateToken#####################################################################

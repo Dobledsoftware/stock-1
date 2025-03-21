@@ -2,7 +2,7 @@ import jwt
 import datetime
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-SECRET_KEY = "Recibos"  # Cambia esto por una clave secreta segura
+SECRET_KEY = "STOCK"  # Cambia esto por una clave secreta segura
 
 class token:
     @staticmethod    
